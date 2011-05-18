@@ -95,7 +95,7 @@ class AlphabeticFilterSpec(ChoicesFilterSpec):
         if self.has_output():
             t.append(_(u'<h3>By %s:</h3>\n<div>\n') % escape(self.title()))
             for choice in self.choices(cl):
-                t.append(u'<span%s><a href="%s">%s</a></span>\n' % \
+                t.append(u'&nbsp;<span%s><a href="%s">%s</a></span>\n' % \
                     ((choice['selected'] and ' class="selected"' or ''),
                      iri_to_uri(choice['query_string']),
                      choice['display']))
@@ -112,7 +112,7 @@ class ComboFilterSpec(AllValuesFilterSpec):
     filter sidebar. Set the alphabetic filter in the model field attribute
     'alphabetic_filter'.
 
-    my_model_field.alphabetic_filter = True
+    my_model_field.combo_filter = True
     """
     USE_OUTPUT_FUNC = True
     

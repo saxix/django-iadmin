@@ -3,7 +3,7 @@ from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline a
 from django.contrib.admin.util import flatten_fieldsets
 from django.db.models.fields import AutoField
 from . import widgets
-
+from . import filterspecs
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
