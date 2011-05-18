@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils.encoding import StrAndUnicode, force_unicode
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy, ugettext as _
-
+from django import forms
 
 __all__ = ['RelatedFieldWidgetWrapperLinkTo']
 
@@ -14,10 +14,7 @@ class LabelWidget(forms.HiddenInput, StrAndUnicode):
     def render(self, name, value, attrs=None):
         if value is None: value = ''
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        return mark_safe(u'<span%s>%s</span>' % ( forms.util.flatatt(final_attrs),
-                                                  force_unicode(value)
-                                                  )
-        )
+        return mark_safe(u'<span%s>%s</span>' % ( forms.util.flatatt(final_attrs),force_unicode(value)))
 
 
 class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):

@@ -43,31 +43,6 @@ class IModelAdmin(DjangoModelAdmin):
         return None
     declared_fieldsets = property(_declared_fieldsets)
 
-    def change_view(self, request, object_id, extra_context=None):
-        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
-
-
-#    def response_change(self, request, obj):
-#
-#        ret = super(IModelAdmin, self).response_change(request, obj)
-#        if request.method == 'POST':
-#            ret.set_cookie('selected_tab', request.POST.get('selected_tab', 0))
-#        return ret
-
-#    def change_view(self, request, object_id, extra_context=None):
-#        if request.method == 'POST':
-#            s = request.POST.get('selected_tab', 0)
-#            assert s > 0
-#        extra_context = {'selected_tab' : request.POST.get('selected_tab', 0)}
-##        raise Exception(extra_context)
-#        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
-#
-#    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
-#        ret =  super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
-#        if request.method == 'POST':
-#            ret.set_cookie('selected_tab', request.POST.get('selected_tab', 0))
-#        return ret
-
 
 class ITabularInline(DjangoTabularInline):
     template = 'admin/edit_inline/tabular_tab.html'
@@ -78,3 +53,5 @@ class ITabularInline(DjangoTabularInline):
         if formfield and db_field.name not in self.raw_id_fields:
             formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
         return formfield
+
+
