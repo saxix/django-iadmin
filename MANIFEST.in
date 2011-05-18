@@ -1,0 +1,9 @@
+include README
+include AUTHORS
+include INSTALL
+include LICENSE
+include MANIFEST.in
+include setup.py
+recursive-include iadmin *.py
+recursive-include iadmin/media *
+recursive-include iadmin/templates *
