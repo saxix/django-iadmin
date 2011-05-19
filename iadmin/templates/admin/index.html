@@ -10,67 +10,18 @@
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/portlets.js"></script>
     {% if app_list|length_is:"1" %}
     {% else %}
-
-    <script>
-        init_portlets(jQuery);
-//        var $ = jQuery;
-//        $(function() {
-//            $(".column").sortable({
-//                        connectWith: ".column",
-//                        stop: function(event, ui) {
-//                            $('.column').each(function() {
-//                                var column = $(this).attr('id');
-////                                 console.log( column );
-//                                var x = new Array()
-//                                $('.portlet', this).each(function() {
-//                                    var portlet = $(this).attr('id');
-//                                    x.push(portlet);
-//                                });
-////                                 console.log( x.join() );
-//                                $.cookie(column, x);
-//                            });
-//                        }
-//                    });
-//
-//            $(".portlet").addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
-//                    .find(".portlet-header")
-//                    .addClass("ui-widget-header ui-corner-all")
-//                    .prepend("<span class='ui-icon ui-icon-minusthick'></span>")
-//                    .end()
-//                    .find(".portlet-content");
-//
-//            $(".portlet-header .ui-icon").click(function() {
-//                $(this).toggleClass("ui-icon-minusthick").toggleClass("ui-icon-plusthick");
-//                $(this).parents(".portlet:first").find(".portlet-content").toggle();
-//            });
-//
-//            $(".column").disableSelection();
-//
-//            $(window).load(function() {
-//                $('.column').each(function() {
-//                    var column = $(this).attr('id');
-//                    var ck = $.cookie(column);
-////                    console.log( ck );
-//                    var e = ck.split(',');
-//                    $.each(e, function(index, value) {
-//                        var portlet = $('#' + value);
-//                        $(portlet).detach().appendTo('#' + column);
-////                        console.log( column, value );
-//                    });
-//
-//                });
-//            });
-//        });
-    </script>
+        <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/portlets.js"></script>
+        <script>
+            init_portlets(jQuery);
+        </script>
     {% endif %}
 {% endblock %}
 
 {% block coltype %}{% endblock %}
 
-{% block bodyclass %}dashboard2{% endblock %}
+{% block bodyclass %}{% endblock %}
 
 {% block breadcrumbs %}{% endblock %}
 
@@ -93,7 +44,7 @@
                                         {% else %}
                                             <th scope="row">{{ model.name }}</th>
                                         {% endif %}
-                                        <th scope="row"> {{ model.count|ljust:20 }}</th>
+                                        <th scope="row" align='right'> {{ model.count|rjust:20 }}</th>
                                         {% if model.perms.add %}
                                             <td><a href="{{ model.admin_url }}add/"
                                                    class="addlink">{% trans 'Add' %}</a></td>
@@ -129,7 +80,6 @@
         </div>
 
         <div class="column" id='column5'>
-            
             <div class="module portlet" _id="recent-actions-module">
                 <div class="portlet-header portlet-log">{% trans 'Recent Actions' %}</div>
                 <div class="portlet-content">

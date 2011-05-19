@@ -1,5 +1,4 @@
 var init_portlets = function($){
-//       var $ = jQuery;
         $(function() {
             $(".column").sortable({
                         connectWith: ".column",
@@ -36,12 +35,10 @@ var init_portlets = function($){
                 $('.column').each(function() {
                     var column = $(this).attr('id');
                     var ck = $.cookie(column);
-//                    console.log( ck );
                     var e = ck.split(',');
                     $.each(e, function(index, value) {
                         var portlet = $('#' + value);
                         $(portlet).detach().appendTo('#' + column);
-//                        console.log( column, value );
                     });
 
                 });

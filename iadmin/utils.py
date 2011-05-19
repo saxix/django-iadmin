@@ -1,4 +1,6 @@
 #
+from . import options
+
 __author__ = 'sax'
 
 
@@ -8,5 +10,5 @@ def tabular_factory(model, fields=None, **kwargs):
     attrs = {'model': model, 'fields': fields }
     if form in globals():
         attrs['form'] = form
-    Tab = type(name, (NGTabularInline,), attrs)
+    Tab = type(name, (options .ITabularInline,), attrs)
     return Tab

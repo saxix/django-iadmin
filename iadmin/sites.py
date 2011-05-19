@@ -153,6 +153,10 @@ class IAdminSite(AdminSite):
         return HttpResponseRedirect( url )
 
     def get_urls(self):
+        """
+            url admin_shortcut
+            Ex.
+        """
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
                 return self.admin_view(view, cacheable)(*args, **kwargs)
