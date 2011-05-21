@@ -10,8 +10,6 @@ iadmin/sites.py
 iadmin/urls.py
 iadmin/utils.py
 iadmin/widgets.py
-iadmin/media/iadmin/css/dashboard-ie.css
-iadmin/media/iadmin/css/dashboard.css
 iadmin/media/iadmin/css/jquery-ui-1.8.1.custom.css
 iadmin/media/iadmin/css/jquery-ui.css
 iadmin/media/iadmin/css/portlets.css
@@ -32,7 +30,6 @@ iadmin/media/iadmin/css/images/ui-icons_cd0a0a_256x240.png
 iadmin/media/iadmin/css/images/ui-icons_d8e7f3_256x240.png
 iadmin/media/iadmin/css/images/ui-icons_f9bd01_256x240.png
 iadmin/media/iadmin/img/edit.png
-iadmin/media/iadmin/js/dashboard.js
 iadmin/media/iadmin/js/jquery-ui.min.js
 iadmin/media/iadmin/js/jquery.cookie.js
 iadmin/media/iadmin/js/jquery.min.js
@@ -45,4 +42,5 @@ iadmin/templates/admin/index.html
 iadmin/templates/admin/edit_inline/tabular_tab.html
 iadmin/templatetags/__init__.py
 iadmin/templatetags/iadmin_list.py
+iadmin/templatetags/iadmin_modify.py
 iadmin/templatetags/iadminmedia.py
