@@ -11,6 +11,16 @@
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
     {% if app_list|length_is:"1" %}
+        <style type="text/css">
+            /*.column {border:1px solid red;}*/
+            #column1{
+                float:left;
+            }
+            #column2, #column3, #column4 { display:none;}
+            #column5{
+                float:right;
+            }
+        </style>
     {% else %}
         <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/portlets.js"></script>
         <script>
