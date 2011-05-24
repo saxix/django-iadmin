@@ -38,9 +38,8 @@ def export_to_csv(modeladmin, request, queryset):
     if 'apply' in request.POST:
         form = CSVOptions(request.POST)
         if form.is_valid():
-            response = HttpResponse(mimetype='text/plain')
-#            response = HttpResponse(mimetype='text/csv')
-    #        response['Content-Disposition'] = 'attachment;filename="export.csv"'
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment;filename="export.csv"'
             try:
                 writer = csv.writer(response,
                                     delimiter=str(form.cleaned_data['delimiter']),
