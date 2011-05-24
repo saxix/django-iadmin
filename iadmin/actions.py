@@ -32,12 +32,17 @@ class CSVOptions(forms.Form):
     datetime_format = forms.CharField(initial=formats.get_format('DATETIME_FORMAT'))
     date_format = forms.CharField(initial=formats.get_format('DATE_FORMAT'))
     time_format = forms.CharField(initial=formats.get_format('TIME_FORMAT'))
-    fields = forms.SelectMultiple()
+    columns = forms.MultipleChoiceField()
 
 def export_to_csv(modeladmin, request, queryset):
+    cols = [(f.name, f.verbose_name) for f in modeladmin.model._meta.fields]
+    initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME),
+               'columns': cols}
     if 'apply' in request.POST:
         form = CSVOptions(request.POST)
+        form.fields['columns'].choices = cols
         if form.is_valid():
+#            response = HttpResponse(mimetype='text/plain')
             response = HttpResponse(mimetype='text/csv')
             response['Content-Disposition'] = 'attachment;filename="export.csv"'
             try:
@@ -46,15 +51,15 @@ def export_to_csv(modeladmin, request, queryset):
                                     quotechar=str(form.cleaned_data['quotechar']),
                                     quoting=int(form.cleaned_data['quoting']))
                 if form.cleaned_data.get('header', False) :
-                    writer.writerow( [ f.verbose_name for f in queryset.model._meta.fields])
+                    writer.writerow( [ f for f in form.cleaned_data['columns']])
 
                 for obj in queryset:
                     row = []
-                    for f in queryset.model._meta.fields:
-                        if hasattr(obj, 'get_%s_display' % f.name):
-                            value = getattr(obj, 'get_%s_display' % f.name)()
+                    for fieldname in form.cleaned_data['columns']:
+                        if hasattr(obj, 'get_%s_display' % fieldname):
+                            value = getattr(obj, 'get_%s_display' % fieldname)()
                         else:
-                            value = getattr(obj, f.name)
+                            value = getattr(obj, fieldname)
                         if isinstance(value, datetime.datetime):
                             value =  dateformat.format(value, form.cleaned_data['datetime_format'] )
                         elif isinstance(value, datetime.date):
@@ -68,8 +73,8 @@ def export_to_csv(modeladmin, request, queryset):
             else:
                 return response
     else:
-        initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)}
         form = CSVOptions(initial=initial)
+        form.fields['columns'].choices = cols
 
     adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
     media = modeladmin.media + adminForm.media
@@ -86,5 +91,4 @@ def export_to_csv(modeladmin, request, queryset):
                                                     'app_label': modeladmin.model._meta.app_label,
                                                     'action': 'export_to_csv',
                                                     'media': mark_safe(media),
-#                                                    'selection': queryset,
                           }))
