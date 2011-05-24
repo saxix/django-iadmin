@@ -40,7 +40,7 @@ packages, data_files = scan_dir( 'iadmin' )
 
 setup(
     name = "django-iadmin",
-    version = '0.1.2dev',
+    version = '0.1.4dev',
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',
@@ -50,10 +50,7 @@ setup(
     include_package_data=True,
     platforms = ['any'],
     zip_safe=False,
-    install_requires=[
-        'django>=1.2.3',
-    ],
-
+    install_requires=[],
     classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',
                    'Framework :: Django',
