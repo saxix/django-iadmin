@@ -19,26 +19,18 @@ from django.template.context import RequestContext
 from django.utils.functional import curry
 from django.utils.safestring import mark_safe
 from django.utils import simplejson as json
+from iadmin.actions import export_to_csv
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
-def empty(modeladmin, request, queryset):
-    modeladmin.model.objects.all().delete()
-empty.short_description = "Empty (flush) the table"
+#def empty(modeladmin, request, queryset):
+#    modeladmin.model.objects.all().delete()
+#empty.short_description = "Empty (flush) the table"
 
 DO_NOT_MASS_UPDATE = 'do_NOT_mass_UPDATE'
 
 class MassUpdateForm(ModelForm):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
-
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList,
-                 label_suffix=':', empty_permitted=False, instance=None):
-            super(MassUpdateForm, self).__init__(data, files, auto_id, prefix, initial, error_class,
-                 label_suffix, empty_permitted, instance)
-#            for f in self.fields:
-#                if f != 'xxx':
-#                    self.fields[f].required = False
-
     def _clean_fields(self):
         for name, field in self.fields.items():
             value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
@@ -65,17 +57,15 @@ class MassUpdateForm(ModelForm):
 class IModelAdmin(DjangoModelAdmin):
     add_undefined_fields = False
     change_form_template='admin/change_form_tab.html'
-    actions = [empty, 'mass_update']
+    actions = ['mass_update', export_to_csv]
     formfield_overrides = {models.DateField:       {'widget': AdminDateWidget}}
-
-    def __init__(self, model, admin_site):
-        super(IModelAdmin, self).__init__(model, admin_site)
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         formfield = super(IModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
         if formfield and db_field.name not in self.raw_id_fields:
             formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
         return formfield
+
 
     def mass_update(self, request, queryset):
         Form = self.get_form(request)
@@ -89,6 +79,7 @@ class IModelAdmin(DjangoModelAdmin):
                     for k,v in form.cleaned_data.items():
                         setattr(record,k,v)
                         record.save()
+#                messages.error(request, "Error accepting %s (%s)" % (record, str(e)) )
             return HttpResponseRedirect(request.get_full_path())
         else:
             grouped = {}

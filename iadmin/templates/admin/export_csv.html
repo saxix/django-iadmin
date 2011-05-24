@@ -1,0 +1,63 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_modify adminmedia massupdate %}
+{% block extrahead %}{{ block.super }}
+    {#    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>#}
+    {#    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>#}
+    {#    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>#}
+    {#    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>#}
+    <script type="text/javascript">
+        (function($) {
+            $(document).ready(function($) {
+                $('#id_datetime_format, #id_date_format, #id_time_format,').after('&nbsp;&nbsp;<span class="sample"></span>');
+
+                var get_format = function ( sender ) {
+                    $.get('{% url admin:format_date %}', {'fmt': $(sender).val()},
+                            function(data) {
+                                $(sender).next('.sample').html(data);
+                            }
+                    );
+                }
+
+                $('#id_datetime_format, #id_date_format, #id_time_format,').keyup(function() {
+                    clearTimeout($(this).data('timer'));
+                    var target = $(this);
+                    var wait = setTimeout(function(){get_format( target  )}, 500);
+                    $(this).data('timer', wait);
+
+
+                });
+                $('#id_datetime_format, #id_date_format, #id_time_format,').trigger('keyup');
+            });
+        })(django.jQuery);
+
+    </script>
+
+{% endblock %}
+
+{% block breadcrumbs %}{% if not is_popup %}
+    <div class="breadcrumbs">
+        <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+        <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+        {% if has_change_permission %}<a
+                href=".">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %} &rsaquo;
+        CSV Export Options
+    </div>
+{% endif %}{% endblock %}
+
+{% block content %}
+    {% if form.subject.errors %}
+        <ol>
+            {% for error in form.subject.errors %}
+                <li><strong>{{ error|escape }}</strong></li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <table>
+            {{ adminform.form }}
+        </table>
+        <input type="hidden" name="action" value="{{ action }}"/>
+        <input type="submit" name="apply" value="Export"/>
+    </form>
+{% endblock %}

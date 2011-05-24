@@ -1,3 +1,4 @@
+import datetime
 import django
 from django.conf.urls.defaults import url, patterns
 #import django.contrib.admin.sites
@@ -5,8 +6,9 @@ from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
+from django.db.models.loading import get_models
 from django.db.models.signals import post_save, post_delete
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.functional import update_wrapper
 from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
@@ -14,6 +16,8 @@ from django.utils.translation import ugettext as _
 from django.shortcuts import render_to_response
 from django.views.decorators.cache import never_cache
 from . import options 
+from django.utils import dateformat, numberformat, datetime_safe
+
 
 def cache_admin(method, key=None):
     entry = key or method.__name__
@@ -152,6 +156,10 @@ class IAdminSite(AdminSite):
         url = reverse(view, args=[int(object_id)])
         return HttpResponseRedirect( url )
 
+    def format_date(self, request):
+        d = datetime.datetime.now()
+        return HttpResponse(dateformat.format(d, request.GET.get('fmt','')))
+
     def get_urls(self):
         """
             url admin_shortcut
@@ -162,8 +170,13 @@ class IAdminSite(AdminSite):
                 return self.admin_view(view, cacheable)(*args, **kwargs)
             return update_wrapper(wrapper, view)
 
-        urlpatterns = super(IAdminSite, self).get_urls()
+        urlpatterns = super(IAdminSite, self).get_urls\
+            ()
         urlpatterns += patterns('',
+                                url(r'^s/format/date/$',
+                                    wrap(self.format_date),
+                                    name='format_date'),
+
                                 url(r'^a/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
                                     wrap(self.admin_shortcut),
                                     name='admin_shortcut'))
