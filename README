@@ -1,0 +1,12 @@
+= Django iAdmin =
+
+iAdmin is a non intrusive extension to django standard admin.
+
+= Features =
+
+- multiple columns portlets-like home page
+- mass updates functionality
+- tabbed view of inlines
+- auto add models not registered
+- auto add fields not present in fieldset
+
