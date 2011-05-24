@@ -37,7 +37,7 @@ class CSVOptions(forms.Form):
 def export_to_csv(modeladmin, request, queryset):
     cols = [(f.name, f.verbose_name) for f in modeladmin.model._meta.fields]
     initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME),
-               'columns': cols}
+               'columns': [x for x,v in cols], 'quoting': csv.QUOTE_NONE, 'delimiter':','}
     if 'apply' in request.POST:
         form = CSVOptions(request.POST)
         form.fields['columns'].choices = cols
