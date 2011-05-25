@@ -64,7 +64,7 @@ def items_for_result(cl, result, form):
                 if value is None:
                     result_repr = EMPTY_CHANGELIST_VALUE
                 if isinstance(f.rel, models.ManyToOneRel):
-                    if f.name in cl.model_admin.list_display_rel_links:
+                    if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
                         result_repr = mark_safe(cl.model_admin._link_to_model(getattr(result, f.name)))
                     else:
                         result_repr = escape(getattr(result, f.name))
@@ -99,11 +99,11 @@ def items_for_result(cl, result, form):
             else:
                 result_repr = conditional_escape(result_repr)
 
-            if hasattr(cl.model_admin, '_on_%s_display' % field_name):
-                result_repr = getattr(cl.model_admin, '_on_%s_display' % field_name)(f, result, result_repr)
-
-            if hasattr(cl.model_admin, 'on_%s_display' % field_name):
-                result_repr = getattr(cl.model_admin, 'on_%s_display' % field_name)(f, result, result_repr)
+#            if hasattr(cl.model_admin, '_on_%s_display' % field_name):
+#                result_repr = getattr(cl.model_admin, '_on_%s_display' % field_name)(f, result, result_repr)
+#
+#            if hasattr(cl.model_admin, 'on_%s_display' % field_name):
+#                result_repr = getattr(cl.model_admin, 'on_%s_display' % field_name)(f, result, result_repr)
 
             yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
     if form and not form[cl.model._meta.pk.name].is_hidden:
