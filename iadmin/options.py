@@ -1,24 +1,27 @@
 import datetime
+#import django
+#import django.contrib.admin.util
 from django.conf import settings
-from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline
+from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.util import flatten_fieldsets
-from django.contrib.admin import helpers
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models.fields import AutoField
-from django.db import models, transaction
+from django.db import models
 from django import forms
 from . import widgets
 from django.contrib.admin.widgets import AdminDateWidget
-from . import filterspecs
+#from . import filterspecs
 from django.forms.fields import FileField
 from django.forms.models import modelform_factory, ModelForm
-from django.forms.util import ErrorList
+#from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from django.utils.functional import curry
+#from django.utils.functional import curry
 from django.utils.safestring import mark_safe
 from django.utils import simplejson as json
+#import iadmin.utils
 from iadmin.actions import export_to_csv
 
 __all__ = ['IModelAdmin', 'ITabularInline']
@@ -59,6 +62,7 @@ class IModelAdmin(DjangoModelAdmin):
     change_form_template='admin/change_form_tab.html'
     actions = ['mass_update', export_to_csv]
     formfield_overrides = {models.DateField:       {'widget': AdminDateWidget}}
+    list_display_rel_links = []
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         formfield = super(IModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
@@ -66,6 +70,10 @@ class IModelAdmin(DjangoModelAdmin):
             formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
         return formfield
 
+    def _link_to_model(self, obj, label=None):
+        lbl = label or str(obj)
+        url = self.admin_site.reverse_model(obj.__class__, obj.pk)
+        return '<a href="%s">%s</a>&nbsp;<img src="%siadmin/img/link.png"/>' % (url, lbl, settings.MEDIA_URL)
 
     def mass_update(self, request, queryset):
         Form = self.get_form(request)
@@ -75,11 +83,13 @@ class IModelAdmin(DjangoModelAdmin):
         if 'apply' in request.POST:
             form = MForm(request.POST)
             if form.is_valid():
+                done = 0
                 for record in queryset:
                     for k,v in form.cleaned_data.items():
                         setattr(record,k,v)
                         record.save()
-#                messages.error(request, "Error accepting %s (%s)" % (record, str(e)) )
+                        done += 1
+                messages.info(request, "Updated %s records" %  done)
             return HttpResponseRedirect(request.get_full_path())
         else:
             grouped = {}

@@ -151,10 +151,14 @@ class IAdminSite(AdminSite):
     def admin_shortcut(self, request, content_type_id, object_id):
         from django.contrib.contenttypes.models import ContentType
         content_type = ContentType.objects.get(pk=content_type_id)
-        #obj = content_type.get_object_for_this_type(pk=object_id)
         view = "admin:%s_%s_change" % (content_type.app_label, content_type.model)
         url = reverse(view, args=[int(object_id)])
         return HttpResponseRedirect( url )
+
+    def reverse_model(self, clazz, pk):
+        view = "admin:%s_%s_change" % (clazz._meta.app_label, clazz.__name__.lower())
+        url = reverse(view, args=[int(pk)])
+        return url
 
     def format_date(self, request):
         d = datetime.datetime.now()
