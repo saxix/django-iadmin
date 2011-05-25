@@ -5,9 +5,13 @@ Created on 28/ott/2009
 @author: sax
 '''
 import datetime
+from django.utils import simplejson as json
 from django import forms
 from django.contrib import messages
-from django.http import HttpResponse
+from django.core.exceptions import ValidationError
+from django.forms.fields import FileField
+from django.forms.models import modelform_factory, ModelForm
+from django.http import HttpResponse, HttpResponseRedirect
 import csv
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
@@ -17,8 +21,12 @@ from django.contrib.admin import helpers
 from django.utils import formats
 from django.utils import dateformat, numberformat, datetime_safe
 
+
+__all__ = ('export_to_csv', 'mass_update')
+
 delimiters=",;|:"
 quotes="'\"`"
+escapechars=" \\"
 class CSVOptions(forms.Form):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
     header = forms.BooleanField(required=False)
@@ -28,7 +36,7 @@ class CSVOptions(forms.Form):
         choices=((csv.QUOTE_ALL, 'All'), (csv.QUOTE_MINIMAL, 'Minimal'), (csv.QUOTE_NONE, 'None'),
                  (csv.QUOTE_NONNUMERIC, 'Non Numeric')))
     
-
+    escapechar = forms.ChoiceField(choices=(('',''),('\\','\\')), required=False)
     datetime_format = forms.CharField(initial=formats.get_format('DATETIME_FORMAT'))
     date_format = forms.CharField(initial=formats.get_format('DATE_FORMAT'))
     time_format = forms.CharField(initial=formats.get_format('TIME_FORMAT'))
@@ -47,6 +55,7 @@ def export_to_csv(modeladmin, request, queryset):
             response['Content-Disposition'] = 'attachment;filename="export.csv"'
             try:
                 writer = csv.writer(response,
+                                    escapechar=str(form.cleaned_data['escapechar']),
                                     delimiter=str(form.cleaned_data['delimiter']),
                                     quotechar=str(form.cleaned_data['quotechar']),
                                     quoting=int(form.cleaned_data['quoting']))
@@ -68,8 +77,8 @@ def export_to_csv(modeladmin, request, queryset):
                             value =  dateformat.format(value, form.cleaned_data['time_format'] )
                         row.append(value)
                     writer.writerow(row)
-            except AttributeError, e:
-                messages.error(request, "Error accepting %s (%s)" % ('', str(e)) )
+            except Exception, e:
+                messages.error(request, "Error: (%s)" % str(e) )
             else:
                 return response
     else:
@@ -92,3 +101,95 @@ def export_to_csv(modeladmin, request, queryset):
                                                     'action': 'export_to_csv',
                                                     'media': mark_safe(media),
                           }))
+
+
+DO_NOT_MASS_UPDATE = 'do_NOT_mass_UPDATE'
+
+class MassUpdateForm(ModelForm):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    def _clean_fields(self):
+        for name, field in self.fields.items():
+            value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+            try:
+                if isinstance(field, FileField):
+                    initial = self.initial.get(name, field.initial)
+                    value = field.clean(value, initial)
+                else:
+                    enabler = 'chk_id_%s' % name
+                    if self.data.get(enabler, False):
+                        value = field.clean(value)
+                        self.cleaned_data[name] = value
+                    if hasattr(self, 'clean_%s' % name):
+                        value = getattr(self, 'clean_%s' % name)()
+                        self.cleaned_data[name] = value
+            except ValidationError, e:
+                self._errors[name] = self.error_class(e.messages)
+                if name in self.cleaned_data:
+                    del self.cleaned_data[name]
+
+    def _post_clean(self):
+        pass
+
+
+def mass_update(modeladmin, request, queryset):
+    Form = modeladmin.get_form(request)
+    MForm = modelform_factory(modeladmin.model, form=MassUpdateForm)
+    form = None
+
+    if 'apply' in request.POST:
+        form = MForm(request.POST)
+        if form.is_valid():
+            done = 0
+            for record in queryset:
+                for k,v in form.cleaned_data.items():
+                    setattr(record,k,v)
+                    record.save()
+                    done += 1
+            messages.info(request, "Updated %s records" %  done)
+        return HttpResponseRedirect(request.get_full_path())
+    else:
+        grouped = {}
+        initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)}
+
+        for f in modeladmin.model._meta.fields:
+            grouped[f.name] = []
+        for el in queryset.all():
+            for f in modeladmin.model._meta.fields:
+                if hasattr(el, 'get_%s_display' % f.name):
+                    value =  getattr(el, 'get_%s_display' % f.name)()
+                else:
+                    value =  getattr(el, f.name)
+                grouped[f.name].append( value )
+
+
+        for f in modeladmin.model._meta.fields:
+            initial[f.name] = grouped[f.name][0]
+            grouped[f.name] = list(set(grouped[f.name]))
+
+
+        form = MForm(initial=initial)
+
+    adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
+    media = modeladmin.media + adminForm.media
+    dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.date) else str(obj)
+
+    return render_to_response('admin/mass_update.html',
+                              RequestContext(request, { 'adminform': adminForm,
+                                                        'form': form,
+                                                        'grouped': grouped,
+                                                        'fieldvalues': json.dumps(grouped, default=dthandler),
+                                                        'change': True,
+                                                        'is_popup': False,
+                                                        'save_as': False,
+                                                        'has_delete_permission': False,
+                                                        'has_add_permission': False,
+                                                        'has_change_permission': True,
+                                                        'opts': modeladmin.model._meta,
+                                                        'app_label': modeladmin.model._meta.app_label,
+                                                        'action': 'mass_update',
+                                                        'media': mark_safe(media),
+                                                        'selection': queryset,
+                              }))
+
+
+mass_update.short_description = "Mass update"
