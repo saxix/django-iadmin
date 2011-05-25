@@ -1,5 +1,5 @@
 $(function() {
-    $('input[type=text],select').each(function() {
+    $('#col1 input[type=text], #col1 select').each(function() {
         $(this).attr('disabled', 'disabled');
     });
     $('.fastfieldvalue').click(function() {

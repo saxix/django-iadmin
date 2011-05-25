@@ -9,7 +9,7 @@ iAdmin is a non intrusive extension to django standard admin.
 - auto add models not registered
 - auto add fields not present in fieldset (add_undefined_fields)
 - link to foreignkey edit page from changelist (list_display_rel_links)
-- on_COLUMN_display callback to intercept changelist cell display
+- filters on cell values (cell_filters)
 - utilities ( tabular_factory)
 
 - mass updates functionality

@@ -1,0 +1,17 @@
+table thead th.filtered a {
+    -moz-background-clip: border;
+    -moz-background-origin: padding;
+    -moz-background-size: auto auto;
+    background-attachment: scroll;
+    background-color: transparent;
+    background-image: url("../img/zoom.png");
+    background-position: right 0.4em;
+    background-repeat: no-repeat;
+    padding-right: 13px;
+}
+
+table .linktomodel, table .linktomodel{
+    float: right;
+    width:12px;
+    padding-left:2px;
+}

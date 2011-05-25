@@ -33,6 +33,69 @@ def iadmin_list_filter(cl, spec):
 
 iadmin_list_filter = register.simple_tag(iadmin_list_filter)
 
+
+
+def result_headers(cl):
+    """
+    Generates the list column headers.
+    """
+    lookup_opts = cl.lookup_opts
+    cl._filtered_on = None
+    for i, field_name in enumerate(cl.list_display):
+        header, attr = label_for_field(field_name, cl.model,
+            model_admin = cl.model_admin,
+            return_attr = True
+        )
+        if attr:
+            # if the field is the action checkbox: no sorting and special class
+            if field_name == 'action_checkbox':
+                yield {
+                    "text": header,
+                    "class_attrib": mark_safe(' class="action-checkbox-column"')
+                }
+                continue
+
+            # It is a non-field, but perhaps one that is sortable
+            admin_order_field = getattr(attr, "admin_order_field", None)
+            if not admin_order_field:
+                yield {"text": header}
+                continue
+
+            # So this _is_ a sortable non-field.  Go to the yield
+            # after the else clause.
+        else:
+            admin_order_field = None
+
+        th_classes = []
+        new_order_type = 'asc'
+        if field_name == cl.order_field or admin_order_field == cl.order_field:
+            th_classes.append('sorted %sending' % cl.order_type.lower())
+            new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
+
+        filter_param_name= '%s__id__exact' % field_name
+        filtered = filter_param_name in cl.get_query_string()
+        if not filtered:
+            filter_param_name= '%s__exact' % field_name
+            filtered = filter_param_name in cl.get_query_string()
+
+        if filtered:
+            url = cl.get_query_string(remove=[filter_param_name])
+            th_classes = ['filtered']
+            cl._filtered_on = field_name
+        else:
+            url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
+
+        class_attrib = mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')
+
+        yield {
+            "text": header,
+            "filtered": filtered,
+            "sortable": True,
+            "url": url,
+            "class_attrib" : class_attrib
+        }
+
+            
 def items_for_result(cl, result, form):
     """
     Generates the actual list of data.
@@ -63,13 +126,20 @@ def items_for_result(cl, result, form):
             else:
                 if value is None:
                     result_repr = EMPTY_CHANGELIST_VALUE
+
                 if isinstance(f.rel, models.ManyToOneRel):
+                    result_repr = escape(getattr(result, f.name))
                     if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
-                        result_repr = mark_safe(cl.model_admin._link_to_model(getattr(result, f.name)))
-                    else:
-                        result_repr = escape(getattr(result, f.name))
+                        result_repr += mark_safe(cl.model_admin._link_to_model(getattr(result, f.name)))
                 else:
                     result_repr = display_for_field(value, f)
+
+                if hasattr(cl.model_admin, 'cell_filter') and (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
+                    a =  cl.model_admin._cell_filter(result, f)
+                    b =  result_repr
+                    result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
+
+
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
         if force_unicode(result_repr) == '':
@@ -98,13 +168,6 @@ def items_for_result(cl, result, form):
                 result_repr = mark_safe(force_unicode(bf.errors) + force_unicode(bf))
             else:
                 result_repr = conditional_escape(result_repr)
-
-#            if hasattr(cl.model_admin, '_on_%s_display' % field_name):
-#                result_repr = getattr(cl.model_admin, '_on_%s_display' % field_name)(f, result, result_repr)
-#
-#            if hasattr(cl.model_admin, 'on_%s_display' % field_name):
-#                result_repr = getattr(cl.model_admin, 'on_%s_display' % field_name)(f, result, result_repr)
-
             yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
     if form and not form[cl.model._meta.pk.name].is_hidden:
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))

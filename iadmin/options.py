@@ -7,6 +7,10 @@ from django.contrib.admin.util import flatten_fieldsets
 from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
+from django.utils.encoding import smart_unicode
+from django.utils.http import urlencode
+from django.db import models
+from django.utils.safestring import mark_safe
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
@@ -32,13 +36,45 @@ class IModelAdmin(DjangoModelAdmin):
         return formfield
 
     def _link_to_model(self, obj, label=None):
-        lbl = label or str(obj)
+        if not obj:
+            return ''
         url = self.admin_site.reverse_model(obj.__class__, obj.pk)
-        #return '<a href="%s">%s</a>&nbsp;<img src="%siadmin/img/link.png"/>' % (url, lbl, settings.MEDIA_URL)
-        return '%s&nbsp;<a href="%s"><img src="%siadmin/img/link.png"/></a>' % (lbl, url, settings.MEDIA_URL)
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (url, settings.MEDIA_URL)
 
-    def change_view(self, request, object_id, extra_context=None):
-        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
+    def _cell_filter(self, obj, field):
+        target = getattr(obj, field.name)
+        if not (obj and target):
+            return ''
+        if isinstance(field.rel, models.ManyToOneRel):
+            rel_name = field.rel.get_related_field().name
+            lookup_kwarg = '%s__%s__exact' % (field.name, rel_name)
+            url = self.get_query_string( {lookup_kwarg: target.pk})
+        else:
+            lookup_kwarg = '%s__exact' % field.name
+            url = self.get_query_string( {lookup_kwarg: target})
+
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/zoom.png"/></a></span>' % (url, settings.MEDIA_URL)
+
+
+    def get_query_string(self, new_params=None, remove=None):
+        if new_params is None: new_params = {}
+        if remove is None: remove = []
+        p = dict(self.request.GET.items())
+        for r in remove:
+            for k in p.keys():
+                if k.startswith(r):
+                    del p[k]
+        for k, v in new_params.items():
+            if v is None:
+                if k in p:
+                    del p[k]
+            else:
+                p[k] = v
+        return '?%s' % urlencode(p)
+
+    def changelist_view(self, request, extra_context=None):
+        self.request =request
+        return super(IModelAdmin, self).changelist_view(request, extra_context)
 
     def _declared_fieldsets(self):
         # overriden to handle `add_undefined_fields`

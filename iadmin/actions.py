@@ -4,22 +4,24 @@ Created on 28/ott/2009
 
 @author: sax
 '''
+from _collections import defaultdict
 import datetime
 from django.utils import simplejson as json
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.forms.fields import FileField
-from django.forms.models import modelform_factory, ModelForm
+from django.forms import FileField, ModelForm
+from django.forms.models import modelform_factory
+#from django.forms.fields import FileField
+#from django.forms.models import modelform_factory, ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
 import csv
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from django.utils.formats import date_format
 from django.utils.safestring import mark_safe
 from django.contrib.admin import helpers
 from django.utils import formats
-from django.utils import dateformat, numberformat, datetime_safe
+from django.utils import dateformat
 
 
 __all__ = ('export_to_csv', 'mass_update')
@@ -148,24 +150,20 @@ def mass_update(modeladmin, request, queryset):
             messages.info(request, "Updated %s records" %  done)
         return HttpResponseRedirect(request.get_full_path())
     else:
-        grouped = {}
+        grouped = defaultdict(lambda: [])
         initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)}
 
-        for f in modeladmin.model._meta.fields:
-            grouped[f.name] = []
-        for el in queryset.all():
+        for el in queryset.all()[:10]:
             for f in modeladmin.model._meta.fields:
-                if hasattr(el, 'get_%s_display' % f.name):
-                    value =  getattr(el, 'get_%s_display' % f.name)()
+                if hasattr(f , 'flatchoices') and f.flatchoices:
+                    raise Exception(1111)
+#                    return dict(field.flatchoices).get(value, EMPTY_CHANGELIST_VALUE)
+                    grouped[f.name] = getattr(f , 'flatchoices')
                 else:
                     value =  getattr(el, f.name)
-                grouped[f.name].append( value )
-
-
-        for f in modeladmin.model._meta.fields:
-            initial[f.name] = grouped[f.name][0]
-            grouped[f.name] = list(set(grouped[f.name]))
-
+                    if value != None and value not in grouped[f.name]:
+                        grouped[f.name].append( value )
+                initial[f.name] = initial.get(f.name, value)
 
         form = MForm(initial=initial)
 
