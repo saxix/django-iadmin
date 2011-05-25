@@ -40,7 +40,7 @@ packages, data_files = scan_dir( 'iadmin' )
 
 setup(
     name = "django-iadmin",
-    version = '0.1.4dev',
+    version = '0.1.5dev',
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',
