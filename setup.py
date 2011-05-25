@@ -55,7 +55,9 @@ setup(
                    'Environment :: Web Environment',
                    'Framework :: Django',
                    'Operating System :: OS Independent',
-                   'Programming Language :: Python',
+                   'Programming Language :: Python :: >2.5',
+                   'Intended Audience :: Developers',
+                   'Framework :: Django :: 1.2.3'
                    ],
     long_description = \
 """
