@@ -1,0 +1,27 @@
+
+
+Edit your settinhs.py and add iadmin application before django.contrib.admin
+    INSTALLED_APPS = (
+        ...
+        'iadmin',
+        'django.contrib.admin',
+        'django.contrib.messages',
+        ...
+        ...
+    )
+
+Add an entry into your urls.conf
+    from iadmin.i import site
+    site.autodiscover()
+
+    urlpatterns = patterns('',
+                url(r'', include('iadmin.urls')),
+                ...
+                ...
+    )
+
+
+In your admin.py file
+    import iadmin
+    from iadmin.i import IModelAdmin as ModelAdmin, ITabularInline as TabularInline
+    from iadmin.sites import IAdminSite, site
