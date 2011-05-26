@@ -2,6 +2,7 @@
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 import os
+import iadmin
 
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
@@ -40,7 +41,7 @@ packages, data_files = scan_dir( 'iadmin' )
 
 setup(
     name = "django-iadmin",
-    version = '0.1.5dev',
+    version = iadmin.__version__
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',

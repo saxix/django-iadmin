@@ -1,33 +1,51 @@
-import datetime
 #import django
 #import django.contrib.admin.util
-from django.conf import settings
-from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
+from django.conf.urls.defaults import patterns, url
+from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline
 from django.contrib.admin.util import flatten_fieldsets
 from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
-from django.utils.encoding import smart_unicode
-from django.utils.http import urlencode
-from django.db import models
-from django.utils.safestring import mark_safe
+from django.http import HttpResponse
+from django.utils.encoding import force_unicode, smart_str
+from django.utils.functional import update_wrapper
+from django.db import models, transaction
+from iadmin.views import IChangeList
+import django.utils.simplejson as json
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
 #def empty(modeladmin, request, queryset):
 #    modeladmin.model.objects.all().delete()
 #empty.short_description = "Empty (flush) the table"
-
+AUTOCOMPLETE = 'a'
+JSON = 'j'
+PJSON = 'p'
 
 class IModelAdmin(DjangoModelAdmin):
     add_undefined_fields = False
-    change_form_template='admin/change_form_tab.html'
+    change_form_template = 'admin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv]
-
-    #formfield_overrides = {models.DateField:       {'widget': AdminDateWidget}}
 
     list_display_rel_links = ()
     cell_filter = ()
+    ajax_search_fields = None
+    ajax_list_display = None
+
+    def __init__(self, model, admin_site):
+        self.ajax_search_fields = self.ajax_search_fields or self.search_fields
+        self.ajax_list_display = self.ajax_list_display or self.list_display
+
+        super(IModelAdmin, self).__init__(model, admin_site)
+        x = []
+        for name in self.cell_filter:
+            try:
+                f = self.model._meta.get_field(name)
+                x.append(name)
+            except:
+                if hasattr(self, name):
+                    x.append(name)
+        self.cell_filter = x
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         formfield = super(IModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
@@ -35,46 +53,51 @@ class IModelAdmin(DjangoModelAdmin):
             formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
         return formfield
 
-    def _link_to_model(self, obj, label=None):
-        if not obj:
-            return ''
-        url = self.admin_site.reverse_model(obj.__class__, obj.pk)
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (url, settings.MEDIA_URL)
 
-    def _cell_filter(self, obj, field):
-        target = getattr(obj, field.name)
-        if not (obj and target):
-            return ''
-        if isinstance(field.rel, models.ManyToOneRel):
-            rel_name = field.rel.get_related_field().name
-            lookup_kwarg = '%s__%s__exact' % (field.name, rel_name)
-            url = self.get_query_string( {lookup_kwarg: target.pk})
-        else:
-            lookup_kwarg = '%s__exact' % field.name
-            url = self.get_query_string( {lookup_kwarg: target})
+    def get_changelist(self, request, **kwargs):
+        return IChangeList
 
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/zoom.png"/></a></span>' % (url, settings.MEDIA_URL)
-
-
-    def get_query_string(self, new_params=None, remove=None):
-        if new_params is None: new_params = {}
-        if remove is None: remove = []
-        p = dict(self.request.GET.items())
-        for r in remove:
-            for k in p.keys():
-                if k.startswith(r):
-                    del p[k]
-        for k, v in new_params.items():
-            if v is None:
-                if k in p:
-                    del p[k]
+    def ajax_query(self, request):
+        # Apply keyword searches.
+        def construct_search(field_name):
+            if field_name.startswith('^'):
+                return "%s__istartswith" % field_name[1:]
+            elif field_name.startswith('='):
+                return "%s__iexact" % field_name[1:]
+            elif field_name.startswith('@'):
+                return "%s__search" % field_name[1:]
             else:
-                p[k] = v
-        return '?%s' % urlencode(p)
+                return "%s__icontains" % field_name
+        bit = request.GET.get('q', '')
+        fmt = request.GET.get('fmt', AUTOCOMPLETE)
+        or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in self.ajax_search_fields]
+        flds = set(('pk',) + tuple(self.ajax_list_display))
+        qs = self.model.objects.filter(*or_queries).values_list( *flds )
+        data = (map(smart_str,record) for record in qs)
+        if fmt == AUTOCOMPLETE:
+            ret = '\n'.join( "|".join(data) )
+        elif fmt == JSON:
+            ret = json.dumps( list(data) )
+        elif fmt == PJSON:
+            qs = self.model.objects.filter(*or_queries).values(*flds)
+            ret = json.dumps( list(qs) )
+        return HttpResponse( ret, content_type='text/plain' )
+    
+    def get_urls(self):
+        def wrap(view, cacheable=False):
+            def wrapper(*args, **kwargs):
+                return self.admin_site.admin_view(view, cacheable)(*args, **kwargs)
 
-    def changelist_view(self, request, extra_context=None):
-        self.request =request
-        return super(IModelAdmin, self).changelist_view(request, extra_context)
+            return update_wrapper(wrapper, view)
+        info = self.model._meta.app_label, self.model._meta.module_name
+        urlpatterns = super(IModelAdmin, self).get_urls()
+        urlpatterns += patterns('',
+                                url(r'^ajax/search$',
+                                    wrap(self.ajax_query),
+                                    name='%s_%s_ajax' % info),
+                                )
+        return urlpatterns
+
 
     def _declared_fieldsets(self):
         # overriden to handle `add_undefined_fields`
@@ -86,14 +109,15 @@ class IModelAdmin(DjangoModelAdmin):
                 flds = list(self.fieldsets)
                 fieldset_fields = flatten_fieldsets(self.fieldsets)
                 alls = [f.name for f in self.model._meta.fields if _valid(f)]
-                missing_fields = [f for f in alls if f not in fieldset_fields ]
-                flds.append(('Other', {'fields': missing_fields, 'classes': ('collapse',),},))
+                missing_fields = [f for f in alls if f not in fieldset_fields]
+                flds.append(('Other', {'fields': missing_fields, 'classes': ('collapse',), },))
                 return flds
             else:
                 return self.fieldsets
         elif self.fields:
             return [(None, {'fields': self.fields})]
         return None
+
     declared_fieldsets = property(_declared_fieldsets)
 
 

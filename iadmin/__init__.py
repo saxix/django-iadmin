@@ -1,5 +1,5 @@
-from iadmin.sites import IAdminSite, site
-from iadmin.options import IModelAdmin, ITabularInline
+__version__ = '0.1.5dev'
+
 
 
 

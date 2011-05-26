@@ -165,17 +165,12 @@ class IAdminSite(AdminSite):
         return HttpResponse(dateformat.format(d, request.GET.get('fmt','')))
 
     def get_urls(self):
-        """
-            url admin_shortcut
-            Ex.
-        """
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
                 return self.admin_view(view, cacheable)(*args, **kwargs)
             return update_wrapper(wrapper, view)
 
-        urlpatterns = super(IAdminSite, self).get_urls\
-            ()
+        urlpatterns = super(IAdminSite, self).get_urls()
         urlpatterns += patterns('',
                                 url(r'^s/format/date/$',
                                     wrap(self.format_date),

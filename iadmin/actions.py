@@ -156,9 +156,7 @@ def mass_update(modeladmin, request, queryset):
         for el in queryset.all()[:10]:
             for f in modeladmin.model._meta.fields:
                 if hasattr(f , 'flatchoices') and f.flatchoices:
-                    raise Exception(1111)
-#                    return dict(field.flatchoices).get(value, EMPTY_CHANGELIST_VALUE)
-                    grouped[f.name] = getattr(f , 'flatchoices')
+                    grouped[f.name] = dict(getattr(f , 'flatchoices')).values()
                 else:
                     value =  getattr(el, f.name)
                     if value != None and value not in grouped[f.name]:

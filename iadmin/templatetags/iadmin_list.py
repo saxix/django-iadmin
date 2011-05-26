@@ -72,11 +72,18 @@ def result_headers(cl):
             th_classes.append('sorted %sending' % cl.order_type.lower())
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
 
-        filter_param_name= '%s__id__exact' % field_name
+        cell_filter_field = getattr(attr, "cell_filter", field_name)
+
+        filter_param_name= '%s__id__exact' % cell_filter_field
         filtered = filter_param_name in cl.get_query_string()
+
         if not filtered:
-            filter_param_name= '%s__exact' % field_name
+            filter_param_name= '%s__exact' % cell_filter_field
             filtered = filter_param_name in cl.get_query_string()
+
+#        if not filtered:
+#            filter_param_name= '%s__exact' % field_name
+#            filtered = filter_param_name in cl.get_query_string()
 
         if filtered:
             url = cl.get_query_string(remove=[filter_param_name])
@@ -102,6 +109,11 @@ def items_for_result(cl, result, form):
     """
     first = True
     pk = cl.lookup_opts.pk.attname
+    if not hasattr(cl.model_admin, 'cell_filter'):
+        cl.model_admin.cell_filter=()
+        cl.model_admin.list_display_rel_links = ()
+        cl._filtered_on = None
+        
     for field_name in cl.list_display:
         row_class = ''
         try:
@@ -112,6 +124,8 @@ def items_for_result(cl, result, form):
             if f is None:
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
+                fname = getattr(attr, 'cell_filter', None)
+
                 if boolean:
                     allow_tags = True
                     result_repr = _boolean_icon(value)
@@ -123,25 +137,33 @@ def items_for_result(cl, result, form):
                     result_repr = escape(result_repr)
                 else:
                     result_repr = mark_safe(result_repr)
+
+                if (fname != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+                    f, attr, value = lookup_field(fname, result, cl.model_admin)
+                    a =  cl._cell_filter(result, f)
+                    b =  result_repr
+                    result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
+
             else:
                 if value is None:
                     result_repr = EMPTY_CHANGELIST_VALUE
 
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
-                    if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
-                        result_repr += mark_safe(cl.model_admin._link_to_model(getattr(result, f.name)))
+                    if f.name in cl.model_admin.list_display_rel_links:
+                        result_repr += mark_safe(cl._link_to_model(getattr(result, f.name)))
                 else:
                     result_repr = display_for_field(value, f)
 
-                if hasattr(cl.model_admin, 'cell_filter') and (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
-                    a =  cl.model_admin._cell_filter(result, f)
+                if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
+                    row_class = ' class="nowrap"'
+
+                if (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
+                    a =  cl._cell_filter(result, f)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
 
 
-                if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
-                    row_class = ' class="nowrap"'
         if force_unicode(result_repr) == '':
             result_repr = mark_safe('&nbsp;')
         # If list_display_links not defined, add the link tag to the first field
