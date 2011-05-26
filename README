@@ -11,7 +11,7 @@ iAdmin is a non intrusive extension to django standard admin.
 - link to foreignkey edit page from changelist (list_display_rel_links)
 - filters on cell values (cell_filters)
 - utilities ( tabular_factory)
-
+- ajax autocomplete widgets for ForeignKey
 - mass updates functionality
 - export to csv with options and formatting
 
