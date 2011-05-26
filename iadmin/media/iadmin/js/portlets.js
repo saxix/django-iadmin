@@ -35,12 +35,13 @@ var init_portlets = function($){
                 $('.column').each(function() {
                     var column = $(this).attr('id');
                     var ck = $.cookie(column);
-                    var e = ck.split(',');
-                    $.each(e, function(index, value) {
-                        var portlet = $('#' + value);
-                        $(portlet).detach().appendTo('#' + column);
-                    });
-
+                    if (ck){
+                        var e = ck.split(',');
+                        $.each(e, function(index, value) {
+                            var portlet = $('#' + value);
+                            $(portlet).detach().appendTo('#' + column);
+                        });
+                    }
                 });
             });
         });
