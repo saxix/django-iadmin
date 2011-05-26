@@ -41,7 +41,7 @@ packages, data_files = scan_dir( 'iadmin' )
 
 setup(
     name = "django-iadmin",
-    version = iadmin.__version__
+    version = iadmin.__version__,
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',
@@ -56,12 +56,8 @@ setup(
                    'Environment :: Web Environment',
                    'Framework :: Django',
                    'Operating System :: OS Independent',
-                   'Programming Language :: Python :: >2.5',
+                   'Programming Language :: Python',
                    'Intended Audience :: Developers',
-                   'Framework :: Django :: 1.2.3'
                    ],
-    long_description = \
-"""
-""",
-
+    long_description = open('README').read()
 )

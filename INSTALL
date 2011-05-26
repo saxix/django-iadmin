@@ -16,6 +16,7 @@ Add an entry into your urls.conf
 
     urlpatterns = patterns('',
                 url(r'', include('iadmin.urls')),
+                (r'^admin/', include(admin.site.urls)),
                 ...
                 ...
     )

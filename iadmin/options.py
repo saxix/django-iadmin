@@ -3,6 +3,7 @@
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline
 from django.contrib.admin.util import flatten_fieldsets
+from django.core.urlresolvers import reverse
 from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
@@ -10,14 +11,12 @@ from django.http import HttpResponse
 from django.utils.encoding import force_unicode, smart_str
 from django.utils.functional import update_wrapper
 from django.db import models, transaction
+from . import ajax
 from iadmin.views import IChangeList
 import django.utils.simplejson as json
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
-#def empty(modeladmin, request, queryset):
-#    modeladmin.model.objects.all().delete()
-#empty.short_description = "Empty (flush) the table"
 AUTOCOMPLETE = 'a'
 JSON = 'j'
 PJSON = 'p'
@@ -34,7 +33,7 @@ class IModelAdmin(DjangoModelAdmin):
 
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
-        self.ajax_list_display = self.ajax_list_display or self.list_display
+        self.ajax_list_display = self.ajax_list_display or ('__str__',)
 
         super(IModelAdmin, self).__init__(model, admin_site)
         x = []
@@ -47,15 +46,21 @@ class IModelAdmin(DjangoModelAdmin):
                     x.append(name)
         self.cell_filter = x
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        formfield = super(IModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-        if formfield and db_field.name not in self.raw_id_fields:
-            formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
-        return formfield
-
-
     def get_changelist(self, request, **kwargs):
         return IChangeList
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.pop("request", None)
+        if isinstance(db_field, models.ForeignKey):
+            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
+            if isinstance(modeladmin, IModelAdmin):
+                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
+                if service:
+                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
+            return formfield
+
+        return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
     def ajax_query(self, request):
         # Apply keyword searches.
@@ -71,16 +76,35 @@ class IModelAdmin(DjangoModelAdmin):
         bit = request.GET.get('q', '')
         fmt = request.GET.get('fmt', AUTOCOMPLETE)
         or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in self.ajax_search_fields]
-        flds = set(('pk',) + tuple(self.ajax_list_display))
-        qs = self.model.objects.filter(*or_queries).values_list( *flds )
-        data = (map(smart_str,record) for record in qs)
-        if fmt == AUTOCOMPLETE:
-            ret = '\n'.join( "|".join(data) )
-        elif fmt == JSON:
+        flds = list(self.ajax_list_display)
+
+        field_names = [f.name for f in self.model._meta.fields]
+        qs = self.model.objects.filter(*or_queries)
+        data = []
+        for record in qs:
+            row = [force_unicode(record.pk)]
+            for fname in flds:
+                if hasattr(record, fname):
+                    attr = getattr(record, fname)
+                    if callable(attr):
+                        val = attr()
+                    elif hasattr(self, fname):
+                        val = attr
+                    elif fname in field_names:
+                        val = attr
+                elif hasattr(self, fname):
+                    attr = getattr(self, fname)
+                    val = attr(record)
+                        
+                row.append( force_unicode( val ))
+            data.append( row )
+
+        if fmt == JSON:
             ret = json.dumps( list(data) )
         elif fmt == PJSON:
-            qs = self.model.objects.filter(*or_queries).values(*flds)
             ret = json.dumps( list(qs) )
+        else: #AUTOCOMPLETE
+            ret = '\n'.join( map("|".join, data) )
         return HttpResponse( ret, content_type='text/plain' )
     
     def get_urls(self):
@@ -131,4 +155,15 @@ class ITabularInline(DjangoTabularInline):
             formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
         return formfield
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.pop("request", None)
+        if isinstance(db_field, models.ForeignKey):
+            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
+            if isinstance(modeladmin, IModelAdmin):
+                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
+                if service:
+                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
+            return formfield
 
+        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)

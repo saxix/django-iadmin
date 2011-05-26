@@ -109,10 +109,11 @@ def items_for_result(cl, result, form):
     """
     first = True
     pk = cl.lookup_opts.pk.attname
-    if not hasattr(cl.model_admin, 'cell_filter'):
-        cl.model_admin.cell_filter=()
-        cl.model_admin.list_display_rel_links = ()
-        cl._filtered_on = None
+#    if not hasattr(cl.model_admin, 'cell_filter'):
+#        cl.model_admin.cell_filter=()
+#        cl.model_admin.list_display_rel_links = ()
+#        cl._filtered_on = None
+#        cl._cell_filter = None
         
     for field_name in cl.list_display:
         row_class = ''

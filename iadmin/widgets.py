@@ -9,14 +9,6 @@ from django import forms
 __all__ = ['RelatedFieldWidgetWrapperLinkTo']
 
 
-class LabelWidget(forms.HiddenInput, StrAndUnicode):
-    
-    def render(self, name, value, attrs=None):
-        if value is None: value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        return mark_safe(u'<span%s>%s</span>' % ( forms.util.flatatt(final_attrs),force_unicode(value)))
-
-
 class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
     def render(self, name, value, *args, **kwargs):
         rel_to = self.rel.to
@@ -34,3 +26,4 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
             output.append(u'<a href="%s" class="edit" id="edit_id_%s">&nbsp;&nbsp;' % (edit_url, name))
             output.append(u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>&nbsp;&nbsp;' % (settings.MEDIA_URL, _('Edit')))
         return mark_safe(u''.join(output))
+
