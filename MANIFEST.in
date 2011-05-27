@@ -1,9 +1,10 @@
-include README
+include README.rst
 include AUTHORS
-include INSTALL
+include INSTALL.rst
 include LICENSE
 include MANIFEST.in
 include setup.py
 recursive-include iadmin *.py
 recursive-include iadmin/media *
 recursive-include iadmin/templates *
+prune iadmin/tests

@@ -6,7 +6,7 @@ from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.db.models.loading import get_models
+#from django.db.models.loading import get_models
 from django.db.models.signals import post_save, post_delete
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.functional import update_wrapper
