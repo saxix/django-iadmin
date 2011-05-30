@@ -36,15 +36,15 @@ class IModelAdmin(DjangoModelAdmin):
         self.ajax_list_display = self.ajax_list_display or ('__str__',)
 
         super(IModelAdmin, self).__init__(model, admin_site)
-        x = []
-        for name in self.cell_filter:
-            try:
-                f = self.model._meta.get_field(name)
-                x.append(name)
-            except:
-                if hasattr(self, name):
-                    x.append(name)
-        self.cell_filter = x
+#        x = []
+#        for name in self.cell_filter:
+#            try:
+#                f = self.model._meta.get_field(name)
+#                x.append(name)
+#            except:
+#                if hasattr(self, name):
+#                    x.append(name)
+#        self.cell_filter = x
 
     def get_changelist(self, request, **kwargs):
         return IChangeList

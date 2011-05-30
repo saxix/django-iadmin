@@ -23,7 +23,6 @@ from django.contrib.admin import helpers
 from django.utils import formats
 from django.utils import dateformat
 
-
 __all__ = ('export_to_csv', 'mass_update')
 
 delimiters=",;|:"
@@ -157,6 +156,8 @@ def mass_update(modeladmin, request, queryset):
             for f in modeladmin.model._meta.fields:
                 if hasattr(f , 'flatchoices') and f.flatchoices:
                     grouped[f.name] = dict(getattr(f , 'flatchoices')).values()
+                elif hasattr(f , 'choices') and f.choices:
+                    grouped[f.name] = dict(getattr(f , 'choices')).values()
                 else:
                     value =  getattr(el, f.name)
                     if value != None and value not in grouped[f.name]:

@@ -60,7 +60,12 @@ def result_headers(cl):
             if not admin_order_field:
                 yield {"text": header}
                 continue
-
+                
+#            # It is a non-field, but perhaps one that is sortable
+#            cell_filter_field = getattr(attr, "cell_filter_field", None)
+#            if not cell_filter_field:
+#                yield {"text": header}
+#                continue
             # So this _is_ a sortable non-field.  Go to the yield
             # after the else clause.
         else:
@@ -72,18 +77,19 @@ def result_headers(cl):
             th_classes.append('sorted %sending' % cl.order_type.lower())
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
 
-        cell_filter_field = getattr(attr, "cell_filter", field_name)
 
-        filter_param_name= '%s__id__exact' % cell_filter_field
+        filter_param_name= '%s__id__exact' % field_name
         filtered = filter_param_name in cl.get_query_string()
 
         if not filtered:
+            filter_param_name= '%s__exact' % field_name
+            filtered = filter_param_name in cl.get_query_string()
+        if not filtered and hasattr(cl.model_admin, field_name):
+            method = getattr(cl.model_admin, field_name)
+            cell_filter_field = getattr(method, "admin_order_field", None)
             filter_param_name= '%s__exact' % cell_filter_field
             filtered = filter_param_name in cl.get_query_string()
 
-#        if not filtered:
-#            filter_param_name= '%s__exact' % field_name
-#            filtered = filter_param_name in cl.get_query_string()
 
         if filtered:
             url = cl.get_query_string(remove=[filter_param_name])
@@ -122,10 +128,10 @@ def items_for_result(cl, result, form):
         except (AttributeError, ObjectDoesNotExist):
             result_repr = EMPTY_CHANGELIST_VALUE
         else:
-            if f is None:
+            if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
-                fname = getattr(attr, 'cell_filter', None)
+                
 
                 if boolean:
                     allow_tags = True
@@ -139,9 +145,9 @@ def items_for_result(cl, result, form):
                 else:
                     result_repr = mark_safe(result_repr)
 
-                if (fname != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
-                    f, attr, value = lookup_field(fname, result, cl.model_admin)
-                    a =  cl._cell_filter(result, f)
+                if (field_name != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+#                    f, attr, value = lookup_field(fname, result, cl.model_admin)
+                    a =  cl._cell_filter(result, field_name)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
 
@@ -160,7 +166,7 @@ def items_for_result(cl, result, form):
                     row_class = ' class="nowrap"'
 
                 if (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
-                    a =  cl._cell_filter(result, f)
+                    a =  cl._cell_filter(result, field_name)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
 
