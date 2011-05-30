@@ -1,3 +1,8 @@
+#result_list thead th.filtered {
+    background-repeat: no-repeat !important;
+
+}
+
 table thead th.filtered a {
     -moz-background-clip: border;
     -moz-background-origin: padding;
