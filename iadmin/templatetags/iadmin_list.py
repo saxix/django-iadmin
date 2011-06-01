@@ -61,11 +61,6 @@ def result_headers(cl):
                 yield {"text": header}
                 continue
                 
-#            # It is a non-field, but perhaps one that is sortable
-#            cell_filter_field = getattr(attr, "cell_filter_field", None)
-#            if not cell_filter_field:
-#                yield {"text": header}
-#                continue
             # So this _is_ a sortable non-field.  Go to the yield
             # after the else clause.
         else:
@@ -144,8 +139,8 @@ def items_for_result(cl, result, form):
                     result_repr = escape(result_repr)
                 else:
                     result_repr = mark_safe(result_repr)
-
-                if (field_name != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+                
+                if hasattr(cl.model_admin, 'cell_filter') and (field_name != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
 #                    f, attr, value = lookup_field(fname, result, cl.model_admin)
                     a =  cl._cell_filter(result, field_name)
                     b =  result_repr
@@ -165,7 +160,7 @@ def items_for_result(cl, result, form):
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
 
-                if (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
+                if hasattr(cl.model_admin, 'cell_filter') and (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
                     a =  cl._cell_filter(result, field_name)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))

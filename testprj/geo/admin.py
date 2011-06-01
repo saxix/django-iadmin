@@ -16,6 +16,7 @@ class LocationAdmin(admin.ModelAdmin):
     def country_continent(self, h):
         return h.country.continent
     country_continent.admin_order_field = 'country__continent'
+    country_continent.admin_filter_value = 'country.continent' #TODO 
 
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
