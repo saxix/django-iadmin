@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
+from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
 from django.http import HttpResponse
 from django.utils.encoding import force_unicode, smart_str
 from django.utils.functional import update_wrapper
@@ -28,37 +29,48 @@ class IModelAdmin(DjangoModelAdmin):
 
     list_display_rel_links = ()
     cell_filter = ()
+    extra_allowed_filter = []
     ajax_search_fields = None
     ajax_list_display = None
 
+    def lookup_allowed(self, lookup, value):
+        original = super(IModelAdmin, self).lookup_allowed(lookup, value)
+        if original:
+            return True
+        parts = lookup.split(LOOKUP_SEP)
+        if len(parts) > 1 and parts[-1] in QUERY_TERMS:
+            parts.pop()
+        clean_lookup = LOOKUP_SEP.join(parts)
+        return clean_lookup in self.extra_allowed_filter
+
+    def _process_cell_filter(self):
+        for entry in self.cell_filter:
+            method = getattr(self, entry, None)
+            if method:
+                cell_filter_field = getattr(method, "admin_order_field", None)
+                self.extra_allowed_filter.append ( cell_filter_field )
+                
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
         self.ajax_list_display = self.ajax_list_display or ('__str__',)
 
         super(IModelAdmin, self).__init__(model, admin_site)
-#        x = []
-#        for name in self.cell_filter:
-#            try:
-#                f = self.model._meta.get_field(name)
-#                x.append(name)
-#            except:
-#                if hasattr(self, name):
-#                    x.append(name)
-#        self.cell_filter = x
+        self._process_cell_filter()
+        
 
     def get_changelist(self, request, **kwargs):
         return IChangeList
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         request = kwargs.pop("request", None)
-        if isinstance(db_field, models.ForeignKey):
-            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
-            if isinstance(modeladmin, IModelAdmin):
-                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
-                if service:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
-            return formfield
+#        if isinstance(db_field, models.ForeignKey):
+#            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+#            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
+#            if isinstance(modeladmin, IModelAdmin):
+#                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
+#                if service:
+#                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
+#            return formfield
 
         return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
@@ -157,13 +169,13 @@ class ITabularInline(DjangoTabularInline):
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         request = kwargs.pop("request", None)
-        if isinstance(db_field, models.ForeignKey):
-            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
-            if isinstance(modeladmin, IModelAdmin):
-                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
-                if service:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
-            return formfield
+#        if isinstance(db_field, models.ForeignKey):
+#            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+#            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
+#            if isinstance(modeladmin, IModelAdmin):
+#                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
+#                if service:
+#                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
+#            return formfield
 
         return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
