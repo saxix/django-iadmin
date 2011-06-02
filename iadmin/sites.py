@@ -164,6 +164,12 @@ class IAdminSite(AdminSite):
         d = datetime.datetime.now()
         return HttpResponse(dateformat.format(d, request.GET.get('fmt','')))
 
+    def env_info(self, request):
+        import sys, StringIO, pkg_resources
+        context = {'lib': pkg_resources.working_set}
+        context_instance = template.RequestContext(request, current_app=self.name)
+        return render_to_response('admin/env_info.html', context, context_instance=context_instance )
+
     def get_urls(self):
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
@@ -175,6 +181,9 @@ class IAdminSite(AdminSite):
                                 url(r'^s/format/date/$',
                                     wrap(self.format_date),
                                     name='format_date'),
+                                url(r'^s/info/$',
+                                    wrap(self.env_info),
+                                    name='env_info'),
 
                                 url(r'^a/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
                                     wrap(self.admin_shortcut),

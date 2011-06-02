@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block breadcrumbs %}
+{% if not is_popup %}
+    <div class="breadcrumbs">
+        <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+        Info
+    </div>
+{% endif %}
+{% endblock %}
+{% block content %}
+<table>
+{% for line in lib %}<tr><td>{{ line }}</td></tr>{% endfor %}
+</table>
+{% endblock %}
