@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.template.defaultfilters import filesizeformat
 import os
 

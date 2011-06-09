@@ -4,11 +4,19 @@
 {% block bodyclass %}change-list file_manager{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-
     <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css"/>
-    <script type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="/m/iadmin/css/changelists.css"/>
+
     <script type="text/javascript" src="{% admin_media_prefix %}js/core.js"></script>
+    <script type="text/javascript" src="{% admin_media_prefix %}js/jquery.js"></script>
+    <script type="text/javascript" src="{% admin_media_prefix %}js/jquery.init.js"></script>
     <script type="text/javascript" src="{% admin_media_prefix %}js/getElementsBySelector.js"></script>
+    <script type="text/javascript" src="{% admin_media_prefix %}js/actions.js"></script>
+{#    <script type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>#}
+{#    <script type="text/javascript">#}
+{#        //django = {'jQuery': jQuery};#}
+{#    </script>#}
+
     <script type="text/javascript">
         (function($) {
             $(document).ready(function($) {
@@ -27,8 +35,12 @@
                         return false;
                     }
                 });
+                $("tr input.action-select").actions();
+//                $('#action-toggle').click(function(event){
+//
+//                });
             });
-        })(jQuery);
+        })(django.jQuery);
     </script>
 {% endblock %}
 
@@ -64,7 +76,7 @@
                     {#			{% endif %}#}
 
                     {% if perms.file_manager.can_upload_file %}
-                        <li><a href="{% url admin:iadmin.fm.upload directory.url %}"
+                        <li><a href="{% url admin:iadmin.fm.upload directory.relative_path %}"
                                class="addlink">{% trans 'Upload File' %}</a></li>
                     {% endif %}
 
@@ -74,12 +86,14 @@
 
         <div class="module" id="changelist">
             <form action="" method="post">
-
+                {% csrf_token %}
                 <div class="actions">
                     <label>Action:
                         <select name="action">
                             <option value="" selected="selected">---------</option>
-                            <option value="delete_selected">Delete selected items</option>
+                            {% for act in filemanager.actions  %}
+                                <option value="{{ act.name }}">{{ act.short_description }}</option>
+                            {% endfor  %}
                         </select>
                     </label>
                     <button type="submit" class="button" title="Run the selected action" name="index" value="0">Go
@@ -116,7 +130,7 @@
                     {#{% for file in dfile.list|dictsort:"name" %}#}
                     {% for file in files %}
                         <tr class="{% cycle 'row1' 'row2' %}">
-                            <td><input class="action-select" value="{{ file.fileurl }}" name="_selected_action"
+                            <td><input class="action-select" value="{{ file.name }}" name="_selected_action"
                                        type="checkbox"></td>
                             <td>
                                 {% if file.is_directory %}
@@ -128,7 +142,7 @@
                                 {% if file.broken_link %}
                                     {{ file.name }}
                                 {% else %}
-                                    <a href="{{ file.fileurl }}">{{ file.name }}</a>
+                                    <a href="{{ file.absolute_url }}">{{ file.name }}</a>
                                 {% endif %}
 
                                 {% if file.link %}
@@ -153,45 +167,45 @@
                             <td>{{ file.group }}</td>
 
 
-                            <td>
-                                {% if not file.is_directory and not file.broken_link and file.can_edit and perms.file_manager.can_create_file %}
-                                    <a href="{{ file.fileurl }}" class="changelink">Edit</a>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                {#			{% if directory.can_write %}#}
-                                {#				{% if file.directory and perms.file_manager.can_rename_dir %}#}
-                                {#				<a href="{% url admin_file_manager_rename file.fileurl %}" class="changelink">Rename</a>#}
-                                {#				{% endif %}#}
-                                {##}
-                                {#				{% if not file.directory and perms.file_manager.can_rename_file %}#}
-                                {#				<a href="{% url admin_file_manager_rename file.fileurl %}" class="changelink">Rename</a>#}
-                                {#				{% endif %}#}
-                                {#			{% endif %}#}
-                            </td>
-                            <td>
-                                {#			{% if directory.can_write %}#}
-                                {#				{% if file.directory and perms.file_manager.can_copy_dir %}#}
-                                {#				<a href="{% url admin_file_manager_copy file.fileurl %}" class="changelink">Copy</a>#}
-                                {#				{% endif %}#}
-                                {##}
-                                {#				{% if not file.directory and perms.file_manager.can_copy_file %}#}
-                                {#				<a href="{% url admin_file_manager_copy file.fileurl %}" class="changelink">Copy</a>#}
-                                {#				{% endif %}#}
-                                {#			{% endif %}#}
-                            </td>
-                            <td>
-                                {#			{% if directory.can_write %}#}
-                                {#				{% if file.directory and perms.file_manager.can_move_dir %}#}
-                                {#				<a href="{% url admin_file_manager_move file.fileurl %}" class="changelink">Move</a>#}
-                                {#				{% endif %}#}
-                                {##}
-                                {#				{% if not file.directory and perms.file_manager.can_move_file %}#}
-                                {#				<a href="{% url admin_file_manager_move file.fileurl %}" class="changelink">Move</a>#}
-                                {#				{% endif %}#}
-                                {#			{% endif %}#}
-                            </td>
+{#                            <td>#}
+{#                                {% if not file.is_directory and not file.broken_link and file.can_edit and perms.file_manager.can_create_file %}#}
+{#                                    <a href="{{ file.fileurl }}" class="changelink">Edit</a>#}
+{#                                {% endif %}#}
+{#                            </td>#}
+{##}
+{#                            <td>#}
+{#                                			{% if directory.can_write %}#}
+{#                                				{% if file.directory and perms.file_manager.can_rename_dir %}#}
+{#                                				<a href="{% url admin_file_manager_rename file.fileurl %}" class="changelink">Rename</a>#}
+{#                                				{% endif %}#}
+{#                                #}
+{#                                				{% if not file.directory and perms.file_manager.can_rename_file %}#}
+{#                                				<a href="{% url admin_file_manager_rename file.fileurl %}" class="changelink">Rename</a>#}
+{#                                				{% endif %}#}
+{#                                			{% endif %}#}
+{#                            </td>#}
+{#                            <td>#}
+{#                                			{% if directory.can_write %}#}
+{#                                				{% if file.directory and perms.file_manager.can_copy_dir %}#}
+{#                                				<a href="{% url admin_file_manager_copy file.fileurl %}" class="changelink">Copy</a>#}
+{#                                				{% endif %}#}
+{#                                #}
+{#                                				{% if not file.directory and perms.file_manager.can_copy_file %}#}
+{#                                				<a href="{% url admin_file_manager_copy file.fileurl %}" class="changelink">Copy</a>#}
+{#                                				{% endif %}#}
+{#                                			{% endif %}#}
+{#                            </td>#}
+{#                            <td>#}
+{#                                			{% if directory.can_write %}#}
+{#                                				{% if file.directory and perms.file_manager.can_move_dir %}#}
+{#                                				<a href="{% url admin_file_manager_move file.fileurl %}" class="changelink">Move</a>#}
+{#                                				{% endif %}#}
+{#                                #}
+{#                                				{% if not file.directory and perms.file_manager.can_move_file %}#}
+{#                                				<a href="{% url admin_file_manager_move file.fileurl %}" class="changelink">Move</a>#}
+{#                                				{% endif %}#}
+{#                                			{% endif %}#}
+{#                            </td>#}
                             <td>
                             {% if directory.can_write %}
                                 {% if file.directory and perms.file_manager.can_delete_dir %}
