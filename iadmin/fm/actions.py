@@ -1,4 +1,3 @@
-#
 import shutil
 from django.contrib import messages
 from django.http import HttpResponse
@@ -7,10 +6,11 @@ import os
 import tempfile
 from iadmin.fm.fs import Dir
 from iadmin.fm.utils import url_to_path, mkdirs
-#
-#__author__ = 'sax'
-#
+
 def delete_selected(modeladmin, request, url):
+    """
+        delete selected files
+    """
     path = url_to_path(url)
     dir = Dir( path )
     if request.method == 'POST':
@@ -32,6 +32,9 @@ def delete_selected(modeladmin, request, url):
 delete_selected.short_description = "Delete selected file(s)"
 
 def tar_selected(modeladmin, request, url):
+    """
+        create a tar.gz named as selected directory with selected files
+    """
     path = url_to_path(url)
     dir = Dir( path )
     if request.method == 'POST':
@@ -39,14 +42,15 @@ def tar_selected(modeladmin, request, url):
         dest_dir = os.path.join(tempfile.gettempdir(), str(request.user), 'images')
         shutil.rmtree(dest_dir, ignore_errors=True)
         mkdirs(dest_dir)
-        archive_name = 'archive.tar.gz'
+        archive_name = '%s.tar.gz' % dir.name
         archive_filename = os.path.join(dest_dir, archive_name)
         import tarfile
 
         tar = tarfile.open(archive_filename, 'w:gz')
+        os.chdir( dir.absolute_path )
         for fname in selection:
             f = dir.get_file(fname)
-            tar.add(f.absolute_path)
+            tar.add(f.name)
         tar.close()
 
         ret = HttpResponse(open(archive_filename, "rb").read(), content_type="application/x-tar")
