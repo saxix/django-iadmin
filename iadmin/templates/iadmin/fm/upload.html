@@ -1,7 +1,7 @@
 {% extends "iadmin/fm/index.html" %}
 {% load i18n adminmedia %}
 
-{% block currentdir %}<a href="{% url admin:iadmin.fm.index directory.url %}">{{ directory.name }}</a>{% endblock  %}
+{% block currentdir %}<a href="{% url admin:iadmin.fm.index directory.absolute_url %}">{{ directory.name }}</a>{% endblock  %}
 
 {% block content %}
 <h1>Upload</h1>
