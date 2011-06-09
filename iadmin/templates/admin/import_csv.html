@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="../../../">{% trans "Home" %}</a> &rsaquo;
+{% if app_label %}
+    <a href="../../">{{ app_label|capfirst }}</a> &rsaquo;
+    {% if model %}<a href="../">{{ model|capfirst }}</a> &rsaquo;{% endif %}
+{% endif %}
+{% if page == 1 %}
+    Import
+{% else %}
+    <a href="../import/1">Import</a> &rsaquo; Mapping
+{% endif %}
+    </div>
+
+{% endblock %}
+
+
+{% block content %}
+
+<form enctype="multipart/form-data" method="post" action="{{ page }}">{% csrf_token %}
+<table>
+    {{ form }}
+</table>
+<input type='"text"' name="page" value="{{ page }}"
+<input type="submit">
+</form>
+
+{% endblock %}

@@ -1,9 +1,21 @@
 {% extends "admin/base.html" %}
-{#{% load i18n %}#}
+{% load iadmin %}
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/iadmin.css"/>
+{% endblock %}
+
 {% block title %}{{ title }} | iAdmin console{% endblock %}
 
 {% block branding %}
     <h1 id="site-name"><a href='/admin/'>iAdmin console</a></h1>
+    {% if user.is_active and user.is_staff %}
+    <div id="admin-links">
+        <a href='{% url admin:iadmin.fm.index path=''%}'>file manager</a>&nbsp;&nbsp;&nbsp;
+        <a href='{% url admin:admin_env_info %}'>info</a>&nbsp;&nbsp;&nbsp;
+        {% import_csv_url %}
+        &nbsp;&nbsp;&nbsp;
+    </div>
+    {% endif %}
 {% endblock %}
 
 {#{% block nav-global %}{% endblock %}#}

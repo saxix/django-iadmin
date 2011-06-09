@@ -1,3 +1,24 @@
+
 #admin-links{
     float:right;
 }
+.right{
+    float:right;
+}
+.left{
+    float:left;
+}
+
+.env-info {
+    padding-top:30px;
+    padding-left:30px;
+}
+
+.env-info table td {
+    line-height:16pt;
+    font-size:14pt;
+    with:700px;
+    border-bottom: 0 none #EEEEEE;
+}
+
+

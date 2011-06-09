@@ -1,4 +1,3 @@
-#
 from geo.models import Country, Lake, Location, Ocean
 from iadmin.utils import tabular_factory
 

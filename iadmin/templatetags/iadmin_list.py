@@ -1,18 +1,3 @@
-from django.conf import settings
-from django.contrib.admin.templatetags.admin_list import result_headers, _boolean_icon
-from django.contrib.admin.util import display_for_field, lookup_field
-from django.contrib.admin.views.main import ALL_VAR, EMPTY_CHANGELIST_VALUE
-from django.contrib.admin.views.main import ORDER_VAR, ORDER_TYPE_VAR, PAGE_VAR, SEARCH_VAR
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
-from django.utils import dateformat
-from django.utils.html import escape, conditional_escape
-from django.utils.text import capfirst
-from django.utils.safestring import mark_safe
-from django.utils.translation import get_date_formats, get_partial_date_formats, ugettext as _
-from django.utils.encoding import smart_unicode, smart_str, force_unicode
-from django.template import Library
-import datetime
 from django.template.loader import get_template, select_template
 from django.template.context import Context, RequestContext, ContextPopException
 
@@ -39,8 +24,7 @@ def result_headers(cl):
     """
     Generates the list column headers.
     """
-    lookup_opts = cl.lookup_opts
-    cl._filtered_on = None
+    cl._filtered_on = []
     for i, field_name in enumerate(cl.list_display):
         header, attr = label_for_field(field_name, cl.model,
             model_admin = cl.model_admin,
@@ -89,7 +73,7 @@ def result_headers(cl):
         if filtered:
             url = cl.get_query_string(remove=[filter_param_name])
             th_classes = ['filtered']
-            cl._filtered_on = field_name
+            cl._filtered_on.append( field_name )
         else:
             url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
 
@@ -115,14 +99,15 @@ def items_for_result(cl, result, form):
 #        cl.model_admin.list_display_rel_links = ()
 #        cl._filtered_on = None
 #        cl._cell_filter = None
-        
     for field_name in cl.list_display:
         row_class = ''
+
         try:
             f, attr, value = lookup_field(field_name, result, cl.model_admin)
         except (AttributeError, ObjectDoesNotExist):
             result_repr = EMPTY_CHANGELIST_VALUE
         else:
+
             if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
@@ -139,17 +124,13 @@ def items_for_result(cl, result, form):
                     result_repr = escape(result_repr)
                 else:
                     result_repr = mark_safe(result_repr)
-                
-                if hasattr(cl.model_admin, 'cell_filter') and (field_name != cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+                if hasattr(cl.model_admin, 'cell_filter') and (field_name not in cl._filtered_on) and field_name in cl.model_admin.cell_filter:
 #                    f, attr, value = lookup_field(fname, result, cl.model_admin)
                     a =  cl._cell_filter(result, field_name)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
 
             else:
-                if value is None:
-                    result_repr = EMPTY_CHANGELIST_VALUE
-
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
                     if f.name in cl.model_admin.list_display_rel_links:
@@ -160,7 +141,7 @@ def items_for_result(cl, result, form):
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
 
-                if hasattr(cl.model_admin, 'cell_filter') and (f.name != cl._filtered_on) and f.name in cl.model_admin.cell_filter:
+                if hasattr(cl.model_admin, 'cell_filter') and (f.name not in  cl._filtered_on) and f.name in cl.model_admin.cell_filter:
                     a =  cl._cell_filter(result, field_name)
                     b =  result_repr
                     result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))

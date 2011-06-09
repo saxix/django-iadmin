@@ -15,26 +15,7 @@
 <script>
 $(function() {
     var $ = jQuery;
-    var $tabs = $('#tabs').tabs({
-               cookie: { expires: 30 },
-//               select: function(event, ui) {
-//                   console.log( ui.index );
-//                   var selected = $tabs.tabs('option', 'selected');
-//                   $("#selected_tab").val( ui.index )
-//               }
-});
-
-//    $tabs.tabs('select', parseInt($.cookie("selected_tab")) ); // switch to third tab
-//    $("#selected_tab").val( $.cookie("selected_tab") );
-
-{#    $("#{{ opts.module_name }}_form").submit(function(event){#}
-{#//        var $tabs = $('#tabs').tabs();#}
-{#        var selected = $tabs.tabs('option', 'selected');#}
-{#        $("#selected_tab").val( selected )#}
-{#    });#}
-
-    
-
+    var $tabs = $('#tabs').tabs({ cookie: { expires: 30 }});
 });
 </script>
 

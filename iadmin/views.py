@@ -8,6 +8,8 @@ __author__ = 'sax'
 
 from django.contrib.admin.views.main import ChangeList
 
+CELL_FILTER_ICON = 'funnel_add.png'
+
 class IChangeList(ChangeList):
     def _cell_filter(self, obj, field_name):
         field, attr, value = lookup_field(field_name, obj, self.model_admin)
@@ -33,7 +35,8 @@ class IChangeList(ChangeList):
                 lookup_value = target
         url = self.get_query_string( {lookup_kwarg: lookup_value})
 
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/zoom.png"/></a></span>' % (url, settings.MEDIA_URL)
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
+               (url, settings.MEDIA_URL, CELL_FILTER_ICON)
 
     def _link_to_model(self, obj, label=None):
         if not obj:

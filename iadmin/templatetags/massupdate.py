@@ -1,4 +1,5 @@
 from django.template import Library
+from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 
 register = Library()
@@ -21,7 +22,7 @@ def link_fields_values(d, k):
     for v in d.get(k,[]):
         if v == '': # ignore empty
             continue
-        ret.append('<a href="#" class="fastfieldvalue %s">%s</a>' % (k,str(v)))
+        ret.append('<a href="#" class="fastfieldvalue %s">%s</a>' % (k, force_unicode(v)))
         
     return mark_safe(", ".join(ret))
 

@@ -15,7 +15,7 @@
 .portlet-log {
     background-color: red;
     background-image: url("");
-    border: 0px solid transparent;
+    border: 0 solid transparent;
 }
 
 .portlet-header {

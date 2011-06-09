@@ -6,7 +6,7 @@ var init_portlets = function($){
                             $('.column').each(function() {
                                 var column = $(this).attr('id');
 //                                 console.log( column );
-                                var x = new Array()
+                                var x = new Array();
                                 $('.portlet', this).each(function() {
                                     var portlet = $(this).attr('id');
                                     x.push(portlet);
@@ -46,4 +46,4 @@ var init_portlets = function($){
             });
         });
 
-}
+};

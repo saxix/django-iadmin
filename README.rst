@@ -17,7 +17,8 @@ Features
 - ajax autocomplete widgets for ForeignKey
 - mass updates functionality
 - export to csv with options and formatting
-
+- info page for packages and application version
+- integrated file manager
 
 Install
 ----

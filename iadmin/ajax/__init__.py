@@ -3,7 +3,7 @@
 import copy
 from django.conf import settings
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.forms.util import flatatt
 from django.forms.widgets import TextInput, MultiWidget, Select, HiddenInput
 from django.utils.encoding import smart_unicode, force_unicode
@@ -44,7 +44,7 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapper):
         except Exception:
             id = ''
             label = ''
-            url = ''
+#            url = ''
                 
         hidden = copy.deepcopy(kwargs)
         kwargs['attrs']['id'] = "lbl_%s" % name
@@ -52,9 +52,12 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapper):
         rel_to = self.rel.to
         info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
 
-        edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=[value])
+        try:
+            edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=[value])
+        except NoReverseMatch, e:
+            edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=['0'])
+#            return super(AjaxFieldWidgetWrapper, self).render(name, value, *args, **kwargs)
         related_url = reverse('admin:%s_%s_add' % info, current_app=self.admin_site.name)
-
         output = [        HiddenInput().render(name, id, **hidden),
                   AutoCompleteInput().render('', label, **kwargs),
                   '<input type="hidden" value="%s"/>' % self.service,

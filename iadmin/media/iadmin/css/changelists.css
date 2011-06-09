@@ -1,6 +1,18 @@
+#changelist .actions label {
+    font-size: 12pt;
+    margin-left: 0.5em;
+}
+
+#changelist .actions span.all, #changelist .actions span.action-counter, #changelist .actions span.clear, #changelist .actions span.question {
+    font-size: 12pt;
+}
+
+#changelist #toolbar form input {
+    font-size: 12pt;
+}
+
 #result_list thead th.filtered {
     background-repeat: no-repeat !important;
-
 }
 
 table thead th.filtered a {
@@ -9,14 +21,14 @@ table thead th.filtered a {
     -moz-background-size: auto auto;
     background-attachment: scroll;
     background-color: transparent;
-    background-image: url("../img/zoom.png");
-    background-position: right 0.4em;
+    background-image: url("../img/funnel_new.png");
+    background-position: right -1px;
     background-repeat: no-repeat;
     padding-right: 13px;
 }
 
 table .linktomodel, table .linktomodel{
     float: right;
-    width:12px;
-    padding-left:2px;
+    width:16px;
+    padding-left:10px;
 }
