@@ -24,7 +24,7 @@ class K:
         return self.label
 
 
-class Choices:
+class Choices(object):
     """
     >>> options = Choices(
     ... K(pending=1, label='Pending'),
@@ -46,14 +46,17 @@ class Choices:
         for k in self.klist:
             setattr(self, k.id, k.v)
 
-    def labels(self, excludes=[]):
-        return [k.label for k in self.klist if k.id not in excludes]
+    def labels(self, excludes=None):
+        _excludes = excludes or []
+        return [k.label for k in self.klist if k.id not in _excludes]
 
-    def choices(self, excludes=[]):
-        return [(k.v, k.label) for k in self.klist if k.id not in excludes]
+    def choices(self, excludes=None):
+        _excludes = excludes or []
+        return [(k.v, k.label) for k in self.klist if k.id not in _excludes]
 
-    def subset(self, includes=[]):
-        return [(k.v, k.label) for k in self.klist if k.id in includes]
+    def subset(self, includes=None):
+        _includes = includes or []
+        return [(k.v, k.label) for k in self.klist if k.id in _includes]
 
     def get_by_value(self, value):
         for x in self.klist:
