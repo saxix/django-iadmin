@@ -3,8 +3,11 @@ from django import http, template
 from functools import update_wrapper
 from django.conf.urls.defaults import patterns, url
 from django.contrib import messages
+from django.contrib.admin import helpers
+from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.core.urlresolvers import reverse
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 import utils
@@ -13,20 +16,18 @@ import os
 from iadmin.fm.fs import Dir
 from iadmin.fm import actions
 
+ORDER_MAP =  {'s': 'size', 't':'mime', 'u':'user', 'g':'group', 'c':'ctime', 'm':'mtime'}
 
 
-class FileManager(AdminSite):
-#    app_name = name = 'admin'
-    parent = None
+class FileManager(object):
+
     actions = [actions.delete_selected, actions.tar_selected]
 
-    def __init__(self, name='fm', app_name='fm'):
-        super(FileManager, self).__init__(name, app_name)
+    def __init__(self, adminsite):
         self.home_dir = utils.get_document_root()
-        self._actions = {}
-        for a in self.actions:
-            self._actions[a.__name__] = a
-
+        self.admin_site = adminsite
+        self.name = adminsite.name
+        self.actions = [(a, a.short_description) for a in self.actions]
 
     def index(self, request, path=None):
         """
@@ -34,36 +35,24 @@ class FileManager(AdminSite):
         """
 
         if request.method == 'POST':
+            selection = request.POST.getlist('_selected_action')
             act = request.POST.get('action')
-            response = self._actions[act](self, request, path)
-            if response:
-                return response
+            if act and selection:
+                response = self.actions[int(act)][0](self, request, path)
+                if response:
+                    return response
 
         url = utils.clean_path(path)
         directory = Dir(utils.url_to_path(url))
 
         sort_by = request.GET.get('s', 'n')
         sort_dir = request.GET.get('ot', 'asc')
-
         order = defaultdict(lambda : ['', '', 'asc'],
                 {sort_by: ['sorted', sort_dir, sort_dir == 'asc' and 'desc' or 'asc']})
-
-        key = None
-        if sort_by == 's':
-            key = lambda el: el.size
-        elif sort_by == 't':
-            key = lambda el: el.mime
-        elif sort_by == 'u':
-            key = lambda el: el.user
-        elif sort_by == 'g':
-            key = lambda el: el.group
-        elif sort_by == 'c':
-            key = lambda el: el.ctime
-        elif sort_by == 'm':
-            key = lambda el: el.mtime
-
+        key = ORDER_MAP.get(sort_by, None )
         if key:
-            files = sorted(directory.files, key=key, reverse=sort_dir == 'desc')
+            func = lambda el: getattr(el, key)
+            files = sorted(directory.files, key=func, reverse=sort_dir == 'desc')
         else:
             directory.files.sort()
             files = directory.files
@@ -118,7 +107,6 @@ class FileManager(AdminSite):
                  'max_size' : utils.get_max_upload_size(), 
                  'url': url}))
 
-
     def delete(self, request, path):
         path = utils.url_to_path(path)
         dirname, name = os.path.split(path)
@@ -152,7 +140,7 @@ class FileManager(AdminSite):
     def get_urls(self):
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
-                return self.admin_view(view, cacheable)(*args, **kwargs)
+                return self.admin_site.admin_view(view, cacheable)(*args, **kwargs)
 
             return update_wrapper(wrapper, view)
 

@@ -92,16 +92,13 @@
                         <select name="action">
                             <option value="" selected="selected">---------</option>
                             {% for act in filemanager.actions  %}
-                                <option value="{{ act.name }}">{{ act.short_description }}</option>
+                                <option value="{{ forloop.counter0 }}">{{ act.1 }}</option>
                             {% endfor  %}
                         </select>
                     </label>
                     <button type="submit" class="button" title="Run the selected action" name="index" value="0">Go
                     </button>
-
-
                 </div>
-
                 <table cellspacing="0">
                     <thead>
                     <tr>
@@ -158,7 +155,7 @@
                                 {% endif %}
                             </td>
                             <td>{% if not file.is_directory %}<img
-                                    src="{{ MEDIA_URL }}iadmin/img/mime/{{ file.icon }}.png"
+                                    src="{{ MEDIA_URL }}iadmin/img/mime/{{ file.icon }}"
                                     alt="{{ file.mime }}">{% endif %}</td>
                             <td>{{ file.perms }}</td>
                             <td>{{ file.ctime|date:"m/d/Y" }}</td>
@@ -230,6 +227,6 @@
                 </p>
 
         </div>
+    </form>
 
-        </form>
 {% endblock %}

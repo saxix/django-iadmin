@@ -138,6 +138,9 @@ class File(FileSystemObject):
         else:
             return self.name < other.name
 
+    @property
+    def icon(self):
+        return '%s.png' % self.mime.replace('/', '_')
 
     def display(self):
         if self.mime in ['image/png', ]:

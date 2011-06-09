@@ -17,13 +17,11 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 from django.shortcuts import render_to_response
 from django.views.decorators.cache import never_cache
-from . import options 
+from django.conf.urls.defaults import include
 from django.utils import dateformat
 import os
-
-from iadmin.wizard import set_model_attribute
-from .wizard import ImportForm, csv_processor_factory
-from django.conf.urls.defaults import include
+from . import options
+from .wizard import ImportForm, csv_processor_factory, set_model_attribute
 
 def cache_admin(method, key=None):
     entry = key or method.__name__
@@ -49,9 +47,6 @@ __all__= ['site', 'IAdminSite']
 
 class IAdminSite(AdminSite):
     register_all_models = False
-
-#    def __init__(self, name='iadmin', app_name='iadmin'):
-#        super(IAdminSite, self).__init__(name, app_name)
 
     def index(self, request, extra_context=None):
         """
@@ -320,7 +315,7 @@ class IAdminSite(AdminSite):
                                 )
 
         from iadmin.fm.filemanager import FileManager
-        filemanager = FileManager(self.name, self.name)
+        filemanager = FileManager(self)
         urlpatterns += patterns('', url(r'^i/fm/', include( filemanager.urls )))
 
         urlpatterns += super(IAdminSite, self).get_urls()
