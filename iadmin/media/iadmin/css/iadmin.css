@@ -1,6 +1,77 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-size: 12pt;
+    font-family: "Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+    color: #333;
+    background: #fff;
+}
+h1 {
+    font-size: 120%;
+}
+h2 {
+    font-size: 120%;
+}
+h3 {
+    font-size: 110%;
+}
+h4 {
+    font-size: 100%;
+}
+h5 {
+    font-size: 90%;
+}
+li, dt, dd {
+    font-size: 90%;
+}
+blockquote {
+    font-size: 100%;
+}
 
+.small {
+    font-size: 90%;
+}
+.tiny {
+    font-size: 80%;
+}
+
+td, th {
+    font-size: 100%;
+    line-height: 105%;
+}
+thead th,
+tfoot td {
+    font-size: 100%;
+    line-height: 105%;
+}
+
+div.breadcrumbs {
+    font-size: 100%;
+    line-height: 105%;
+}
+#user-tools {
+    font-size: 100%;
+    line-height: 105%;
+    padding-top: 2px;
+}
+label {
+    font-size: 100%;
+}
+.form-row {
+    font-size: 100%;
+}
+input, textarea, select, .form-row p {
+    font-size: 100%;
+}
+.object-tools{
+     font-size: 95%;
+}
+/**/
 #admin-links{
     float:right;
+    font-size: 90%;
+    line-height: 100%;
+    padding-bottom: 5px;
 }
 .right{
     float:right;

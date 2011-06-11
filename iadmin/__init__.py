@@ -1,2 +1,2 @@
-__version__ = '0.1.6.5  dev'
+__version__ = '0.1.7dev'
 __author__ = 'sax'

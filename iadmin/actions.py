@@ -44,6 +44,9 @@ class CSVOptions(forms.Form):
     columns = forms.MultipleChoiceField()
 
 def export_to_csv(modeladmin, request, queryset):
+    """
+        export a queryset to csv file
+    """
     cols = [(f.name, f.verbose_name) for f in queryset.model._meta.fields]
     initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME), 'quotechar':'"',
                'columns': [x for x,v in cols], 'quoting': csv.QUOTE_ALL, 'delimiter':';', 'escapechar':'\\', }

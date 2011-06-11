@@ -5,13 +5,13 @@ var init_portlets = function($){
                         stop: function(event, ui) {
                             $('.column').each(function() {
                                 var column = $(this).attr('id');
-//                                 console.log( column );
+                                 //console.log( column );
                                 var x = new Array();
                                 $('.portlet', this).each(function() {
                                     var portlet = $(this).attr('id');
                                     x.push(portlet);
                                 });
-//                                 console.log( x.join() );
+                                 //console.log( x.join() );
                                 $.cookie(column, x);
                             });
                         }

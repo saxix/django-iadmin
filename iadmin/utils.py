@@ -1,11 +1,16 @@
 from iadmin.options import ITabularInline
 from django.db import models
 
-def tabular_factory(model, fields=None, Inline=ITabularInline, **kwargs):
+def tabular_factory(model, fields=None, Inline=ITabularInline, form=None, **kwargs):
+    """ factory for ITabularInline
+            
+    >>> class MD(IModelAdmin):
+    ...     inlines = [tabular_factory(Permission)]
+    """
     name = "%sInLine" % model.__class__.__name__
-    form = "%sForm" % model.__class__.__name__
+    #form = "%sForm" % model.__class__.__name__
     attrs = {'model': model, 'fields': fields}
-    if form in globals():
+    if form:
         attrs['form'] = form
     attrs.update(kwargs)
     Tab = type(name, (Inline,), attrs)
@@ -65,6 +70,7 @@ class Choices(object):
 
 def iter_get_attr(obj, attr, default=None):
     """Recursive get object's attribute. May use dot notation.
+    
     >>> class C(object): pass
     >>> a = C()
     >>> a.b = C()

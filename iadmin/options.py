@@ -23,17 +23,22 @@ PJSON = 'p'
 
 
 class IModelAdmin(DjangoModelAdmin):
+    """
+        extended ModelAdmin
+    """
+
     add_undefined_fields = False
-    change_form_template = 'admin/change_form_tab.html'
-    actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json]
+    """ if true create an 'Other' fieldset section with all fields not defined in other fieldsets """
 
     list_display_rel_links = ()
     cell_filter = ()
     extra_allowed_filter = []
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
-    enable_ajax = False
+    autocomplete_ajax = False
 
+    change_form_template = 'iadmin/change_form_tab.html'
+    actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json]
 
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
@@ -41,7 +46,7 @@ class IModelAdmin(DjangoModelAdmin):
 
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
-        
+
     def lookup_allowed(self, lookup, value):
         # overriden to allow filter on cell_filter fields
         original = super(IModelAdmin, self).lookup_allowed(lookup, value)
@@ -72,7 +77,7 @@ class IModelAdmin(DjangoModelAdmin):
         if isinstance(db_field, models.ForeignKey):
             formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
             modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
-            if self.enable_ajax and  isinstance(modeladmin, IModelAdmin):
+            if self.autocomplete_ajax and  isinstance(modeladmin, IModelAdmin):
                 service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
                 if service:
                     formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
@@ -166,7 +171,7 @@ class IModelAdmin(DjangoModelAdmin):
 
 
 class ITabularInline(DjangoTabularInline):
-    template = 'admin/edit_inline/tabular_tab.html'
+    template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):

@@ -15,8 +15,8 @@
             /*.column {border:1px solid red;}*/
             #column1{
                 float:left;
-            }
-            #column2, #column3, #column4 { display:none;}
+            /*}*/
+            .column { display:none;}
             #column5{
                 float:right;
             }
@@ -79,18 +79,11 @@
             {% endif %}
         </div>
 
-        <div class="column" id='column2'>
-
-        </div>
-        <div class="column" id='column3'>
-
-        </div>
-        <div class="column" id='column4'>
-
-        </div>
-
+        <div class="column" id='column2'></div>
+        <div class="column" id='column3'></div>
+        <div class="column" id='column4'></div>
         <div class="column" id='column5'>
-            <div class="module portlet" _id="recent-actions-module">
+            <div class="module portlet" id="recent-actions-module">
                 <div class="portlet-header portlet-log">{% trans 'Recent Actions' %}</div>
                 <div class="portlet-content">
                     <h3>{% trans 'My Actions' %}</h3>
@@ -120,6 +113,11 @@
                 </div>
             </div>
         </div>
+        <div class="column" id='column5'></div>
+        <div class="column" id='column6'></div>
+        <div class="column" id='column7'></div>
+        <div class="column" id='column8'></div>
+        <div class="column" id='column9'></div>
     </div>
 {% endblock %}
 

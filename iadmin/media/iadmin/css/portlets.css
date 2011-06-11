@@ -2,8 +2,12 @@
     width: 100%;
 }
 
+#column1{
+    min-width: 300px;
+}
+
 .column {
-    width: 300px;
+    min-width: 200px;
     float: left;
     padding-bottom: 100px; /*border:1px solid red;*/
 }

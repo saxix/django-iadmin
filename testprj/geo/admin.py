@@ -1,3 +1,4 @@
+from django.contrib.admin.options import TabularInline
 from geo.models import Country, Lake, Location, Ocean
 from iadmin.utils import tabular_factory
 
@@ -7,7 +8,7 @@ import iadmin.proxy as admin
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name', 'country', 'country_continent')
-#    list_filter = ('country',)
+    autocomplete_ajax = True
     search_fields = ('name',)
     cell_filter = ('country', 'country_continent')
     list_display_rel_links = ('country', 'country__continent')
@@ -22,9 +23,8 @@ class CountryAdmin(admin.ModelAdmin):
     search_fields = ('name', 'fullname')
     cell_filter = ('region', 'continent')
 
-    inlines = (tabular_factory(Location),
-
-    )
+    inlines = (tabular_factory(Location, Inline=TabularInline),
+                )
 
 class LakeAdmin(admin.ModelAdmin):
     filter_horizontal = ('countries', )

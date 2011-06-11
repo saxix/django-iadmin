@@ -1,6 +1,10 @@
 
+Install
+=======
 
-Edit your settinhs.py and add iadmin application before django.contrib.admin
+
+Edit your settinhs.py and add iadmin application before django.contrib.admin::
+
     INSTALLED_APPS = (
         ...
         'iadmin',
@@ -10,19 +14,27 @@ Edit your settinhs.py and add iadmin application before django.contrib.admin
         ...
     )
 
-Add an entry into your urls.conf
-    from iadmin.i import site
-    site.autodiscover()
+
+Add an entry into your urls.conf::
+
+    import iadmin.proxy as admin
+    admin.autodiscover()
+    import iadmin.media_urls
 
     urlpatterns = patterns('',
-                url(r'', include('iadmin.urls')),
+                url(r'', include('iadmin.media_urls')), # iadmin media
                 (r'^admin/', include(admin.site.urls)),
                 ...
                 ...
     )
 
 
-In your admin.py file
+In your admin.py file::
+
     import iadmin
-    from iadmin.i import IModelAdmin as ModelAdmin, ITabularInline as TabularInline
-    from iadmin.sites import IAdminSite, site
+    import iadmin.proxy as admin
+
+    class MyModelAdmin(admin.ModelAdmin):
+        ...
+        ...
+

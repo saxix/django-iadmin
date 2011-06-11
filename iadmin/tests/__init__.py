@@ -1,3 +1,1 @@
-#
-__author__ = 'sax'
-  
+from massupdate import *

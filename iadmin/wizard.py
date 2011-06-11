@@ -54,17 +54,14 @@ def set_model_attribute(instance, name, value, rex=None):
 
     if isinstance(field, ForeignKey):
         m = re.compile(rex).match( value )
-        print 1111111111111, m.groups()
 
     elif hasattr(field, 'flatchoices'):
         choices = Lookup(getattr(field , 'flatchoices'))
         if value in choices.values():
             value = choices.get_key(value)
-    
-
-    print 111111111, field, type(field), isinstance(field, ForeignKey)
     setattr(instance, name, value)
 
+    
 class ImportForm(Form):
     model = ChoiceField()
     csv = FileField()

@@ -2,14 +2,14 @@
 Django iAdmin
 ==============
 
-iAdmin is a non intrusive extension to django standard admin.
+iAdmin is a replacement of standard django admin application.
 
 Features
 --------
 
 - multiple columns portlets-like home page
 - tabbed view of inlines
-- auto add models not registered
+- auto register missed modules.
 - auto add fields not present in fieldset (add_undefined_fields)
 - link to foreignkey edit page from changelist (list_display_rel_links)
 - filters on cell values (cell_filters)
@@ -18,13 +18,12 @@ Features
 - mass updates functionality
 - export to csv with options and formatting
 - info page for packages and application version
-- integrated file manager
+- integrated file manager with upload/zip functionality
 
 Install
 ----
-Edit your settinhs.py and add iadmin application before django.contrib.admin
+Edit your settinhs.py and add iadmin application before django.contrib.admin ::
 
-::
     INSTALLED_APPS = (
         ...
         'iadmin',
@@ -34,9 +33,8 @@ Edit your settinhs.py and add iadmin application before django.contrib.admin
         ...
     )
 
-Add an entry into your urls.conf
+Add an entry into your urls.conf ::
 
-::
     from iadmin.sites import site
     site.autodiscover()
 
@@ -47,10 +45,9 @@ Add an entry into your urls.conf
                 ...
     )
 
-In your admin.py file
-
-::
+In your admin.py file ::
     import iadmin
     from iadmin.proxy import *
 
     site.register....
+
