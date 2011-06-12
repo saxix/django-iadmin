@@ -1,26 +1,25 @@
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.dispatch import dispatcher
+from django.db.models import signals
 from django.db import models
 
 class Item(models.Model):
     class Meta:
         abstract = True
-        permissions = (
-            ("can_create_file", "Can create file"),
-            ("can_update_file", "Can update file"),
-            ("can_copy_file", "Can copy file"),
-            ("can_upload_file", "Can upload file"),
-            ("can_delete_file", "Can delete file"),
-            ("can_rename_file", "Can rename file"),
-            ("can_move_file", "Can move file"),
 
-            ('can_create_symlink', 'Can create symlink'),
-            ('can_copy_symlink', 'Can copy symlink'),
-            ('can_move_symlink', 'Can move symlink'),
-            ('can_rename_symlink', 'Can rename symlink'),
-            ('can_delete_symlink', 'Can delete symlink'),
+def register_permission(perm):
+    ct, created = ContentType.objects.get_or_create(model='Item', app_label='iadmin', defaults={'name': 'iadmin'})
+    codename, name = perm
+    p, created = Permission.objects.get_or_create(codename=codename, content_type__pk=ct.id,
+                            defaults={'name': name, 'content_type': ct})
 
-            ("can_copy_dir", "Can copy directory"),
-            ("can_delete_dir", "Can delete directory"),
-            ("can_rename_dir", "Can rename directory"),
-            ("can_create_dir", "Can make directory"),
-            ("can_move_dir", "Can move directory"),
-        )
+
+def register(**kwargs):
+    for p in [("can_upload_file", "Can upload file"),("can_delete_file", "Can delete file"),
+            ("can_create_dir", "Can make directory"),("can_delete_dir", "Can delete directory"),]:
+        register_permission(p)
+
+signals.post_syncdb.connect(register)
+
+
