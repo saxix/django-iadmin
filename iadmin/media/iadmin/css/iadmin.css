@@ -66,7 +66,20 @@ input, textarea, select, .form-row p {
 .object-tools{
      font-size: 95%;
 }
-/**/
+/* widget.css */
+.selector{
+    width:100%;
+}
+.selector select {
+    width: 100%;
+}
+.selector-available, .selector-chosen {
+    width: 45%;
+}
+/* changelist*/
+#changelist table, #result_list {
+    width: 100%;
+}
 #admin-links{
     float:right;
     font-size: 90%;
