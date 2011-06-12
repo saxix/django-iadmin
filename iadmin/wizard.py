@@ -83,6 +83,9 @@ class ImportForm(Form):
 
 
 def csv_processor_factory(app_name, model_name, csv_filename):
+    """
+      factory for Model specific CSVPRocessorForm 
+    """
     fd = open(csv_filename, 'r')
     dialect = csv.Sniffer().sniff(fd.read(2048))
     fd.seek(0)
