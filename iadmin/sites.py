@@ -21,6 +21,7 @@ from django.conf.urls.defaults import include
 from django.utils import dateformat
 import os
 from . import options
+from iadmin.options import IModelAdmin
 from .wizard import ImportForm, csv_processor_factory, set_model_attribute
 
 def cache_admin(method, key=None):
@@ -320,6 +321,12 @@ class IAdminSite(AdminSite):
 
         urlpatterns += super(IAdminSite, self).get_urls()
         return urlpatterns
+
+    def register(self, model_or_iterable, admin_class=None, **options):
+        if not admin_class:
+            admin_class = IModelAdmin
+        super(IAdminSite, self).register(model_or_iterable, admin_class, **options)
+
 
     def register_missing(self, app):
         from django.db.models.loading import get_models
