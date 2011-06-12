@@ -7,7 +7,7 @@
 {% block title %}{{ title }} | iAdmin console{% endblock %}
 
 {% block branding %}
-    <h1 id="site-name"><a href='/admin/'>iAdmin console</a></h1>
+    <h1 id="site-name"><a href='{% url admin:index %}'>iAdmin console</a></h1>
     {% if user.is_active and user.is_staff %}
     <div id="admin-links">
         <a href='{% url admin:iadmin.fm.index path=''%}'>file manager</a>&nbsp;&nbsp;&nbsp;
