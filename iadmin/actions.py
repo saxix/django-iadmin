@@ -136,9 +136,10 @@ class MassUpdateForm(ModelForm):
 
 
 def mass_update(modeladmin, request, queryset):
-#    Form = modeladmin.get_form(request)
+    """
+        mass update queryset
+    """
     MForm = modelform_factory(modeladmin.model, form=MassUpdateForm)
-#    form = None
 
     if 'apply' in request.POST:
         form = MForm(request.POST)

@@ -28,11 +28,11 @@ class IModelAdmin(DjangoModelAdmin):
     """
 
     add_undefined_fields = False
-    """ if true create an 'Other' fieldset section with all fields not defined in other fieldsets """
+    
 
     list_display_rel_links = ()
     cell_filter = ()
-    extra_allowed_filter = []
+
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
@@ -43,9 +43,18 @@ class IModelAdmin(DjangoModelAdmin):
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
         self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
-
+        self.extra_allowed_filter = []
+        
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
+
+    def _process_cell_filter(self):
+        # add cell_filter fields to `extra_allowed_filter` list
+        for entry in self.cell_filter:
+            method = getattr(self, entry, None)
+            if method:
+                cell_filter_field = getattr(method, "admin_order_field", None)
+                self.extra_allowed_filter.append ( cell_filter_field )
 
     def lookup_allowed(self, lookup, value):
         # overriden to allow filter on cell_filter fields
@@ -58,13 +67,7 @@ class IModelAdmin(DjangoModelAdmin):
         clean_lookup = LOOKUP_SEP.join(parts)
         return clean_lookup in self.extra_allowed_filter
 
-    def _process_cell_filter(self):
-        # add cell_filter fields to `extra_allowed_filter` list
-        for entry in self.cell_filter:
-            method = getattr(self, entry, None)
-            if method:
-                cell_filter_field = getattr(method, "admin_order_field", None)
-                self.extra_allowed_filter.append ( cell_filter_field )
+
 
 #    def change_view(self, request, object_id, extra_context=None):
 #        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
