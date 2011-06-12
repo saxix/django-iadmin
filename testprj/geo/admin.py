@@ -1,5 +1,6 @@
 from django.contrib.admin.options import TabularInline
 from geo.models import Country, Lake, Location, Ocean
+
 from iadmin.utils import tabular_factory
 
 __author__ = 'sax'
@@ -32,10 +33,13 @@ class LakeAdmin(admin.ModelAdmin):
 class OceanAdmin(admin.ModelAdmin):
     filter_horizontal = ('countries', )
 
+import iadmin.shortcuts.auth
+
 admin.site.register(Country, CountryAdmin)
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Lake, LakeAdmin)
 admin.site.register(Ocean, OceanAdmin)
+
 
 from django.conf import settings
 if settings.DEBUG:
