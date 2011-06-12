@@ -55,14 +55,12 @@
 {% endblock %}
 
 {% block coltype %}flex{% endblock %}
-
 {% block content %}
-
+    <br/><br/>
     <div id="content-main">
         {% block object-tools %}
             <ul class="object-tools">
                 {% if directory.can_write %}
-
                     {% if perms.file_manager.can_create_dir %}
                         <li><a id="mkdir" href="javascript:false;" class="addlink">{% trans 'Create Directory' %}</a></li>
                     {% endif %}
