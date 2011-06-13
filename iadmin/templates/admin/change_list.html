@@ -32,6 +32,8 @@
         if ( fw ){
 
            $('#result_list').css("width", ($('#changelist').width()-$('#changelist-filter').width() ) );
+           $('#result_list tr td:last-child').width($('#changelist-filter').position().left-$('#result_list tr td:last-child').position().left);
+           //$('#result_list tr td:last-child').css("width", "100%" );
         }
     });
 })(django.jQuery);
