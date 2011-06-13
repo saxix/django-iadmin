@@ -45,7 +45,9 @@ Add an entry into your urls.conf ::
                 ...
     )
 
+
 In your admin.py file ::
+
     import iadmin
     from iadmin.proxy import *
 
