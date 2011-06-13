@@ -64,7 +64,10 @@ class FileSystemObject(object):
             return self.name[0] == '.'
 
     def __repr__(self):
-        return self.absolute_path
+        return unicode(self.absolute_path)
+
+    def __str__(self):
+        return unicode(self.absolute_path)
 
 class Dir(FileSystemObject):
     is_directory = True
@@ -155,5 +158,5 @@ class File(FileSystemObject):
         else:
             return '-------------'
 
-    def __repr__(self):
-        return "%s:%s" % (self.mime, self.name)
+#    def __repr__(self):
+#        return "%s:%s" % (self.mime, self.name)
