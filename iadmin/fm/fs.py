@@ -13,7 +13,7 @@ __author__ = 'sax'
 
 
 CONFIG = utils.get_fm_config()
-ROOT_NAME = '[home]/'
+ROOT_NAME = ''
 perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx']
 
 class FileSystemObject(object):
@@ -79,8 +79,17 @@ class Dir(FileSystemObject):
         except OSError:
             raise http.Http404
 
+    def delete(self):
+        os.rmdir(self.absolute_path)
+
     def get_file(self, name):
         fullpath = os.path.join( self.absolute_path, name)
+        return File( fullpath)
+
+    def get_child(self, name):
+        fullpath = os.path.join( self.absolute_path, name)
+        if os.path.isdir(fullpath):
+            return Dir( fullpath )
         return File( fullpath)
 
     @property
@@ -108,8 +117,8 @@ class Dir(FileSystemObject):
         elements = []
         for i, el in enumerate(self.path[::-1]):
             elements.insert(0, ['/'.join(self.path[:-i]), el + '/'])
-        if self.name != ROOT_NAME:
-            elements.insert(0, ['', ROOT_NAME])
+#        if self.name != ROOT_NAME:
+        elements.insert(0, ['', '/'])
         return elements[:-1]
 
     def __lt__(self, other):
@@ -122,9 +131,6 @@ class Dir(FileSystemObject):
 class File(FileSystemObject):
     is_directory = False
     checks = [os.path.isfile]
-    #    def __init__(self, owner, name):
-    #        super(File, self).__init__(owner, name)
-    #        self.can_edit = self.mime in ['text', ]
 
     @property
     def absolute_url(self):
@@ -135,6 +141,9 @@ class File(FileSystemObject):
             return False
         else:
             return self.name < other.name
+
+    def delete(self):
+        os.unlink(self.absolute_path)
 
     @property
     def icon(self):

@@ -3,11 +3,12 @@ from django import http, template
 from functools import update_wrapper
 from django.conf.urls.defaults import patterns, url
 from django.contrib import messages
-from django.contrib.admin import helpers
-from django.contrib.admin.options import ModelAdmin
-from django.contrib.admin.sites import AdminSite
+#from django.contrib.admin import helpers
+#from django.contrib.admin.options import ModelAdmin
+#from django.contrib.admin.sites import AdminSite
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db.models.fields import BLANK_CHOICE_DASH
+#from django.db.models.fields import BLANK_CHOICE_DASH
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 import utils
@@ -77,6 +78,9 @@ class FileManager(object):
         """
             Upload a new file.
         """
+        if not request.user.has_perm('iadmin.can_upload_file'):
+            raise PermissionDenied
+
         from iadmin.fm.forms import UploadForm
         path = utils.url_to_path(path)
         base = Dir( path )
@@ -107,23 +111,33 @@ class FileManager(object):
                  'max_size' : utils.get_max_upload_size(), 
                  'url': url}))
 
+    def can_rename_object(self, request, obj):
+        perm = ['iadmin.can_rename_file', 'iadmin.can_rename_dir'][obj.is_directory]
+        return request.user.has_perm( perm )
+
+    def can_delete_object(self, request, obj):
+        perm = ['iadmin.can_delete_file', 'iadmin.can_delete_dir'][obj.is_directory]
+        return request.user.has_perm( perm )
+
     def delete(self, request, path):
         path = utils.url_to_path(path)
         dirname, name = os.path.split(path)
         base = Dir(dirname)
-        target = os.path.join(base.absolute_path, name)
+        target = base.get_child(name) #os.path.join(base.absolute_path, name)
+        if not self.can_delete_object(request, target):
+            raise PermissionDenied
+
         try:
-            if os.path.isdir(target):
-                os.rmdir(target)
-            else:
-                os.unlink(target)
+            target.delete()
             messages.info(request, '`%s` deleted' % target)
         except (OSError, IOError), e:
             messages.error(request, 'Error deleting: %s' % str(e))
         return redirect( base )
-#        return HttpResponseRedirect(reverse('%s:iadmin.fm.index' % self.name, kwargs={'path': base.relative_path}))
 
     def mkdir(self, request):
+        if not request.user.has_perm('iadmin.can_create_dir'):
+            raise PermissionDenied
+
         path = utils.url_to_path(request.GET.get('base'))
         dirname = request.GET.get('name')
         base = Dir( path )
@@ -133,9 +147,28 @@ class FileManager(object):
             messages.info(request, target)
         except (OSError, IOError), e:
             messages.error(request, str(e))
-
         return redirect( base )
-#        return HttpResponseRedirect(base.relative_path)
+
+    def rename(self, request):
+        path = utils.url_to_path(request.GET.get('base'))
+        oldname = request.GET.get('oldname')
+        newname = request.GET.get('newname')
+        base = Dir( path )
+
+        target = base.get_child(oldname) 
+        if not self.can_rename_object(request, target):
+            raise PermissionDenied
+
+        oldpath = os.path.join(base.absolute_path, oldname)
+        newpath = os.path.join(base.absolute_path, newname)
+        try:
+            if os.path.exists(newpath):
+                raise OSError('Destination exists')
+            os.rename(oldpath, newpath)
+            messages.info(request, 'Successfully renamed `%s` as `%s`' % (oldname, newname))
+        except (OSError, IOError), e:
+            messages.error(request, str(e))
+        return redirect( base )
 
     def get_urls(self):
         def wrap(view, cacheable=False):
@@ -148,6 +181,10 @@ class FileManager(object):
                         url(r'^mkdir$',
                             wrap(self.mkdir),
                             name='iadmin.fm.mkdir'),
+
+                        url(r'^rename$',
+                            wrap(self.rename),
+                            name='iadmin.fm.rename'),
 
                         url(r'^upload/(?P<path>.*)$',
                             wrap(self.upload),
