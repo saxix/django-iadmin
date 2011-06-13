@@ -202,6 +202,9 @@ def export_as_json(modeladmin, request, queryset):
     import django.core.serializers as ser
     json = ser.get_serializer('json')()
     ret = json.serialize(records, use_natural_keys=True, indent=2)
-    return HttpResponse(ret, 'text/plain')
+    response = HttpResponse(mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment;filename="%s.csv"' % queryset.model._meta.verbose_name_plural.lower()
+    response.content = ret
+    return response
 
 export_as_json.short_description = "Export as fixture"
