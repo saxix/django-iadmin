@@ -60,6 +60,7 @@ class FileManager(object):
 
         return render_to_response("iadmin/fm/index.html", {'directory': directory,
                                                            'path': url,
+                                                           'title' : 'FileManager',
                                                            'fmindex': reverse('%s:iadmin.fm.index' % self.name,
                                                                               kwargs={'path': ''}),
                                                            'order': order,
@@ -106,6 +107,7 @@ class FileManager(object):
         return render_to_response("iadmin/fm/upload.html", template.RequestContext(request,
                 {'form': form,
                  'directory': base,
+                 'title' : 'FileManager',
                  'filemanager' : self,
                  'fmindex' : reverse('%s:iadmin.fm.index' % self.name, kwargs={'path': ''}),
                  'max_size' : utils.get_max_upload_size(), 
