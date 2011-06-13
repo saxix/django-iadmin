@@ -7,7 +7,7 @@ def get_max_upload_size():
     return getattr(settings, 'IADMIN_FILE_UPLOAD_MAX_SIZE', 2000000)
 
 def get_document_root():
-    return getattr(settings, 'IADMIN_FM_ROOT', getattr(settings,'MEDIA_ROOT', '.'))
+    return getattr(settings, 'IADMIN_FM_ROOT', getattr(settings,'MEDIA_ROOT', os.path.abspath('.')))
 
 def get_fm_config():
     config = { 'show': lambda x: not x.hidden}

@@ -13,7 +13,7 @@ __author__ = 'sax'
 
 
 CONFIG = utils.get_fm_config()
-ROOT_NAME = ''
+ROOT_NAME = '[home]/'
 perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx']
 
 class FileSystemObject(object):
@@ -21,20 +21,16 @@ class FileSystemObject(object):
 
     def __init__(self, fullpath, owner=None):
         for check in self.checks:
-            if not check( fullpath):
-                raise http.Http404
+            if not check( fullpath ):
+                raise http.Http404('Path not found `%s` or IADMIN_FM_ROOT not configured in settings' % fullpath)
 
         self.name = self.basename = os.path.basename(fullpath) or ROOT_NAME
         self.parent = os.path.dirname(fullpath)
 
         self.absolute_path = fullpath # file system absolute path
         self.relative_path = utils.relpath(fullpath, utils.get_document_root())
-        #        self.absolute_url = reverse('admin:iadmin.fm.index', kwargs={'path': self.relative_path})
 
         self.path = self.relative_path.split('/')
-        #        #        self.url = utils.relpath(utils.get_document_root(),  )
-        #        #        self.relative_path = os.path.join(owner.relative_path, name)
-        #        #        self.absolute_path = os.path.join(utils.get_document_root(), self.relative_path)
         self.mime = mimetypes.guess_type(self.absolute_path, False)[0] or ''
         self.can_read = os.access(self.absolute_path, os.R_OK)
         self.can_write = os.access(self.absolute_path, os.W_OK)
@@ -64,7 +60,8 @@ class FileSystemObject(object):
     
     @property
     def hidden(self):
-        return self.name[0] == '.'
+        if self.name != ROOT_NAME:
+            return self.name[0] == '.'
 
     def __repr__(self):
         return self.absolute_path
@@ -75,8 +72,8 @@ class Dir(FileSystemObject):
     checks = [os.path.isdir]
 
     def _scan(self):
-    #        if not CONFIG['show'](self):
-    #            raise http.Http404
+        if not CONFIG['show'](self):
+            raise http.Http404
         try:
             return os.listdir(self.absolute_path)
         except OSError:
@@ -111,7 +108,8 @@ class Dir(FileSystemObject):
         elements = []
         for i, el in enumerate(self.path[::-1]):
             elements.insert(0, ['/'.join(self.path[:-i]), el + '/'])
-        elements.insert(0, ['', '/'])
+        if self.name != ROOT_NAME:
+            elements.insert(0, ['', ROOT_NAME])
         return elements[:-1]
 
     def __lt__(self, other):
