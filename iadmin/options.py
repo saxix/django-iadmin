@@ -26,17 +26,12 @@ class IModelAdmin(DjangoModelAdmin):
     """
         extended ModelAdmin
     """
-
     add_undefined_fields = False
-    
-
     list_display_rel_links = ()
     cell_filter = ()
-
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
-
     change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json]
 
@@ -87,7 +82,9 @@ class IModelAdmin(DjangoModelAdmin):
         return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
     def ajax_query(self, request):
-        # Apply keyword searches.
+        """
+            ajax service to perform autocomplete widget queries
+        """
         def construct_search(field_name):
             if field_name.startswith('^'):
                 return "%s__istartswith" % field_name[1:]
