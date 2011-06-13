@@ -17,7 +17,7 @@ class IChangeList(ChangeList):
         if hasattr(attr, 'admin_order_field'):
             target_field_name = getattr(attr, 'admin_order_field')
 
-            lookup_kwarg = '%s__exact' % target_field_name
+            lookup_kwarg = target_field_name
             lookup_value = value
         else:
             target = getattr(obj, field_name)
@@ -27,11 +27,11 @@ class IChangeList(ChangeList):
                 return ''
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
-                lookup_kwarg = '%s__%s__exact' % (field.name, rel_name)
+                lookup_kwarg = '%s__%s' % (field.name, rel_name)
                 lookup_value = target.pk
                 #url = self.get_query_string( {lookup_kwarg: target.pk})
             else:
-                lookup_kwarg = '%s__exact' % field.name
+                lookup_kwarg = field.name
                 lookup_value = target
         url = self.get_query_string( {lookup_kwarg: lookup_value})
 

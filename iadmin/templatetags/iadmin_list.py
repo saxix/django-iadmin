@@ -56,26 +56,17 @@ def result_headers(cl):
             th_classes.append('sorted %sending' % cl.order_type.lower())
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
 
-
-        filter_param_name= '%s__id__exact' % field_name
-        filtered = filter_param_name in cl.get_query_string()
-
-        if not filtered:
-            filter_param_name= '%s__exact' % field_name
-            filtered = filter_param_name in cl.get_query_string()
-        if not filtered and hasattr(cl.model_admin, field_name):
-            method = getattr(cl.model_admin, field_name)
-            cell_filter_field = getattr(method, "admin_order_field", None)
-            filter_param_name= '%s__exact' % cell_filter_field
-            filtered = filter_param_name in cl.get_query_string()
-
-
-        if filtered:
-            url = cl.get_query_string(remove=[filter_param_name])
-            th_classes = ['filtered']
-            cl._filtered_on.append( field_name )
-        else:
-            url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
+        keys = cl.params.keys()
+        for check in [admin_order_field, field_name, '%s__id' % field_name]:
+            if check in keys:
+                filtered = True
+                url = cl.get_query_string(remove=[check])
+                th_classes = ['filtered']
+                cl._filtered_on.append( field_name )
+                break
+            else:
+                filtered = False
+                url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
 
         class_attrib = mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')
 
