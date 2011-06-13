@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load iadmin %}
+{% load iadmin i18n %}
 {% block extrahead %}
 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/iadmin.css"/>
 {% endblock %}
@@ -17,5 +17,7 @@
     </div>
     {% endif %}
 {% endblock %}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url admin:index %}">{% trans 'Home' %}</a>{% if title %} &rsaquo; {{ title }}{% endif %}</div>{% endblock %}
 
 {#{% block nav-global %}{% endblock %}#}
