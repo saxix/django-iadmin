@@ -4,7 +4,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/changelists.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/ichangelists.css"/>
    {% if cl.formset %}
     <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
   {% endif %}
@@ -28,6 +28,11 @@
 (function($) {
     $(document).ready(function($) {
         $("tr input.action-select").actions();
+        var fw = $('#changelist-filter').width();
+        if ( fw ){
+
+           $('#result_list').css("width", ($('#changelist').width()-$('#changelist-filter').width() ) );
+        }
     });
 })(django.jQuery);
 </script>
