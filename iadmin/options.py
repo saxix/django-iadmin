@@ -67,11 +67,6 @@ class IModelAdmin(DjangoModelAdmin):
         clean_lookup = LOOKUP_SEP.join(parts)
         return clean_lookup in self.extra_allowed_filter
 
-
-
-#    def change_view(self, request, object_id, extra_context=None):
-#        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
-
     def get_changelist(self, request, **kwargs):
         return IChangeList
 
