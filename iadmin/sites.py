@@ -297,11 +297,6 @@ class IAdminSite(AdminSite):
                                     wrap(self.env_info),
                                     name='admin_env_info'),
 
-#                                url(r'^r/info/(?P<export>export)*$',
-#                                    wrap(self.env_info),
-#                                    name='admin_env_info'),
-
-
                                 url(r'^import/1$',
                                     wrap(self.import_csv),
                                     name='import_csv'),
