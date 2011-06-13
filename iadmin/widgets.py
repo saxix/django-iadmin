@@ -28,7 +28,7 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
         output = [self.widget.render(name, value, *args, **kwargs)]
 
 #        if value and rel_to in self.admin_site._registry: # If the related object has an admin interface:
-        if related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
+        if value and related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
             edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=[value])
             output.append(u'<a href="%s" class="edit" id="edit_id_%s">&nbsp;&nbsp;' % (edit_url, name))
             output.append(u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>&nbsp;&nbsp;' % (settings.MEDIA_URL, _('Edit')))
