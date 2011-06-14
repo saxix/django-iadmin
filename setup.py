@@ -53,6 +53,7 @@ setup(
     platforms = ['any'],
     zip_safe=False,
     install_requires=[],
+    dependecy_link =[],
     classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',
                    'Framework :: Django',

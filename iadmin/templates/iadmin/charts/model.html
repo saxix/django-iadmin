@@ -1,0 +1,43 @@
+{% extends "admin/change_form.html" %}
+{% load i18n charts %}
+
+{% block breadcrumbs %}{% if not is_popup %}
+    <div class="breadcrumbs">
+        <a href="../../">{% trans "Home" %}</a> &rsaquo;
+        <a href="../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+        <a href=".">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+        Graph
+    </div>
+{% endif %}{% endblock %}
+
+{% block content %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <table>
+            {{ adminform.form }}
+        </table>
+        <input type="hidden" name="action" value="{{ action }}"/>
+        <input type="submit" name="apply" value="go"/>
+    </form>
+    {% if data %}
+        <div class="left">
+            {% chart %}
+                {% chart-data data %}
+                {% chart-size "600x400" %}
+                {% chart-type "pie" %}
+                {% chart-labels data_labels %}
+                {% chart-alt "It worked!" %}
+            {% endchart %}
+        </div>
+        <div class="left">
+            <table id="chart-data">
+                {% for a in table %}
+                    <tr>
+                        <td>{{ a.0 }}</td>
+                        <td>{{ a.1 }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

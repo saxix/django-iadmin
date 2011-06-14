@@ -61,7 +61,8 @@ def result_headers(cl):
             th_classes.append('sorted %sending' % cl.order_type.lower())
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
 
-        th_classes.extend( cl.model_admin.columns_classes.get(field_name, '') )
+        if hasattr(cl.model_admin, 'columns_classes'):
+            th_classes.extend( cl.model_admin.columns_classes.get(field_name, '') )
 
         keys = cl.params.keys()
         for check in [admin_order_field, field_name, '%s__id' % field_name]:

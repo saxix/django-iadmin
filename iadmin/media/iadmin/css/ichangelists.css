@@ -1,16 +1,3 @@
-#changelist .actions label {
-    font-size: 12pt;
-    margin-left: 0.5em;
-}
-
-#changelist .actions span.all, #changelist .actions span.action-counter, #changelist .actions span.clear, #changelist .actions span.question {
-    font-size: 12pt;
-}
-
-#changelist #toolbar form input {
-    font-size: 12pt;
-}
-
 #result_list thead th.filtered {
     background-repeat: no-repeat !important;
 }

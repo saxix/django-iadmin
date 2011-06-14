@@ -33,7 +33,7 @@ class IModelAdmin(DjangoModelAdmin):
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
     change_form_template = 'iadmin/change_form_tab.html'
-    actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json]
+    actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
     
     def __init__(self, model, admin_site):

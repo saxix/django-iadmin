@@ -6,6 +6,8 @@ Created on 28/ott/2009
 '''
 from collections import defaultdict
 import datetime
+from django.db.models.aggregates import Count
+from django.db.models.fields.related import ForeignKey
 from django.utils import simplejson as json
 from django import forms
 from django.contrib import messages
@@ -21,6 +23,7 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin import helpers
 from django.utils import formats
 from django.utils import dateformat
+from iadmin.plugins.csv.utils import graph_form_factory
 
 __all__ = ('export_to_csv', 'mass_update')
 
@@ -208,3 +211,63 @@ def export_as_json(modeladmin, request, queryset):
     return response
 
 export_as_json.short_description = "Export as fixture"
+
+
+def graph_queryset(modeladmin, request, queryset):
+    MForm = graph_form_factory(modeladmin.model)
+    cc = [(0,0),]
+    table = data_labels= data = total = None
+    if 'apply' in request.POST:
+        form = MForm(request.POST)
+        if form.is_valid():
+            g = form.cleaned_data['groupby']
+            field, model, direct, m2m = modeladmin.model._meta.get_field_by_name( g )
+            cc = queryset.values_list( g ).annotate(Count( g )).order_by()
+            total = queryset.all().count()
+            
+            if isinstance(field, ForeignKey):
+                data_labels = []
+                for value, cnt in cc:
+                    data_labels.append( str(field.rel.to.objects.get(pk=value)) )
+            elif hasattr(modeladmin.model, 'get_%s_display' % field.name):
+                data_labels = []
+                for value, cnt in cc:
+                    data_labels.append( force_unicode(dict(field.flatchoices).get(value, value), strings_only=True))
+            else:
+                data_labels = [l for l,v in cc]
+            data =  [v for l,v in cc]
+            table =  zip( data_labels, data)
+    elif request.method == 'POST':
+        total = queryset.all().count()
+        initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME),
+                       'select_across' : request.POST.get('select_across', 0)}
+        form = MForm(initial=initial)
+    else:
+        initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME),
+                       'select_across' : request.POST.get('select_across', 0)}
+        form = MForm(initial=initial)
+        
+    adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
+    media = modeladmin.media + adminForm.media
+
+
+    ctx = {'adminform':adminForm,
+            'data': data,
+            'action': 'graph_queryset',
+            'data_labels': data_labels,
+            'total' : total,
+            'table' : table,
+            'selection': queryset,
+            'original_data': cc,
+            'change': True,
+            'is_popup': False,
+            'save_as': False,
+            'has_delete_permission': False,
+            'has_add_permission': False,
+            'has_change_permission': True,
+            'opts': modeladmin.model._meta,
+            'app_label': queryset.model._meta.app_label,
+           }
+    return render_to_response('iadmin/charts/model.html', RequestContext(request, ctx))
+
+graph_queryset.short_description = "Graph selected records"

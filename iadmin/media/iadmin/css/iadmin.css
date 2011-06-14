@@ -24,4 +24,7 @@
     border-bottom: 0 none #EEEEEE;
 }
 
-
+#chart-data{
+    /*padding-left: 120px;*/
+    margin-left: 120px;
+}

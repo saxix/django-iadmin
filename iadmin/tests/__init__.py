@@ -1,1 +1,2 @@
-from filemanager import *
+from filemanager import FileManagerTest
+from comp import CompatibilityTest

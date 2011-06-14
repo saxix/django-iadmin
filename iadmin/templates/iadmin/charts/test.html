@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% load i18n charts %}
+
+{% block content %}
+  {% chart %}
+  {% chart-data data1 %}
+  {% chart-size "600x400" %}
+  {% chart-type "pie" %}
+  {% chart-labels data1_labels %}
+  {% chart-alt "It worked!" %}
+{% endchart %}
+
+{% endblock %}

@@ -1,10 +1,8 @@
-import csv
+
 import datetime
-import tempfile
 import django
 from django.conf import settings
 from django.conf.urls.defaults import url, patterns
-from django.contrib import messages
 from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
@@ -20,10 +18,9 @@ from django.shortcuts import render_to_response
 from django.views.decorators.cache import never_cache
 from django.conf.urls.defaults import include
 from django.utils import dateformat
-import os
-from . import options
-from iadmin.options import IModelAdmin
-from .wizard import ImportForm, csv_processor_factory, set_model_attribute
+from .options import IModelAdmin
+#from .wizard import ImportForm, csv_processor_factory, set_model_attribute
+from iadmin.plugins import FileManager, CSVImporter
 
 def cache_admin(method, key=None):
     entry = key or method.__name__
@@ -46,12 +43,10 @@ def cache_app_index(func):
     return __inner
 
 __all__= ['site', 'IAdminSite']
-from plugins import FileManager, CSVImporter
+
 class IAdminSite(AdminSite):
     register_all_models = False
-
     plugins = [CSVImporter, FileManager]
-
 
     def index(self, request, extra_context=None):
         """
@@ -255,7 +250,7 @@ class IAdminSite(AdminSite):
             Note: app must use the syntax `app.models`
         """
         from django.db.models.loading import get_models
-        [self.register(m, options.IModelAdmin) for m in get_models(app) if not m in self._registry]
+        [self.register(m, IModelAdmin) for m in get_models(app) if not m in self._registry]
 
     register_missing = register_app
 
@@ -266,6 +261,7 @@ def invalidate_index(sender, **kwargs):
 post_save.connect(invalidate_index)
 post_delete.connect(invalidate_index)
 
+#site = IAdminSite()
 django.contrib.admin.site = django.contrib.admin.sites.site = site = IAdminSite()
 
   
