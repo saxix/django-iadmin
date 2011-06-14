@@ -25,11 +25,13 @@ def result_headers(cl):
     Generates the list column headers.
     """
     cl._filtered_on = []
+    first = True
     for i, field_name in enumerate(cl.list_display):
         header, attr = label_for_field(field_name, cl.model,
             model_admin = cl.model_admin,
             return_attr = True
         )
+
         if attr:
             # if the field is the action checkbox: no sorting and special class
             if field_name == 'action_checkbox':
@@ -51,17 +53,22 @@ def result_headers(cl):
             admin_order_field = None
 
         th_classes = []
+        if first and cl.model_admin.list_filter:
+            first = False
+            th_classes = ['elastic']
         new_order_type = 'asc'
         if field_name == cl.order_field or admin_order_field == cl.order_field:
             th_classes.append('sorted %sending' % cl.order_type.lower())
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
+
+        th_classes.extend( cl.model_admin.columns_classes.get(field_name, '') )
 
         keys = cl.params.keys()
         for check in [admin_order_field, field_name, '%s__id' % field_name]:
             if check in keys:
                 filtered = True
                 url = cl.get_query_string(remove=[check])
-                th_classes = ['filtered']
+                th_classes.append( 'filtered' )
                 cl._filtered_on.append( field_name )
                 break
             else:
@@ -137,7 +144,7 @@ def items_for_result(cl, result, form):
             result_repr = (result_repr,  '')
 
         if force_unicode(result_repr[0]) == '':
-            result_repr[0] = mark_safe('&nbsp;')
+            result_repr = (mark_safe('&nbsp;'), '')
         # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True:'th', False:'td'}[first]
