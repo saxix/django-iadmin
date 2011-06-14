@@ -85,11 +85,7 @@ def items_for_result(cl, result, form):
     """
     first = True
     pk = cl.lookup_opts.pk.attname
-#    if not hasattr(cl.model_admin, 'cell_filter'):
-#        cl.model_admin.cell_filter=()
-#        cl.model_admin.list_display_rel_links = ()
-#        cl._filtered_on = None
-#        cl._cell_filter = None
+
     for field_name in cl.list_display:
         row_class = ''
 
@@ -115,11 +111,12 @@ def items_for_result(cl, result, form):
                     result_repr = escape(result_repr)
                 else:
                     result_repr = mark_safe(result_repr)
-                if hasattr(cl.model_admin, 'cell_filter') and (field_name not in cl._filtered_on) and field_name in cl.model_admin.cell_filter:
-#                    f, attr, value = lookup_field(fname, result, cl.model_admin)
-                    a =  cl._cell_filter(result, field_name)
-                    b =  result_repr
-                    result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
+
+                # show funnel.png if not active filter
+#                if hasattr(cl.model_admin, 'cell_filter') and (field_name not in cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+#                    a =  cl._cell_filter(result, field_name)
+#                    b =  result_repr
+#                    result_repr =  mark_safe(b + smart_unicode(mark_safe(a)))
 
             else:
                 if isinstance(f.rel, models.ManyToOneRel):
@@ -132,14 +129,15 @@ def items_for_result(cl, result, form):
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
 
-                if hasattr(cl.model_admin, 'cell_filter') and (f.name not in  cl._filtered_on) and f.name in cl.model_admin.cell_filter:
-                    a =  cl._cell_filter(result, field_name)
-                    b =  result_repr
-                    result_repr =  mark_safe(smart_unicode(b) + smart_unicode(mark_safe(a)))
+        if hasattr(cl.model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) and field_name in cl.model_admin.cell_filter:
+            a =  cl._cell_filter(result, field_name)
+#            b =  result_repr
+            result_repr = (result_repr,  smart_unicode(mark_safe(a)))
+        else:
+            result_repr = (result_repr,  '')
 
-
-        if force_unicode(result_repr) == '':
-            result_repr = mark_safe('&nbsp;')
+        if force_unicode(result_repr[0]) == '':
+            result_repr[0] = mark_safe('&nbsp;')
         # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True:'th', False:'td'}[first]
@@ -153,8 +151,8 @@ def items_for_result(cl, result, form):
                 attr = pk
             value = result.serializable_value(attr)
             result_id = repr(force_unicode(value))[1:]
-            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a></%s>' % \
-                (table_tag, row_class, url, (cl.is_popup and ' onclick="opener.dismissRelatedLookupPopup(window, %s); return false;"' % result_id or ''), conditional_escape(result_repr), table_tag))
+            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a>%s</%s>' % \
+                (table_tag, row_class, url, (cl.is_popup and ' onclick="opener.dismissRelatedLookupPopup(window, %s); return false;"' % result_id or ''), conditional_escape(result_repr[0]), conditional_escape(result_repr[1]), table_tag))
         else:
             # By default the fields come from ModelAdmin.list_editable, but if we pull
             # the fields out of the form instead of list_editable custom admins
@@ -163,7 +161,7 @@ def items_for_result(cl, result, form):
                 bf = form[field_name]
                 result_repr = mark_safe(force_unicode(bf.errors) + force_unicode(bf))
             else:
-                result_repr = conditional_escape(result_repr)
+                result_repr = '%s%s' % (conditional_escape(result_repr[0]), conditional_escape(result_repr[1]))
             yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
     if form and not form[cl.model._meta.pk.name].is_hidden:
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))
