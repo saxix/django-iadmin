@@ -9,6 +9,7 @@ from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
+from django.db.models.base import ModelBase
 from django.db.models.signals import post_save, post_delete
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.functional import update_wrapper
@@ -286,8 +287,6 @@ class IAdminSite(AdminSite):
                 return self.admin_view(view, cacheable)(*args, **kwargs)
             return update_wrapper(wrapper, view)
 
-
-
         urlpatterns = patterns('',
                                 url(r'^s/format/date/$',
                                     wrap(self.format_date),
@@ -318,14 +317,32 @@ class IAdminSite(AdminSite):
         return urlpatterns
 
     def register(self, model_or_iterable, admin_class=None, **options):
+        """
+            register a model or an iterable using IModelAdmin
+        """
         if not admin_class:
             admin_class = IModelAdmin
         super(IAdminSite, self).register(model_or_iterable, admin_class, **options)
 
+    def silent_unregister(self, model_or_iterable):
+        """
+        unregister witout raise NotRegistered Exceptior if not already registered
+        """
+        if isinstance(model_or_iterable, ModelBase):
+            model_or_iterable = [model_or_iterable]
+        for model in model_or_iterable:
+            if model in self._registry:
+                del self._registry[model]
 
-    def register_missing(self, app):
+    def register_app(self, app):
+        """
+            register all models of application <app>
+            Note: app must use the syntax `app.models`
+        """
         from django.db.models.loading import get_models
         [self.register(m, options.IModelAdmin) for m in get_models(app) if not m in self._registry]
+
+    register_missing = register_app
 
 def invalidate_index(sender, **kwargs):
     cache.set('admin_index', None, 0)
