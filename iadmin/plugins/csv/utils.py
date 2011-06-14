@@ -74,7 +74,7 @@ class ImportForm(Form):
         if model:
             m = "%s:%s" % ( app, model)
             self.fields['model'].choices = [(m, m)]
-            self.fields['model'].widget = Input()
+            self.fields['model'].widget = Input({'readonly':'readonly'})
             self.initial['model'] = m
         elif app:
             self.fields['model'].choices = _get_all_models(app)

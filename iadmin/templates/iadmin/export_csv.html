@@ -35,7 +35,7 @@
         <a href="../../../">{% trans "Home" %}</a> &rsaquo;
         <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
         {% if has_change_permission %}<a
-                href=".">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %} &rsaquo;
+                href="../admin">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %} &rsaquo;
         CSV Export Options
     </div>
 {% endif %}{% endblock %}

@@ -46,9 +46,12 @@ def cache_app_index(func):
     return __inner
 
 __all__= ['site', 'IAdminSite']
-
+from plugins import FileManager, CSVImporter
 class IAdminSite(AdminSite):
     register_all_models = False
+
+    plugins = [CSVImporter, FileManager]
+
 
     def index(self, request, extra_context=None):
         """
@@ -195,92 +198,7 @@ class IAdminSite(AdminSite):
             response.content = '\n'.join([str(e) for e in lib])
             return response
 
-        return render_to_response('admin/env_info.html', context, context_instance=context_instance )
-
-    def _import_csv_1(self, request, app=None, model=None, temp_file_name=None):
-        context = { 'app_label': app or '',
-                    'model': model or '',
-                    'root_path': self.root_path or ''
-        }
-        if request.method == 'POST':
-            form = ImportForm(app, model, request.POST, request.FILES)
-            if form.is_valid():
-                file = request.FILES['csv']
-
-                fd = open(temp_file_name, 'wb')
-                for chunk in file.chunks():
-                    fd.write(chunk)
-                fd.close()
-                messages.error(request, temp_file_name)
-                app_name, model_name = form.cleaned_data['model'].split(':')
-                url = reverse('%s:model_import_csv' % self.name, kwargs={'app': app_name, 'model':model_name, 'page':2})
-                return HttpResponseRedirect( url )
-        else:
-            form = ImportForm(app, model, initial={'page': 1})
-
-        context.update({'page': 1,
-                            'form': form,
-                            })
-        context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response('admin/import_csv.html', context, context_instance=context_instance )
-
-    
-    def _import_csv_2(self, request, app_name=None, model_name=None, temp_file_name=None):
-        try:
-            Form = csv_processor_factory(app_name, model_name, temp_file_name)
-        except IOError, e:
-            messages.error(request, str(e))
-            return HttpResponseRedirect('/admin/%s/%s/import/2' % (app_name, model_name))
-
-        if request.method == 'POST':
-            form = Form(request.POST, request.FILES)
-            if form.is_valid():
-                inserted, updated = 0, 0
-                fd = open( form._filename, 'r')
-                reader = csv.reader(fd, form._dialect)
-                if form.cleaned_data.get('header', False):
-                    reader.next()
-                for row in reader:
-                    mapping = {}
-                    keys = {}
-                    for i, cell in enumerate(row):
-                        field = form.cleaned_data['col_%s' % i]
-                        key = form.cleaned_data['key_%s' % i]
-                        rex = form.cleaned_data['rex_%s' % i]
-                        if key:
-                            keys[field] = cell
-                        elif field:
-                            mapping[field] = cell
-                    if keys:
-                        obj, is_new = form._model.objects.get_or_create(**keys)
-                    else:
-                        obj = form._model()
-                    for f,v in mapping.items():
-                        set_model_attribute(obj, f, v, rex)
-                    obj.save()
-                    updated += 1
-                messages.info(request, '%s records updated' % updated )
-        else:
-            form = Form()
-
-        context = {'page': 2,
-                   'form':form,
-                   'current_app': self.name,
-                   'app_label': app_name,
-                   'sample': form._head(),
-                   'model': model_name,
-        }
-        context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response('admin/import_csv.html', context, context_instance=context_instance )
-
-
-    def import_csv(self, request, page=1, app=None, model=None):
-            temp_file_name = os.path.join(tempfile.gettempdir(), 'iadmin_import_%s.temp~' % request.user.username)
-            if int(page) == 1:
-                return self._import_csv_1(request, app, model, temp_file_name = temp_file_name)
-            elif int(page) == 2:
-                return self._import_csv_2(request, app, model, temp_file_name = temp_file_name)
-            raise Exception( page)
+        return render_to_response('iadmin/env_info.html', context, context_instance=context_instance )
     
     def get_urls(self):
         def wrap(view, cacheable=False):
@@ -296,23 +214,19 @@ class IAdminSite(AdminSite):
                                 url(r'^r/info/$',
                                     wrap(self.env_info),
                                     name='admin_env_info'),
-
-                                url(r'^import/1$',
-                                    wrap(self.import_csv),
-                                    name='import_csv'),
-
-                                url(r'^(?P<app>\w+)/(?P<model>\w+)/import/(?P<page>\d)',
-                                    wrap(self.import_csv),
-                                    name='model_import_csv'),
-
-                                url(r'^(?P<app>\w+)/import/(?P<page>\d)',
-                                    wrap(self.import_csv),
-                                    name='app_import_csv'),
                                 )
 
-        from iadmin.fm.filemanager import FileManager
-        filemanager = FileManager(self)
-        urlpatterns += patterns('', url(r'^i/fm/', include( filemanager.urls )))
+        for PluginClass in self.plugins:
+            plugin =  PluginClass(self)
+            urlpatterns += patterns('', url(r'^%s/' % plugin.__class__.__name__.lower(), include( plugin.urls )))
+
+#        from iadmin.plugins.csv_import import CSVImporter
+#        csv = CSVImporter(self)
+#        urlpatterns += patterns('', url(r'', include( csv.urls )))
+#
+#        from iadmin.fm.filemanager import FileManager
+#        filemanager = FileManager(self)
+#        urlpatterns += patterns('', url(r'^ia/fm/', include( filemanager.urls )))
 
         urlpatterns += super(IAdminSite, self).get_urls()
         return urlpatterns

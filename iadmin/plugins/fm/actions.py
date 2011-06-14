@@ -4,15 +4,15 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 import os
 import tempfile
-from iadmin.fm.fs import Dir
-from iadmin.fm.utils import url_to_path, mkdirs
+from .utils import url_to_path, mkdirs
 
 def delete_selected(modeladmin, request, url):
     """
         delete selected files
     """
+    from . import fs
     path = url_to_path(url)
-    dir = Dir( path )
+    dir = fs.Dir( path )
     if request.method == 'POST':
         selection = request.POST.getlist('_selected_action')
         err = 0
@@ -35,8 +35,9 @@ def tar_selected(modeladmin, request, url):
     """
         create a tar.gz named as selected directory with selected files
     """
+    from . import fs
     path = url_to_path(url)
-    dir = Dir( path )
+    dir = fs.Dir( path )
     if request.method == 'POST':
         selection = request.POST.getlist('_selected_action')
         dest_dir = os.path.join(tempfile.gettempdir(), str(request.user), 'images')

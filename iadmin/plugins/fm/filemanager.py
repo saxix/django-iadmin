@@ -3,31 +3,27 @@ from django import http, template
 from functools import update_wrapper
 from django.conf.urls.defaults import patterns, url
 from django.contrib import messages
-#from django.contrib.admin import helpers
-#from django.contrib.admin.options import ModelAdmin
-#from django.contrib.admin.sites import AdminSite
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-#from django.db.models.fields import BLANK_CHOICE_DASH
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
+from iadmin.plugins.base import IAdminPlugin
 import utils
 import os
 
-from iadmin.fm.fs import Dir
-from iadmin.fm import actions
+from .fs import Dir
+from .actions import delete_selected, tar_selected
 
 ORDER_MAP =  {'s': 'size', 't':'mime', 'u':'user', 'g':'group', 'c':'ctime', 'm':'mtime'}
 
 
-class FileManager(object):
+class FileManager(IAdminPlugin):
 
-    actions = [actions.delete_selected, actions.tar_selected]
+    actions = [delete_selected, tar_selected]
 
     def __init__(self, adminsite):
+        super(FileManager, self).__init__(adminsite)
         self.home_dir = utils.get_document_root()
-        self.admin_site = adminsite
-        self.name = adminsite.name
         self.actions = [(a, a.short_description) for a in self.actions]
 
     def index(self, request, path=None):
@@ -87,7 +83,6 @@ class FileManager(object):
         base = Dir( path )
 
         url = utils.clean_path(path)
-        #path = os.path.join(utils.get_document_root(), url)
 
         if request.method == 'POST':
             form = UploadForm(base.absolute_path, data=request.POST, files=request.FILES)
@@ -203,11 +198,7 @@ class FileManager(object):
                         url(r'^(?P<path>.*)$',
                             wrap(self.index),
                             name='iadmin.fm.index'),
-
-
                         )
 
-    @property
-    def urls(self):
-        return self.get_urls() #, self.app_name, self.name
+
     

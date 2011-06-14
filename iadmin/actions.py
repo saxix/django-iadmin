@@ -91,7 +91,7 @@ def export_to_csv(modeladmin, request, queryset):
 
     adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
     media = modeladmin.media + adminForm.media
-    return render_to_response('admin/export_csv.html',
+    return render_to_response('iadmin/export_csv.html',
                           RequestContext(request, { 'adminform': adminForm,
                                                     'form': form,
                                                     'change': True,
@@ -174,7 +174,7 @@ def mass_update(modeladmin, request, queryset):
     media = modeladmin.media + adminForm.media
     dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.date) else str(obj)
 
-    return render_to_response('admin/mass_update.html',
+    return render_to_response('iadmin/mass_update.html',
                               RequestContext(request, { 'adminform': adminForm,
                                                         'form': form,
                                                         'grouped': grouped,

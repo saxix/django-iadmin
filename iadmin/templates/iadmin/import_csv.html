@@ -2,10 +2,10 @@
 {% load i18n %}
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-<a href="../../../">{% trans "Home" %}</a> &rsaquo;
+<a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
 {% if app_label %}
-    <a href="../../">{{ app_label|capfirst }}</a> &rsaquo;
-    {% if model %}<a href="../">{{ model|capfirst }}</a> &rsaquo;{% endif %}
+    <a href="{% url admin:index %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
+    {% if model %}<a href="{% url admin:index %}{{ app_label}}/{{ model }}">{{ model|capfirst }}</a> &rsaquo;{% endif %}
 {% endif %}
 {% if page == 1 %}
     Import
