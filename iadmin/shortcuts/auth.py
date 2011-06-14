@@ -20,7 +20,7 @@ class UserAdmin(IModelAdmin, UA):
             (_('Advanced'), {'fields': (('last_login', 'date_joined'),'password', )}),
         )
     filter_horizontal = ('user_permissions', 'groups')
-    column_css = {'last_name':['w200'], 'first_name':['w200'], 'email':['w200']}
+    columns_classes = {'last_name':['w200'], 'first_name':['w200'], 'email':['w200']}
 
     def make_active(self, request, queryset):
         rows_updated = queryset.update(is_active=True)
