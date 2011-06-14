@@ -217,7 +217,8 @@ class IAdminSite(AdminSite):
                 return HttpResponseRedirect( url )
         else:
             form = ImportForm(app, model, initial={'page': 1})
-            context.update({'page': 1,
+
+        context.update({'page': 1,
                             'form': form,
                             })
         context_instance = template.RequestContext(request, current_app=self.name)
