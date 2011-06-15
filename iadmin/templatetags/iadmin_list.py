@@ -129,7 +129,7 @@ def items_for_result(cl, result, form):
             else:
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
-                    if f.name in cl.model_admin.list_display_rel_links:
+                    if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
                         result_repr += mark_safe(cl._link_to_model(getattr(result, f.name)))
                 else:
                     result_repr = display_for_field(value, f)
