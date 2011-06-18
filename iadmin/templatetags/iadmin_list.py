@@ -86,15 +86,47 @@ def result_headers(cl):
             "url": url,
             "class_attrib" : class_attrib
         }
+CELL_FILTER_ICON = 'funnel_add.png'
+def process_cell_filter(cl, field, attr, value, obj):
+    try:
+        if hasattr(attr, 'cell_filter_func'):
+            lookup_kwarg = ''
+            lookup_value = ''
+            return 'TODO'
+        elif hasattr(attr, 'admin_order_field'):
+            target_field_name = getattr(attr, 'admin_order_field')
 
-            
+            lookup_kwarg = target_field_name
+            lookup_value = value
+        else:
+            target = getattr(obj, field.name)
+            #field = self.model_admin.model._meta.get_field_by_name(field_name)
+            #field, attr, value = lookup_field(field_name, obj, self.model_admin)
+            if not (obj and target):
+                return ''
+            if isinstance(field.rel, models.ManyToOneRel):
+                rel_name = field.rel.get_related_field().name
+                lookup_kwarg = '%s__%s' % (field.name, rel_name)
+                lookup_value = target.pk
+                #url = self.get_query_string( {lookup_kwarg: target.pk})
+            else:
+                lookup_kwarg = field.name
+                lookup_value = target
+        url = cl.get_query_string( {lookup_kwarg: lookup_value})
+
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
+               (url, settings.MEDIA_URL, CELL_FILTER_ICON)
+    except Exception, e:
+        raise
+        return str(e)
+
 def items_for_result(cl, result, form):
     """
     Generates the actual list of data.
     """
     first = True
     pk = cl.lookup_opts.pk.attname
-
+    model_admin = cl.model_admin
     for field_name in cl.list_display:
         row_class = ''
 
@@ -107,7 +139,7 @@ def items_for_result(cl, result, form):
             if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
-                
+                custom_filter = getattr(attr, 'cell_filter_func', False)
 
                 if boolean:
                     allow_tags = True
@@ -124,16 +156,16 @@ def items_for_result(cl, result, form):
             else:
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
-                    if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
-                        result_repr += mark_safe(cl._link_to_model(getattr(result, f.name)))
+                    if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
+                        result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
                 else:
                     result_repr = display_for_field(value, f)
 
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
 
-        if hasattr(cl.model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) and field_name in cl.model_admin.cell_filter:
-            a =  cl._cell_filter(result, field_name)
+        if hasattr(model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) and field_name in model_admin.cell_filter:
+            a =  process_cell_filter(cl, f, attr, value, result)
             result_repr = (result_repr,  smart_unicode(mark_safe(a)))
         else:
             result_repr = (result_repr,  '')

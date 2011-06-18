@@ -158,9 +158,20 @@ class IAdminSite(AdminSite):
         return HttpResponseRedirect( url )
 
     def reverse_model(self, clazz, pk):
+        """
+          returns the Admin view to the change page for the passed object
+        """
         view = "%s:%s_%s_change" % (self.name, clazz._meta.app_label, clazz.__name__.lower())
         url = reverse(view, args=[int(pk)])
         return url
+
+    def link_to_model(self, obj, label=None):
+        if not obj:
+            return ''
+        url = self.reverse_model(obj.__class__, obj.pk)
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (url, settings.MEDIA_URL)
+
+    _link_to_model = link_to_model
 
     def format_date(self, request):
         d = datetime.datetime.now()
