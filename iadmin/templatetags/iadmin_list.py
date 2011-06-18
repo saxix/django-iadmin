@@ -1,6 +1,7 @@
 from django.template.loader import get_template, select_template
 from django.template.context import Context, RequestContext, ContextPopException
 
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.admin.templatetags.admin_list import *
 
 register = Library()
@@ -120,7 +121,7 @@ def items_for_result(cl, result, form):
                 else:
                     result_repr = mark_safe(result_repr)
 
-             else:
+            else:
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
                     if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:

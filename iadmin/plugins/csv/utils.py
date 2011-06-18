@@ -85,15 +85,18 @@ def graph_form_factory(model):
     app_name = model._meta.app_label
     model_name = model.__name__
     
-    model_fields = [(f.name, f.name) for f in model._meta.fields]
+    model_fields = [(f.name, f.verbose_name) for f in model._meta.fields if not f.primary_key]
+    graphs = [('PieChart', 'PieChart'),('BarChart', 'BarChart')]
+    model_fields.insert(0, ('', 'N/A'))
     class_name = "%s%sGraphForm" % (app_name, model_name)
     attrs = {'initial': {'app': app_name, 'model': model_name},
              '_selected_action' : CharField(widget=MultipleHiddenInput),
-             'select_across': BooleanField(initial='0', widget=HiddenInput),
+             'select_across': BooleanField(initial='0', widget=HiddenInput, required=False),
              'app': CharField(initial=app_name, widget=HiddenInput),
              'model': CharField(initial=model_name, widget=HiddenInput),
-             'groupby' : ChoiceField(label="Pie slices", choices=model_fields, required=True),
-#             'y' : ChoiceField(label="Y values", choices=model_fields, required=False),
+             'graph_type' : ChoiceField(label="Graph type", choices=graphs, required=True),
+             'axes_x' : ChoiceField(label="Count values", choices=model_fields, required=True),
+             'axes_y' : ChoiceField(label="Y values", choices=model_fields, required=False),
     }
 
     return DeclarativeFieldsMetaclass(str(class_name), (Form,), attrs)
