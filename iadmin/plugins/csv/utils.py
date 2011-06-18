@@ -95,8 +95,8 @@ def graph_form_factory(model):
              'app': CharField(initial=app_name, widget=HiddenInput),
              'model': CharField(initial=model_name, widget=HiddenInput),
              'graph_type' : ChoiceField(label="Graph type", choices=graphs, required=True),
-             'axes_x' : ChoiceField(label="Count values", choices=model_fields, required=True),
-             'axes_y' : ChoiceField(label="Y values", choices=model_fields, required=False),
+             'axes_x' : ChoiceField(label="Group by and count by", choices=model_fields, required=True),
+#             'axes_y' : ChoiceField(label="Y values", choices=model_fields, required=False),
     }
 
     return DeclarativeFieldsMetaclass(str(class_name), (Form,), attrs)

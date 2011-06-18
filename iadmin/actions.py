@@ -248,23 +248,26 @@ def graph_queryset(modeladmin, request, queryset):
     if 'apply' in request.POST:
         form = MForm(request.POST)
         if form.is_valid():
-            x = form.cleaned_data['axes_x']
-            y = form.cleaned_data['axes_y']
-            graph_type = form.cleaned_data['graph_type']
-            field, model, direct, m2m = modeladmin.model._meta.get_field_by_name(x)
-            cc = queryset.values_list(x).annotate(Count(x)).order_by()
-            if isinstance(field, ForeignKey):
-                data_labels = []
-                for value, cnt in cc:
-                    data_labels.append(str(field.rel.to.objects.get(pk=value)))
-            elif hasattr(modeladmin.model, 'get_%s_display' % field.name):
-                data_labels = []
-                for value, cnt in cc:
-                    data_labels.append(force_unicode(dict(field.flatchoices).get(value, value), strings_only=True))
-            else:
-                data_labels = [l for l, v in cc]
-            data = [v for l, v in cc]
-            table = zip(data_labels, data)
+            try:
+                x = form.cleaned_data['axes_x']
+    #            y = form.cleaned_data['axes_y']
+                graph_type = form.cleaned_data['graph_type']
+                field, model, direct, m2m = modeladmin.model._meta.get_field_by_name(x)
+                cc = queryset.values_list(x).annotate(Count(x)).order_by()
+                if isinstance(field, ForeignKey):
+                    data_labels = []
+                    for value, cnt in cc:
+                        data_labels.append(str(field.rel.to.objects.get(pk=value)))
+                elif hasattr(modeladmin.model, 'get_%s_display' % field.name):
+                    data_labels = []
+                    for value, cnt in cc:
+                        data_labels.append(force_unicode(dict(field.flatchoices).get(value, value), strings_only=True))
+                else:
+                    data_labels = [l for l, v in cc]
+                data = [v for l, v in cc]
+                table = zip(data_labels, data)
+            except Exception, e:
+                messages.error(request, 'Unable to produce valid data: %s' % str(e))
     elif request.method == 'POST':
         total = queryset.all().count()
         initial = {helpers.ACTION_CHECKBOX_NAME: request.POST.getlist(helpers.ACTION_CHECKBOX_NAME),
