@@ -274,7 +274,9 @@ class IAdminSite(AdminSite):
             Note: app must use the syntax `app.models`
         """
         from django.db.models.loading import get_models
-        [self.register(m, IModelAdmin) for m in get_models(app) if not m in self._registry]
+        for m in get_models(app):
+            if not m in self._registry:
+                self.register(m, IModelAdmin)
 
     register_missing = register_app
 
