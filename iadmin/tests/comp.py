@@ -20,12 +20,9 @@ class CompatibilityTest(TestCase):
         """ TemplateSyntaxError  """
         admin.autodiscover()
         from django.contrib.admin import ModelAdmin
-        admin.site.unregister(User)
+        admin.site.silent_unregister(User)
         admin.site.register(User, ModelAdmin)
         url = '/admin/auth/user/'
         r = self.client.get( url )
         self.assertEqual(r.status_code, 200)
-        
 
-
-        
