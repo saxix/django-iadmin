@@ -120,13 +120,7 @@ def items_for_result(cl, result, form):
                 else:
                     result_repr = mark_safe(result_repr)
 
-                # show funnel.png if not active filter
-#                if hasattr(cl.model_admin, 'cell_filter') and (field_name not in cl._filtered_on) and field_name in cl.model_admin.cell_filter:
-#                    a =  cl._cell_filter(result, field_name)
-#                    b =  result_repr
-#                    result_repr =  mark_safe(b + smart_unicode(mark_safe(a)))
-
-            else:
+             else:
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
                     if hasattr(cl.model_admin, 'list_display_rel_links') and f.name in cl.model_admin.list_display_rel_links:
@@ -139,7 +133,6 @@ def items_for_result(cl, result, form):
 
         if hasattr(cl.model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) and field_name in cl.model_admin.cell_filter:
             a =  cl._cell_filter(result, field_name)
-#            b =  result_repr
             result_repr = (result_repr,  smart_unicode(mark_safe(a)))
         else:
             result_repr = (result_repr,  '')
