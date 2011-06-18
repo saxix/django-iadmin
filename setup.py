@@ -45,7 +45,6 @@ setup(
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',
-    summary = 'extended django admin application',
     license='BSD',
     packages = packages,
     data_files = data_files,
