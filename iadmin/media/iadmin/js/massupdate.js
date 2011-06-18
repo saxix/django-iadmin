@@ -3,10 +3,10 @@ $(function() {
         $(this).attr('disabled', 'disabled');
     });
     $('.fastfieldvalue').click(function() {
-        var check = $(this).parent().find('.enabler');
+        var check = $(this).parent().parent().find('.enabler');
         var selection = $(this).text();
         $(check).attr('checked', true);
-        var target = $(this).parent().find('input, select').not('.enabler');
+        var target = $(this).parent().parent().find('input, select').not('.enabler');
         $(target).removeAttr('disabled');
         if ($(target).is('select')) {
             $('option', target).each(function(i, selected) {
@@ -20,10 +20,11 @@ $(function() {
         }
     });
     $('.enabler').click(function() {
+        var target = $(this).parent().parent().find('.col_field input, .col_field select');
         if ($(this).is(':checked')) {
-            $(this).next().removeAttr('disabled');
+            $(target).removeAttr('disabled');
         } else {
-            $(this).next().attr('disabled', 'disabled');
+            $(target).attr('disabled', 'disabled');
         }
     })
 });
