@@ -44,5 +44,9 @@ admin.site.register(Ocean, OceanAdmin)
 from django.conf import settings
 if settings.DEBUG:
     import geo
-    admin.site.register_missing(geo.models)
+    admin.site.register_app(geo.models)
+
+from iadmin.shortcuts import flatpages
+from iadmin.shortcuts import auth
+from iadmin.shortcuts import contenttypes
 
