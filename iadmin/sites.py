@@ -149,6 +149,14 @@ class IAdminSite(AdminSite):
             context_instance=context_instance
         )
 
+    def admin_shortcut(self, request, content_type_id, object_id):
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get(pk=content_type_id)
+        obj = content_type.get_object_for_this_type(pk=object_id)
+        view = "%s:%s_%s_change" % (self.name, obj._meta.app_label, obj.__class__.__name__.lower())
+        url = reverse(view, args=[int(object_id)])
+        return HttpResponseRedirect( url )
+
     def reverse_model(self, clazz, pk):
         view = "%s:%s_%s_change" % (self.name, clazz._meta.app_label, clazz.__name__.lower())
         url = reverse(view, args=[int(pk)])
@@ -209,6 +217,11 @@ class IAdminSite(AdminSite):
                                 url(r'^r/info/$',
                                     wrap(self.env_info),
                                     name='admin_env_info'),
+
+                                url(r'^a/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
+                                    wrap(self.admin_shortcut),
+                                    name='admin_shortcut'),
+
                                 )
 
         for PluginClass in self.plugins:
