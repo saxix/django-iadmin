@@ -27,7 +27,7 @@ class UTF8Recoder(object):
         return self.reader.next().encode("utf-8")
 
 
-class UnicodeReader(object)::
+class UnicodeReader(object):
     """
     A CSV reader which will iterate over lines in the CSV file "f",
     which is encoded in the given encoding.
@@ -45,7 +45,7 @@ class UnicodeReader(object)::
         return self
 
     
-class UnicodeWriter(object)::
+class UnicodeWriter(object):
     """
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
