@@ -19,6 +19,8 @@ Features
 - export to csv with options and formatting
 - info page for packages and application version
 - integrated file manager with upload/zip functionality
+- WYSIWYG editor wymeditor
+- shortcuts to configure django.contrib.*  applications
 
 Install
 ----
