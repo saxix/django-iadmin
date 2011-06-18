@@ -97,9 +97,12 @@ class IModelAdmin(DjangoModelAdmin):
                 return "%s__icontains" % field_name
         bit = request.GET.get('q', '')
         fmt = request.GET.get('fmt', AUTOCOMPLETE)
-        or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in self.ajax_search_fields]
-        flds = list(self.ajax_list_display)
+        if bit == '?':
+            or_queries = {}
+        else:
+            or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in self.ajax_search_fields]
 
+        flds = list(self.ajax_list_display)
         field_names = [f.name for f in self.model._meta.fields]
         qs = self.model.objects.filter(*or_queries)
         data = []
