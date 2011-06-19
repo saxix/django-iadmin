@@ -1,5 +1,5 @@
-from . import register
 from django.core import urlresolvers
+from .future import register
 
 
 @register.simple_tag(takes_context=True)
