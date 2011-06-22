@@ -221,23 +221,23 @@ class IAdminSite(AdminSite):
             return update_wrapper(wrapper, view)
 
         urlpatterns = patterns('',
-                                url(r'^s/format/date/$',
+                                url(r'^i/format/date/$',
                                     wrap(self.format_date),
                                     name='format_date'),
 
-                                url(r'^r/info/$',
+                                url(r'^i/info/$',
                                     wrap(self.env_info),
                                     name='admin_env_info'),
 
-                                url(r'^a/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
+                                url(r'^i/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
                                     wrap(self.admin_shortcut),
                                     name='admin_shortcut'),
-
+                                url(r'^i/nojs/', 'iadmin.views.nojs'),
                                 )
 
         for PluginClass in self.plugins:
             plugin =  PluginClass(self)
-            urlpatterns += patterns('', url(r'^%s/' % plugin.__class__.__name__.lower(), include( plugin.urls )))
+            urlpatterns += patterns('', url(r'^i/%s/' % plugin.__class__.__name__.lower(), include( plugin.urls )))
 
 #        from iadmin.plugins.csv_import import CSVImporter
 #        csv = CSVImporter(self)
