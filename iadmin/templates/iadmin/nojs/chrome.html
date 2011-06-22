@@ -1,0 +1,42 @@
+{% extends "iadmin/nojs/index.html" %}
+{% block content %}
+    <DIV align="center">
+        <DIV style="padding: 20px; margin: 50px; width: 800px; -moz-border-radius: 10px; -moz-box-shadow: 1px 1px 10px #999999; border: 1px solid #999999;">
+            <H1>Ooops!</H1><BR>
+            <TABLE width="100%">
+                <TBODY>
+                <TR>
+                    <TD>
+                    <TD>
+                        It looks like you have Javascript disabled or NoScript plugin. In order to keep the content of
+                        this website free we must display advertisements on it that require Javascript. If you want to
+                        view the content of this website the author wishes that you to turn Javascript back on or turn
+                        off NoScript. This message will go away once Javascript is enabled and you press the "Back"
+                        button.<BR>
+
+                        <CENTER>
+                            <H1 style="font-weight: normal;">How to re-enable Javascript:</H1>
+                        </CENTER>
+
+                        <TABLE width="100%">
+                            <TBODY>
+                            <TR>
+                                <TD style="text-align: center; font-weight: bold; padding: 10px;">
+                                    <H1 style="font-weight: normal;">Chrome:</H1>
+                                    Preferences -&gt; Security Tab -&gt; Make sure "Enable JavaScript" is checked.
+                                </TD>
+                                <TD>
+                                    <IMG src="{{ MEDIA_URL }}iadmin/img/nojs/chrome/enable-javascript-safari.png"
+                                         border="0" style="-moz-box-shadow:5px 5px 10px #999999;">
+                                </TD>
+                            </TR>
+                            </TBODY>
+                        </TABLE>
+
+                    </TD>
+                </TR>
+                </TBODY>
+            </TABLE>
+        </DIV>
+    </DIV>
+{% endblock content %}

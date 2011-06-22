@@ -10,6 +10,7 @@
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/iadmin.js"></script>
     {% if app_list|length_is:"1" %}
         <style type="text/css">
             /*.column {border:1px solid red;}*/
@@ -36,6 +37,9 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% block content %}
+    <ul class="messagelist" id="nojsmessage">
+        <li class="error">Please enable javascript.</li>
+    </ul>
     <div id="ccontent-main">
         <div class="column" id='column1'>
             {% if app_list %}
@@ -113,7 +117,6 @@
                 </div>
             </div>
         </div>
-        <div class="column" id='column5'></div>
         <div class="column" id='column6'></div>
         <div class="column" id='column7'></div>
         <div class="column" id='column8'></div>
