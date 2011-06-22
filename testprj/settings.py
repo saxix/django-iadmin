@@ -67,8 +67,8 @@ SECRET_KEY = 'n9qk!44i75$8%xmg1-2s3h%)qfy42e2z5_#_wa1u0xzq02g$+_'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+    #     'django.template.loaders.eggs.Loader',
+    )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -76,32 +76,40 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-)
+    )
 
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+# Always use forward slashes, even on Windows.
+# Don't forget to use absolute paths, not relative paths.
 )
 
 INSTALLED_APPS = (
     'iadmin',
-    'django.contrib.*',
-#    'django.contrib.contenttypes',
-#    'django.contrib.sessions',
-#    'django.contrib.sites',
-#    'django.contrib.messages',
-#    'django.contrib.redirects',
-#    'django.contrib.flatpages',
+    #    'django.contrib.',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.comments',
+    'django.contrib.contenttypes',
+    'django.contrib.databrowse',
+    'django.contrib.flatpages',
+    'django.contrib.formtools',
+    'django.contrib.gis',
+    'django.contrib.markup',
+    'django.contrib.messages',
+    'django.contrib.redirects',
+    'django.contrib.sessions',
+    'django.contrib.sitemaps',
+    'django.contrib.sites',
+    'django.contrib.syndication',
 
 
-#    'django.contrib.admin',
     'geo',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-)
+    )
 
 FM_CONFIG ={
     'show_hidden': False,
