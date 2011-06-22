@@ -34,10 +34,11 @@ def _get_all_models(filter_app_name=None):
         apps = [get_app(filter_app_name)]
     else:
         apps = get_apps()
-
+    from django.contrib.admin import site
     for app in apps:
         for mod in get_models(app):
-            all_models.append("%s:%s" % (mod._meta.app_label, force_unicode(mod._meta.verbose_name)))
+            if mod in site._registry:
+                all_models.append("%s:%s" % (mod._meta.app_label, force_unicode(mod._meta.verbose_name)))
     return zip(all_models, all_models)
 
 def get_valid_choice(value, choices):

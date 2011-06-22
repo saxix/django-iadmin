@@ -1,3 +1,4 @@
+from _csv import Error
 import csv
 from functools import update_wrapper
 from django import template
@@ -6,7 +7,7 @@ import tempfile
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 import os
 from iadmin.plugins import IAdminPlugin
 from .utils import set_model_attribute, ImportForm, csv_processor_factory
@@ -44,49 +45,48 @@ class CSVImporter(IAdminPlugin):
     def _import_csv_2(self, request, app_name=None, model_name=None, temp_file_name=None):
         try:
             Form = csv_processor_factory(app_name, model_name, temp_file_name)
-        except IOError, e:
+            if request.method == 'POST':
+                form = Form(request.POST, request.FILES)
+                if form.is_valid():
+                    inserted, updated = 0, 0
+                    fd = open( form._filename, 'r')
+                    reader = csv.reader(fd, form._dialect)
+                    if form.cleaned_data.get('header', False):
+                        reader.next()
+                    for row in reader:
+                        mapping = {}
+                        keys = {}
+                        for i, cell in enumerate(row):
+                            field = form.cleaned_data['col_%s' % i]
+                            key = form.cleaned_data['key_%s' % i]
+                            rex = form.cleaned_data['rex_%s' % i]
+                            if key:
+                                keys[field] = cell
+                            elif field:
+                                mapping[field] = cell
+                        if keys:
+                            obj, is_new = form._model.objects.get_or_create(**keys)
+                        else:
+                            obj = form._model()
+                        for f,v in mapping.items():
+                            set_model_attribute(obj, f, v, rex)
+                        obj.save()
+                        updated += 1
+                    messages.info(request, '%s records updated' % updated )
+            else:
+                form = Form()
+
+            context = {'page': 2,
+                       'form':form,
+                       'current_app': self.name,
+                       'app_label': app_name,
+                       'sample': form._head(),
+                       'model': model_name,
+            }
+            context_instance = template.RequestContext(request, current_app=self.name)
+        except (IOError, Error, TypeError), e:
             messages.error(request, str(e))
-            return HttpResponseRedirect('/admin/%s/%s/import/2' % (app_name, model_name))
-
-        if request.method == 'POST':
-            form = Form(request.POST, request.FILES)
-            if form.is_valid():
-                inserted, updated = 0, 0
-                fd = open( form._filename, 'r')
-                reader = csv.reader(fd, form._dialect)
-                if form.cleaned_data.get('header', False):
-                    reader.next()
-                for row in reader:
-                    mapping = {}
-                    keys = {}
-                    for i, cell in enumerate(row):
-                        field = form.cleaned_data['col_%s' % i]
-                        key = form.cleaned_data['key_%s' % i]
-                        rex = form.cleaned_data['rex_%s' % i]
-                        if key:
-                            keys[field] = cell
-                        elif field:
-                            mapping[field] = cell
-                    if keys:
-                        obj, is_new = form._model.objects.get_or_create(**keys)
-                    else:
-                        obj = form._model()
-                    for f,v in mapping.items():
-                        set_model_attribute(obj, f, v, rex)
-                    obj.save()
-                    updated += 1
-                messages.info(request, '%s records updated' % updated )
-        else:
-            form = Form()
-
-        context = {'page': 2,
-                   'form':form,
-                   'current_app': self.name,
-                   'app_label': app_name,
-                   'sample': form._head(),
-                   'model': model_name,
-        }
-        context_instance = template.RequestContext(request, current_app=self.name)
+            return redirect('admin:import_csv')
         return render_to_response('iadmin/import_csv.html', context, context_instance=context_instance )
 
 
