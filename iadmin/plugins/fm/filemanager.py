@@ -78,7 +78,7 @@ class FileManager(IAdminPlugin):
         if not request.user.has_perm('iadmin.can_upload_file'):
             raise PermissionDenied
 
-        from iadmin.fm.forms import UploadForm
+        from iadmin.plugins.fm.forms import UploadForm
         path = utils.url_to_path(path)
         base = Dir( path )
 
