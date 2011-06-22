@@ -30,6 +30,11 @@ class FileManagerTest(TestCase):
         if os.path.exists(os.path.join(settings.IADMIN_FM_ROOT, RENAMED_FILENAME)):
             os.unlink(os.path.join(settings.IADMIN_FM_ROOT, RENAMED_FILENAME))
         
+    def test_upload(self):
+        fm = reverse('admin:iadmin.fm.upload', kwargs={'path':''})
+        r = self.client.get( fm )
+        self.assertEqual(r.context['title'], 'FileManager')
+
     def test_index(self):
         fm = reverse('admin:iadmin.fm.index', kwargs={'path':''})
         r = self.client.get( fm )
