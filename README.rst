@@ -34,6 +34,9 @@ Edit your settinhs.py and add iadmin application before django.contrib.admin ::
         ...
         ...
     )
+    IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000 #
+    IADMIN_FM_ROOT = # file manager home
+    IADMIN_FM_CONFIG = {}
 
 Add an entry into your urls.conf ::
 
