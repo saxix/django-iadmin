@@ -1,6 +1,7 @@
 
 #from .widgets import *
 import copy
+import logging
 from django.conf import settings
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.core.urlresolvers import reverse, NoReverseMatch
@@ -68,7 +69,7 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
                   '<input type="hidden" value="%s"/>' % self.service,
                   ]
 
-        if value and related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
+        if related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
             output.append( LinkToModelWidget(self.widget, rel_to).render(name) )
 
         if self.can_add_related:

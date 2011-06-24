@@ -14,10 +14,11 @@
     <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
     {% if inline_admin_formsets %}
         <script>
-            $(function() {
-                var $ = jQuery;
-                var $tabs = $('#tabs').tabs({ cookie: { expires: 30 }});
-            });
+            (function($) {
+               $(document).ready(function() {
+                    var $tabs = $('#tabs').tabs({ cookie: { expires: 30 }});
+               });
+            })(jQuery);
         </script>
     {% endif %}
 {% endblock %}
@@ -67,6 +68,7 @@
                 </div>
             {% endif %}
             {% block after_related_objects %}{% endblock %}
+            
 
             {% submit_row %}
 

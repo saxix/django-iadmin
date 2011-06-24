@@ -1,9 +1,10 @@
+Resolver = null;
 (function($) {
     $(document).ready(function() {
         $("#nojsmessage").hide();
     });
     
-    $.Resolver = function() {
+    Resolver = function() {
             return {
                 reverse: function(name, args) {
                     var ret;
