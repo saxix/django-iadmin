@@ -70,17 +70,23 @@ class IModelAdmin(DjangoModelAdmin):
         request = kwargs.pop("request", None)
         if isinstance(db_field, models.ForeignKey):
             formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
-            if self.autocomplete_ajax and  isinstance(modeladmin, IModelAdmin):
-                service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
+            related_modeladmin =  self.admin_site._registry.get( db_field.rel.to, None )
+            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
+                service = reverse( 'admin:%s_%s_ajax' % (related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name) )
                 if service:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
+                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service=service)
                 return formfield
             elif formfield:
                 formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
                 return formfield
 
         return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
+
+#    def _media(self):
+#        sup = super(IModelAdmin, self)._media()
+#        return sup
+#    media = property(_media)
+
 
     def ajax_query(self, request):
         """

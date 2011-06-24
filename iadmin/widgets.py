@@ -1,10 +1,40 @@
 from django.conf import settings
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.core.urlresolvers import reverse, NoReverseMatch
+from django.forms.widgets import Widget, MediaDefiningClass
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy, ugettext as _
 
 __all__ = ['RelatedFieldWidgetWrapperLinkTo']
+
+class LinkToModelWidget(Widget):
+
+
+    def __init__(self, linked_widget, model, attrs=None):
+        self.linked_widget = linked_widget
+        self.info = model._meta.app_label, model._meta.object_name.lower()
+        super(LinkToModelWidget, self).__init__(attrs)
+
+    def render(self, name, attrs=None):
+        FMT = r"""
+        <script>
+(function($) {
+    $(document).ready(function() {
+        $('#edit_id_%(name)s').click(function(){
+            var val = $('#id_%(link)s').val();
+            var url = $.Resolver.reverse("%(view)s", [val] );
+            window.location = url;
+        });
+    });
+})(django.jQuery);
+        </script>
+""" % {'link': self.linked_widget.id_for_label(name), 'name': name, 'view': '%s_%s_change' % self.info }
+
+        output = [mark_safe(FMT)]
+        output.append(u'<a href="#" class="edit" id="edit_id_%s">&nbsp;&nbsp;' % name)
+        output.append(u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>&nbsp;&nbsp;' % (settings.MEDIA_URL, _('Edit')))
+        return mark_safe(u''.join(output))
+
 
 
 class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
@@ -25,12 +55,11 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
             info = (self.admin_site.root_path, rel_to._meta.app_label, rel_to._meta.object_name.lower())
             related_url = '%s%s/%s/add/' % info
         self.widget.choices = self.choices
+
         output = [self.widget.render(name, value, *args, **kwargs)]
 
         if value and related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
-            edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=[value])
-            output.append(u'<a href="%s" class="edit" id="edit_id_%s">&nbsp;&nbsp;' % (edit_url, name))
-            output.append(u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>&nbsp;&nbsp;' % (settings.MEDIA_URL, _('Edit')))
+            output.append( LinkToModelWidget(self.widget, rel_to).render(name) )
 
         if self.can_add_related:
             # TODO: "id_" is hard-coded here. This should instead use the correct
@@ -40,3 +69,7 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
             output.append(u'<img src="%simg/admin/icon_addlink.gif" width="10" height="10" alt="%s"/></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Add Another')))
         return mark_safe(u''.join(output))
 
+    class Media:
+        js = (
+              settings.MEDIA_URL + "iadmin/js/iadmin.js",
+              )

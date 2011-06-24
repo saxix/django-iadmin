@@ -6,7 +6,7 @@ from django.conf.urls.defaults import url, patterns
 from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.db.models.base import ModelBase
 from django.db.models.signals import post_save, post_delete
 from django.http import HttpResponseRedirect, HttpResponse
@@ -214,6 +214,26 @@ class IAdminSite(AdminSite):
 
         return render_to_response('iadmin/env_info.html', context, context_instance=context_instance )
     
+    def reverse_url(self, request, url_name):
+
+        # Turn querystring into an array of couplets (2x list)
+        # arg_couplets = [ ('key', 'value'), ('key', 'value') ]
+        arg_couplets = request.REQUEST.items()
+
+        # Sort by keys
+        arg_couplets.sort(lambda x,y: cmp(x[0], y[0]))
+
+        # Collapse list into just the values
+        args = [c[1] for c in arg_couplets]
+
+        try:
+            if args:
+                return HttpResponse(reverse('%s:%s' % (self.name, url_name), args=args))
+            else:
+                return HttpResponse(reverse('%s:%s' % (self.name, url_name)))
+        except NoReverseMatch, e:
+            return HttpResponse(str(e))
+
     def get_urls(self):
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
@@ -228,6 +248,10 @@ class IAdminSite(AdminSite):
                                 url(r'^i/info/$',
                                     wrap(self.env_info),
                                     name='admin_env_info'),
+
+                                url(r'^i/reverse/(.*)/$',
+                                    wrap(self.reverse_url),
+                                    name='reverse_url'),
 
                                 url(r'^i/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
                                     wrap(self.admin_shortcut),
