@@ -1,8 +1,8 @@
-
 (function($) {
     $(document).ready(function() {
         $("#nojsmessage").hide();
     });
+    
     $.Resolver = function() {
             return {
                 reverse: function(name, args) {
@@ -35,4 +35,4 @@
                 }
             }
         }();
-})(django.jQuery);
+})(jQuery);
