@@ -5,7 +5,6 @@
                 var target = $(this).attr('id').replace(/^edit_/, '#');
                 var val = $(target).val();
                 var view = $(this).attr('name');
-                console.log( target, val, view  );
                 if ( val && view ){
                     var url = Resolver.reverse(view, [val] );
                     window.location = url;
