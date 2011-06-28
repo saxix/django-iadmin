@@ -84,6 +84,7 @@ TEMPLATE_DIRS = (
 # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
 # Always use forward slashes, even on Windows.
 # Don't forget to use absolute paths, not relative paths.
+    os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -107,13 +108,23 @@ INSTALLED_APPS = (
 
 
     'geo',
+    'biblio',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     )
 
-FM_CONFIG ={
-    'show_hidden': False,
+IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000
+IADMIN_FM_ROOT = MEDIA_ROOT
+IADMIN_FM_CONFIG = {}
+IADMIN_CONFIG = { 'count_rows': False,}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake'
+    }
 }
+
 
 # Debug Toolbar settings
 INTERNAL_IPS = ('127.0.0.1',)
