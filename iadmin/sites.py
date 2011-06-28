@@ -15,20 +15,22 @@ from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 from django.shortcuts import render_to_response
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import never_cache, cache_page, cache_control
 from django.conf.urls.defaults import include
 from django.utils import dateformat
 from .options import IModelAdmin
 #from .wizard import ImportForm, csv_processor_factory, set_model_attribute
 from iadmin.plugins import FileManager, CSVImporter
+from iadmin.conf import config
 
+INDEX_CACHE_KEY = 'iadmin:admin_index'
 def cache_admin(method, key=None):
     entry = key or method.__name__
     def __inner(*args, **kwargs):
         cached = cache.get(entry, None)
         if not cached:
             cached = method(*args, **kwargs)
-            cache.set(entry, cached, 1)
+            cache.set(entry, cached, 3600)
         return cached
     return __inner
 
@@ -38,7 +40,7 @@ def cache_app_index(func):
         cached = cache.get(entry, None)
         if not cached:
             cached = func(self, request, app_label, extra_context)
-            cache.set(entry, cached, 1)
+            cache.set(entry, cached, -1)
         return cached
     return __inner
 
@@ -48,6 +50,7 @@ class IAdminSite(AdminSite):
     register_all_models = False
     plugins = [CSVImporter, FileManager]
 
+
     def index(self, request, extra_context=None):
         """
         Displays the main admin index page, which lists all of the installed
@@ -55,6 +58,12 @@ class IAdminSite(AdminSite):
         """
         app_dict = {}
         user = request.user
+
+        if config.count_rows:
+            count_models = lambda model: model.objects.all().count()
+        else:
+            count_models = lambda model: ''
+
         for model, model_admin in self._registry.items():
             app_label = model._meta.app_label
             has_module_perms = user.has_module_perms(app_label)
@@ -69,7 +78,7 @@ class IAdminSite(AdminSite):
                         'name': capfirst(model._meta.verbose_name_plural),
                         'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
                         'perms': perms,
-                        'count': model.objects.all().count()
+                        'count': count_models(model)
                     }
                     if app_label in app_dict:
                         app_dict[app_label]['models'].append(model_dict)
@@ -96,16 +105,20 @@ class IAdminSite(AdminSite):
         }
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response(self.index_template or 'admin/index.html', context,
+        return render_to_response(self.index_template or 'iadmin/index.html', context,
             context_instance=context_instance
         )
-    index = never_cache(cache_admin(index, 'admin_index'))
+    index = never_cache(cache_admin(index, INDEX_CACHE_KEY))
 
     @cache_app_index
     def app_index(self, request, app_label, extra_context=None):
         user = request.user
         has_module_perms = user.has_module_perms(app_label)
         app_dict = {}
+        if config.count_rows:
+            count_models = lambda model: model.objects.all().count()
+        else:
+            count_models = lambda model: ''
         for model, model_admin in self._registry.items():
             if app_label == model._meta.app_label:
                 if has_module_perms:
@@ -118,7 +131,7 @@ class IAdminSite(AdminSite):
                             'name': capfirst(model._meta.verbose_name_plural),
                             'admin_url': '%s/' % model.__name__.lower(),
                             'perms': perms,
-                             'count': model.objects.all().count()
+                             'count': count_models
                         }
                         if app_dict:
                             app_dict['models'].append(model_dict),
@@ -263,14 +276,6 @@ class IAdminSite(AdminSite):
             plugin =  PluginClass(self)
             urlpatterns += patterns('', url(r'^i/%s/' % plugin.__class__.__name__.lower(), include( plugin.urls )))
 
-#        from iadmin.plugins.csv_import import CSVImporter
-#        csv = CSVImporter(self)
-#        urlpatterns += patterns('', url(r'', include( csv.urls )))
-#
-#        from iadmin.fm.filemanager import FileManager
-#        filemanager = FileManager(self)
-#        urlpatterns += patterns('', url(r'^ia/fm/', include( filemanager.urls )))
-
         urlpatterns += super(IAdminSite, self).get_urls()
         return urlpatterns
 
@@ -305,13 +310,12 @@ class IAdminSite(AdminSite):
     register_missing = register_app
 
 def invalidate_index(sender, **kwargs):
-    cache.set('admin_index', None, 0)
-    #expire_view_cache('admin_index')
+    cache.delete(INDEX_CACHE_KEY)
 
 post_save.connect(invalidate_index)
 post_delete.connect(invalidate_index)
 
-#site = IAdminSite()
-django.contrib.admin.site = django.contrib.admin.sites.site = site = IAdminSite()
+site = IAdminSite()
+
 
   
