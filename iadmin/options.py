@@ -82,12 +82,6 @@ class IModelAdmin(DjangoModelAdmin):
 
         return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
-#    def _media(self):
-#        sup = super(IModelAdmin, self)._media()
-#        return sup
-#    media = property(_media)
-
-
     def ajax_query(self, request):
         """
             ajax service to perform autocomplete widget queries
