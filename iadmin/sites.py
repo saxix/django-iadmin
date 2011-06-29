@@ -131,7 +131,7 @@ class IAdminSite(AdminSite):
                             'name': capfirst(model._meta.verbose_name_plural),
                             'admin_url': '%s/' % model.__name__.lower(),
                             'perms': perms,
-                             'count': count_models
+                             'count': count_models(model)
                         }
                         if app_dict:
                             app_dict['models'].append(model_dict),
@@ -158,7 +158,7 @@ class IAdminSite(AdminSite):
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.name)
         return render_to_response(self.app_index_template or ('admin/%s/app_index.html' % app_label,
-            'admin/app_index.html'), context,
+            'iadmin/app_index.html'), context,
             context_instance=context_instance
         )
 

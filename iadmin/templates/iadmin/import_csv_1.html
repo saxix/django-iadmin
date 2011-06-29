@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load i18n iadmin %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
+        {% if app_label %}
+            <a href="{% url admin:index %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
+            {% if model_name %}<a
+                    href="{% url admin:index %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;{% endif %}
+        {% endif %}
+        Import
+    </div>
+
+{% endblock %}
+
+{% block content %}
+    <form enctype="multipart/form-data" method="post" action="{{ page }}">{% csrf_token %}
+        <div class="clear">
+            <input type="submit" value="{{ lbl_next }}"> &nbsp;&nbsp;&nbsp;<input type="button" id="reset"
+                                                                                  value="Reset">&nbsp;&nbsp;&nbsp;</div>
+        <input type="hidden" name="page" value="{{ page }}"
+
+        <div id='form' class="left">
+            <table border="0" width="600" cellpadding="0" cellspacing="0">
+                {{ form }}
+            </table>
+        </div>
+    </form>
+
+{% endblock %}
