@@ -4,22 +4,23 @@ from django.conf import settings
 from django.conf.urls.defaults import url, patterns
 import tempfile
 from django.contrib import messages
-from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models.fields.related import ForeignKey
 from django.db.models.loading import get_model
 from django.db.utils import IntegrityError
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
-from django.utils import simplejson
 import os
-import re
 from iadmin.plugins import IAdminPlugin
 from iadmin.plugins.csv.utils import update_model, open_csv
 from .utils import  ImportForm, csv_processor_factory
 
 
 class CSVImporter(IAdminPlugin):
+    template_step1 = None
+    template_step2 = None
+    template_step3 = None
+
     def _get_base_context(self, request, app=None, model=None):
         return template.RequestContext(request, {'app_label': app or '',
                                                  'model_name': model or '',
@@ -65,21 +66,27 @@ class CSVImporter(IAdminPlugin):
             form = ImportForm(app, model, initial={'page': 1})
 
         context.update({'page': 1, 'form': form, })
-        return render_to_response('iadmin/import_csv_1.html', context)
+
+        return render_to_response(self.template_step1 or [
+            "iadmin/%s/%s/import_csv_1.html" % (app, model),
+            "iadmin/%s/import_csv_1.html" % app,
+            "iadmin/import_csv_1.html"
+        ], context)
+
 
     def _process_row(self, row, mapping):
         record = {}
         key = {}
         for field_name, (col, rex, is_key, lk, Field) in mapping.items():
             raw_val = rex.search(row[col]).group(1)
-            field_value  = None
+            field_value = None
             if isinstance(Field, ForeignKey):
                 try:
-                    field_value  = Field.rel.to.objects.get(**{lk:raw_val})
+                    field_value = Field.rel.to.objects.get(**{lk: raw_val})
                 except Field.rel.to.DoesNotExist:
                     pass
             else:
-                field_value  = Field.to_python(raw_val)
+                field_value = Field.to_python(raw_val)
             record[field_name] = field_value
             if is_key:
                 key[field_name] = record[field_name]
@@ -113,7 +120,7 @@ class CSVImporter(IAdminPlugin):
                             except ValueError, e:
                                 messages.error(request, '%s' % e)
                         return self._step_3(request, app_name, model_name, temp_file_name, {'records': records,
-                                                                            'form': form})
+                                                                                            'form': form})
 
             else:
                 form = Form()
@@ -125,7 +132,12 @@ class CSVImporter(IAdminPlugin):
                             'fields': form._fields,
                             'sample': form._head(),
                             })
-            return render_to_response('iadmin/import_csv_2.html', context)
+            return render_to_response(self.template_step2 or [
+                                                    "iadmin/%s/%s/import_csv_2.html" % (app_name, model_name.lower()),
+                                                    "iadmin/%s/import_csv_2.html" % app_name,
+                                                    "iadmin/import_csv_2.html"
+                                                ], context)
+
         except IOError, e:
             messages.error(request, str(e))
             return redirect('%s:model_import_csv' % self.name, app=app_name, model=model_name, page=1)
@@ -164,16 +176,22 @@ class CSVImporter(IAdminPlugin):
                         'lbl_next': 'Apply',
                         })
         context.update(extra_context)
-        return render_to_response('iadmin/import_csv_3.html', context)
+        return render_to_response(self.template_step3 or [
+                                                "iadmin/%s/%s/import_csv_3.html" % (app_name, model_name.lower()),
+                                                "iadmin/%s/import_csv_3.html" % app_name,
+                                                "iadmin/import_csv_3.html"
+                                            ], context)
+
 
     def import_csv(self, request, page=1, app=None, model=None):
-        temp_file_name = os.path.join(tempfile.gettempdir(), 'iadmin_import_%s_%s.temp~' % (request.user.username, hash(request.user.password)))
+        temp_file_name = os.path.join(tempfile.gettempdir(), 'iadmin_import_%s_%s.temp~' % (
+            request.user.username, hash(request.user.password)))
         if int(page) == 1:
             return self._step_1(request, app, model, temp_file_name=temp_file_name)
         elif int(page) == 2:
             if not 'HTTP_REFERER' in request.META:
                 return redirect('%s:model_import_csv' % self.name, app=app, model=model, page=1)
-            # todo: check referer
+                # todo: check referer
             return self._step_2(request, app, model, temp_file_name=temp_file_name)
         elif int(page) == 3:
             return self._step_3(request, app, model, temp_file_name=temp_file_name)
