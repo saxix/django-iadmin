@@ -153,6 +153,7 @@ class IAdminSite(AdminSite):
             'title': _('%s administration') % capfirst(app_label),
 #            'info_url': reverse('admin:admin_env_info', current_app=self.name),
             'app_list': [app_dict],
+            'app_label': app_label,
             'root_path': self.root_path,
         }
         context.update(extra_context or {})

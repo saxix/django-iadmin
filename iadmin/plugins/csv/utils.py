@@ -7,7 +7,7 @@ from django.forms.fields import  CharField, BooleanField
 from django.db.models.loading import get_models, get_apps, get_app, get_model
 from django.forms.fields import ChoiceField, FileField
 from django.forms.forms import Form, DeclarativeFieldsMetaclass, BoundField
-from django.forms.widgets import Input, HiddenInput, MultipleHiddenInput, TextInput
+from django.forms.widgets import Input, HiddenInput, MultipleHiddenInput
 from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
@@ -33,7 +33,7 @@ class CsvFileField(FileField):
                 raise ValidationError("Unable to load csv file (%s)" % e)
             data.close()
         return ret
-    
+
 
 class ColumnField(ChoiceField):
     def to_python(self, value):
@@ -97,10 +97,17 @@ def get_valid_choice(value, choices):
 
     return False, None
 
+
 def update_model(original, updater):
     for fname, v in updater.items():
-        setattr(original, fname, v )
+        try:
+            setattr(original, fname, v)
+        except ValueError, e:
+            Field, _, _, _ = original._meta.get_field_by_name(fname)
+
+            raise Exception(Field.rel.to.objects.get())
     return original
+
 
 def set_model_attribute(instance, name, value, rex=None):
     if value == 'None':
@@ -160,7 +167,7 @@ def graph_form_factory(model):
 
 def csv_processor_factory(app_name, model_name, csv_filename):
     """
-      factory for Model specific CSVPRocessorForm 
+      factory for Model specific CSVPRocessorForm
     """
     rows = []
     fd = open(csv_filename, 'rb')
@@ -191,9 +198,11 @@ def csv_processor_factory(app_name, model_name, csv_filename):
     }
 
     for i, f  in enumerate(model._meta.fields):
+        # column, field, regex to manipulate column value, lookup field name for foreign-keys, primary key flag
         attrs['col_%s' % i] = ColumnField(choices=columns_def, required=False)
         attrs['fld_%s' % i] = ChoiceField(choices=model_fields, required=False)
         attrs['rex_%s' % i] = RegexField(label='', initial='(.*)', required=False)
+        attrs['lkf_%s' % i] = CharField(required=False)
         attrs['key_%s' % i] = BooleanField(label='', initial=False, required=False)
 
     return DeclarativeFieldsMetaclass(str(class_name), (CSVPRocessorForm,), attrs)
@@ -208,6 +217,7 @@ def open_csv(filename):
     yield csv_reader
     fd.close()
 
+
 class CSVPRocessorForm(Form):
     def _head(self, rows=10):
         with open_csv(self._filename) as csv:
@@ -215,25 +225,34 @@ class CSVPRocessorForm(Form):
             for i in range(rows):
                 output.append(csv.next())
         return output
-    
+
     def clean(self):
         found = False
         for i, f  in enumerate(self._fields):
-            col_name = 'col_%s' % i
-            fld_name = 'fld_%s' % i
-            if self.cleaned_data[col_name] >= 0:
-                if not self.cleaned_data[fld_name]:
-                    self._errors[fld_name] = self.error_class(['Set field for this column'])
-                    raise ValidationError("Please fix errors below")
+            fld = 'fld_%s' % i
+            col = 'col_%s' % i
+            lkf = 'lkf_%s' % i
+            column = self.cleaned_data[col]
+            field_name = self.cleaned_data[fld]
+            lookup_name = self.cleaned_data[lkf]
+            if column>=0 or field_name:
                 found = True
-            if self.cleaned_data[fld_name]:
-                if self.cleaned_data[col_name] < 0:
-                    self._errors[col_name] = self.error_class(['Set column for this field'])
+                if not ( column>=0 and field_name):
+                    self._errors[fld] = self.error_class([_("Please set both 'column' and 'field'")])
                     raise ValidationError("Please fix errors below")
-                found = True
+                Field,_u,_u,_u = self._model._meta.get_field_by_name(field_name)
+                if isinstance(Field, ForeignKey):
+                    if not lookup_name:
+                        self._errors[fld] = self.error_class([_('Please set lookup field name for "%s"') % field_name])
+                    else:
+                        try:
+                            Field.rel.to._meta.get_field_by_name(lookup_name)
+                        except Exception, e:
+                            self._errors[fld] = self.error_class([e])
 
-        if not found:
-            raise ValidationError("Please set columns mapping")
+
+            if not found:
+                raise ValidationError("Please set columns mapping")
         return self.cleaned_data
 
     def _html_output(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row):
@@ -246,16 +265,16 @@ class CSVPRocessorForm(Form):
                 [conditional_escape(error) for error in bf.errors]) # Escape and cache in local variable.
             if bf_errors:
                 top_errors.extend([u'(Hidden field %s) %s' % (name, force_unicode(e)) for e in bf_errors])
-            output.append('<tr><td class="label" colspan="3">%s</td><td>%s</td></tr>' % (bf.label, unicode(bf)))
+            output.append('<tr><td class="label" colspan="4">%s</td><td>%s</td></tr>' % (bf.label, unicode(bf)))
 
-        output.append('<tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (
-            _('Column'), _('Field'), _('Regex'), _('Primary Key')))
+        output.append(u'<tr><th>%s</th><th>%s</th><th class="rex">%s</th><th class="lkf">%s</th><th class="key">%s</th></tr>' % (
+            _('Column'), _('Field'), _('Regex'), _('Lookup Field'), _('pk')))
 
         for i, f  in enumerate(self._fields):
             line = []
             error_line = []
             rowid = self.fields['col_%s' % i].label
-            for n in ('col_%s', 'fld_%s', 'rex_%s', 'key_%s'):
+            for n in ('col_%s', 'fld_%s', 'rex_%s', 'lkf_%s', 'key_%s'):
                 name = n % i
                 field = self.fields[name]
                 bf = BoundField(self, field, name)
@@ -264,13 +283,9 @@ class CSVPRocessorForm(Form):
                 error_line.append(force_unicode(bf_errors), )
                 line.append('<td class=%(class)s>%(field)s</td>' %
                             {'field': unicode(bf),
-                             'errors': force_unicode(bf_errors),
-                             'class': n[:3],
-                             'n': n,
-                             'i': i,
-                             }
+                             'class': n[:3]}
                 )
-            output.append('<tr><td  colspan="4">%s</td></tr>' % ''.join(error_line))
+            output.append('<tr><td colspan="5">%s</td></tr>' % ''.join(error_line))
             output.append('<tr>%(line)s</tr>' % {'line': ''.join(line), 'rowid': rowid})
 
         if top_errors:
@@ -281,9 +296,9 @@ class CSVPRocessorForm(Form):
     def as_hidden(self):
         output, hidden_fields = [], []
         for name, field in self.fields.items():
-            field.widget = HiddenInput({'readonly':'readonly'})
+            field.widget = HiddenInput({'readonly': 'readonly'})
             bf = BoundField(self, field, name)
-            output.append( unicode(bf) )
+            output.append(unicode(bf))
         return mark_safe(u'\n'.join(output))
 
     def as_table(self):

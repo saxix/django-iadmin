@@ -1,6 +1,16 @@
 {% extends "iadmin/index.html" %}
 {% load i18n %} 
-
+{% block extrahead %}
+    {{ block.super }}
+    <style type="text/css">
+        #column1{
+            __float:left;
+        }
+        #column5{
+            __float:right;
+        }
+    </style>
+{% endblock %}
 {% if not is_popup %}
 
 {% block breadcrumbs %}

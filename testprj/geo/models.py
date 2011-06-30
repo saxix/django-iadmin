@@ -86,7 +86,7 @@ class Location(models.Model):
         self.lng = 0
         self.acc = Location.ACCURACY.NONE
 
-    def save(self, force_insert=False, force_update=False):
+    def save(self, force_insert=False, force_update=False, using=None):
         if self.lat is None and hasattr(settings, 'GMAP_DOMAIN'):
             self. store_coords()
 

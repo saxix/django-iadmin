@@ -1,4 +1,5 @@
-var init_portlets = function($) {
+var init_portlets = function($, prefix) {
+    var COOKIE_NAME = 'layout' + prefix;
     $.unparam = function (value) {
         var params = {}, pieces = value.split('&'), pair, i, l;
         // Loop through query string pieces and assign params.
@@ -20,11 +21,11 @@ var init_portlets = function($) {
             });
             layout[index] = p.join(",");
         });
-        $.cookie('layout', $.param(layout), { expires: 365, path: '/' });
+        $.cookie(COOKIE_NAME, $.param(layout), { expires: 365, path: '/' });
     }
 
     var restore_layout = function() {
-        var layout = $.unparam($.cookie('layout'));
+        var layout = $.unparam($.cookie( COOKIE_NAME ));
         var column = null, portlets = null, params = null;
         $('.column').each(function(col) {
             //column = $(this).attr('id');

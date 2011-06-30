@@ -3,13 +3,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import signals
 from django.db import models
 
-class Item(models.Model):
+class FileManager(models.Model):
+    """ dummy class to link FileManager Permission
+    """
     class Meta:
         abstract = True
 
 
 def register_permission(perm):
-    ct, created = ContentType.objects.get_or_create(model='Item', app_label='iadmin', defaults={'name': 'iadmin'})
+    ct, created = ContentType.objects.get_or_create(model='FileManager', app_label='iadmin', defaults={'name': 'iadmin'})
     codename, name = perm
     p, created = Permission.objects.get_or_create(codename=codename, content_type__pk=ct.id,
                                                   defaults={'name': name, 'content_type': ct})

@@ -4,8 +4,11 @@ from django.conf import settings
 from django.conf.urls.defaults import url, patterns
 import tempfile
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.db.models.fields.related import ForeignKey
 from django.db.models.loading import get_model
+from django.db.utils import IntegrityError
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.utils import simplejson
@@ -33,10 +36,12 @@ class CSVImporter(IAdminPlugin):
             field_name = form.cleaned_data['fld_%s' % i]
             column = form.cleaned_data['col_%s' % i]
             rex = form.cleaned_data['rex_%s' % i]
+            lk = form.cleaned_data['lkf_%s' % i]
             key = form.cleaned_data['key_%s' % i]
+
             if column >= 0:
                 Field, _, _, _ = form._model._meta.get_field_by_name(field_name)
-                mapping[field_name] = [column, rex, bool(key), Field]
+                mapping[field_name] = [column, rex, bool(key), lk, Field]
         return mapping
 
     def _step_1(self, request, app=None, model=None, temp_file_name=None):
@@ -65,9 +70,17 @@ class CSVImporter(IAdminPlugin):
     def _process_row(self, row, mapping):
         record = {}
         key = {}
-        for field_name, (col, rex, is_key, Field) in mapping.items():
-            val = rex.search(row[col]).group(1)
-            record[field_name] = Field.to_python(val)
+        for field_name, (col, rex, is_key, lk, Field) in mapping.items():
+            raw_val = rex.search(row[col]).group(1)
+            field_value  = None
+            if isinstance(Field, ForeignKey):
+                try:
+                    field_value  = Field.rel.to.objects.get(**{lk:raw_val})
+                except Field.rel.to.DoesNotExist:
+                    pass
+            else:
+                field_value  = Field.to_python(raw_val)
+            record[field_name] = field_value
             if is_key:
                 key[field_name] = record[field_name]
         return record, key
@@ -97,7 +110,7 @@ class CSVImporter(IAdminPlugin):
                                 else:
                                     sample = Model(**record)
                                 records.append([sample, exists])
-                            except Exception, e:
+                            except ValueError, e:
                                 messages.error(request, '%s' % e)
                         return self._step_3(request, app_name, model_name, temp_file_name, {'records': records,
                                                                             'form': form})
@@ -117,10 +130,10 @@ class CSVImporter(IAdminPlugin):
             messages.error(request, str(e))
             return redirect('%s:model_import_csv' % self.name, app=app_name, model=model_name, page=1)
 
-    def _step_3(self, request, app_name=None, model_name=None, temp_file_name=None, extra_context={} ):
+    def _step_3(self, request, app_name=None, model_name=None, temp_file_name=None, extra_context=None ):
         context = self._get_base_context(request, app_name, model_name)
         Model = get_model(app_name, model_name)
-
+        extra_context = extra_context or {}
         if 'apply' in request.POST:
             Form = csv_processor_factory(app_name, model_name, temp_file_name)
             form = Form(request.POST, request.FILES)
@@ -132,16 +145,16 @@ class CSVImporter(IAdminPlugin):
                         csv.next()
                     for i, row in enumerate(csv):
                         record, key = self._process_row(row, mapping)
-                        if key:
-                            sample, _ = Model.objects.get_or_create(**key)
-                            sample = update_model(sample, record)
-                            sample.save()
-                        else:
-                            sample = Model.objects.get_or_create(**record)
-                return redirect('%s:%s_%s_changelist' % (self.name, app_name, model_name))
-        elif 'back' in request.POST:
-            mapping = simplejson.loads(request.POST['mapping'])
-            return HttpResponse(mapping)
+                        try:
+                            if key:
+                                sample, _ = Model.objects.get_or_create(**key)
+                                sample = update_model(sample, record)
+                                sample.save()
+                            else:
+                                sample = Model.objects.create(**record)
+                        except IntegrityError, e:
+                            messages.error(request, str(e))
+                return redirect('%s:%s_%s_changelist' % (self.name, app_name, model_name.lower()))
         else:
             pass
         context.update({'page': 3,
@@ -158,6 +171,8 @@ class CSVImporter(IAdminPlugin):
         if int(page) == 1:
             return self._step_1(request, app, model, temp_file_name=temp_file_name)
         elif int(page) == 2:
+            if not 'HTTP_REFERER' in request.META:
+                return redirect('%s:model_import_csv' % self.name, app=app, model=model, page=1)
             # todo: check referer
             return self._step_2(request, app, model, temp_file_name=temp_file_name)
         elif int(page) == 3:

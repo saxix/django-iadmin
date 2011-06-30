@@ -1,4 +1,3 @@
-
 #from .widgets import *
 import copy
 import logging
@@ -16,11 +15,11 @@ from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo, LinkToModelWidget
 class AutoCompleteInput(Select):
     class Media:
         js = (
-              settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-              settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
-              settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-              settings.MEDIA_URL + "iadmin/js/autocomplete.js",
-              )
+            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
+            settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
+            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
+            settings.MEDIA_URL + "iadmin/js/autocomplete.js",
+            )
         css = {
             'all': (settings.MEDIA_URL + "iadmin/css/jquery.autocomplete.css",)
         }
@@ -33,6 +32,7 @@ class AutoCompleteInput(Select):
             # Only add the 'value' attribute if a value is non-empty.
             final_attrs['value'] = force_unicode(value)
         return mark_safe(u'<input%s />' % flatatt(final_attrs))
+
 
 class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
     widget = AutoCompleteInput
@@ -55,44 +55,26 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
         hidden = copy.deepcopy(kwargs)
         kwargs['attrs']['id'] = "lbl_%s" % name
         kwargs['attrs']['class'] = "autocomplete"
-        rel_to = self.rel.to
-        info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
+#        rel_to = self.rel.to
+#        info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
 
-        try:
-            edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=[value])
-        except NoReverseMatch, e:
-            edit_url = reverse('admin:%s_%s_change' % info, current_app=self.admin_site.name, args=['0'])
-
-        related_url = reverse('admin:%s_%s_add' % info, current_app=self.admin_site.name)
-        output = [ HiddenInput().render(name, id, **hidden),
+        output = [HiddenInput().render(name, id, **hidden),
                   AutoCompleteInput().render('', label, **kwargs),
                   '<input type="hidden" value="%s"/>' % self.service,
-                  ]
-
-        if related_url and rel_to in self.admin_site._registry: # If the related object has an admin interface:
-            output.append( LinkToModelWidget(self.widget, rel_to).render(name) )
-
-        if self.can_add_related:
-    #            TODO: "id_" is hard-coded here. This should instead use the correct
-             # API to determine the ID dynamically.
-             output.append(u'<a href="%s" class="add-another" id="add_id_%s" onclick="return showAddAnotherPopup(this);"> ' % \
-                 (related_url, name))
-             output.append(u'<img src="%simg/admin/icon_addlink.gif" width="10" height="10" alt="%s"/></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Add Another')))
+                  self._link_to_code(name),
+                  self._add_another_code(name)]
 
         return mark_safe(u''.join(output))
 
-#    def _media(self):
-#        return self.widget.media + self.media
-#    media = property(_media)
 
     class Media:
         js = (
-              settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-              settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
-              settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-              settings.MEDIA_URL + "iadmin/js/autocomplete.js",
-              settings.MEDIA_URL + "iadmin/js/iadmin.js",
-              )
+            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
+            settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
+            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
+            settings.MEDIA_URL + "iadmin/js/autocomplete.js",
+            settings.MEDIA_URL + "iadmin/js/iadmin.js",
+            )
         css = {
             'all': (settings.MEDIA_URL + "iadmin/css/jquery.autocomplete.css",)
         }
