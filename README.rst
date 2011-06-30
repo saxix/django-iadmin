@@ -15,7 +15,7 @@ Features
 - link to foreignkey edit page from changelist (list_display_rel_links)
 - filter by cell values (cell_filters)
 - ajax autocomplete widgets for ForeignKey
- - auto register missed modules.
+- auto register missed modules.
 - auto add fields not present in fieldset (add_undefined_fields)
 - utilities ( tabular_factory)
 - info page for packages and application version
@@ -25,7 +25,7 @@ Features
 
 Install
 ----
-Edit your settinhs.py and add iadmin application before django.contrib.admin ::
+Edit your settings.py and add iadmin application before django.contrib.admin ::
 
     INSTALLED_APPS = (
         ...
@@ -41,21 +41,21 @@ Edit your settinhs.py and add iadmin application before django.contrib.admin ::
 
 Add an entry into your urls.conf ::
 
-    from iadmin.sites import site
-    site.autodiscover()
+    from django.conf.urls.defaults import *
+    import iadmin.proxy as admin
+
+    admin.autodiscover()
 
     urlpatterns = patterns('',
-                url(r'', include('iadmin.urls')),
-                (r'^admin/', include(admin.site.urls)),
-                ...
-                ...
+            (r'', include('iadmin.media_urls')), # only for development
+            (r'^admin/', include(admin.site.urls)),
     )
 
 
 In your admin.py file ::
 
-    import iadmin
-    from iadmin.proxy import *
+    from django.contrib.admin.options import TabularInline
+    from geo.models import Country, Lake, Location, Ocean
 
-    site.register....
+    from iadmin.utils import tabular_factory..
 
