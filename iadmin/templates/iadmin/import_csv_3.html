@@ -39,13 +39,15 @@
                 <tr>{% for f in fields %}
                     <th>{{ f.name }}</th>{% endfor %}
                     <th>Message</th>
+                    <th>CSV row</th>
                 </tr>
-                {% for row, error in records %}
+                {% for obj, error, original_row in records %}
                     <tr>
                         {% for f in fields %}
-                            <td>{{ row|getattr:f.name }}</td>
+                            <td>{{ obj|getattr:f.name }}</td>
                         {% endfor %}
                         <td>{% if error %}<span class="error">&nbsp;{{ error }}</span>{% else %}<span class="success">&nbsp;Valid!. can be imported</span>{% endif %}</td>
+                        <td>{{ original_row }}</td>
                     </tr>
                 {% endfor %}
             </table>

@@ -118,9 +118,9 @@ class CSVImporter(IAdminPlugin):
                                 else:
                                     sample = Model()
                                 sample = update_model(request, sample, record, mapping)
-                                records.append([sample, None])
+                                records.append([sample, None, row])
                             except (ValidationError), e:
-                                records.append([sample, str(e)])
+                                records.append([sample, str(e), row])
                             except (ValueError, ObjectDoesNotExist, ValidationError), e:
                                 #messages.error(request, '%s' % e)
                                 records.append([sample, str(e)])
