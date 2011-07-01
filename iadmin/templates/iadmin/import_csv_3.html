@@ -37,13 +37,15 @@
         <div id="records">
             <table>
                 <tr>{% for f in fields %}
-                    <th>{{ f.name }}</th>{% endfor %}</tr>
-                {% for row, exists in records %}
+                    <th>{{ f.name }}</th>{% endfor %}
+                    <th>Message</th>
+                </tr>
+                {% for row, error in records %}
                     <tr>
                         {% for f in fields %}
                             <td>{{ row|getattr:f.name }}</td>
                         {% endfor %}
-                        <td>{{ exists }}</td>
+                        <td>{% if error %}<span class="error">&nbsp;{{ error }}</span>{% else %}<span class="success">&nbsp;Valid!. can be imported</span>{% endif %}</td>
                     </tr>
                 {% endfor %}
             </table>

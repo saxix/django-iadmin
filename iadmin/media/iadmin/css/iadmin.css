@@ -3,7 +3,8 @@
     float:right;
     /*font-size: 90%;*/
     /*line-height: 100%;*/
-    padding-bottom: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 .right{
     float:right;
@@ -27,4 +28,16 @@
 #chart-data{
     /*padding-left: 120px;*/
     margin-left: 120px;
+}
+
+span.error{
+    background-image: url("../img/icon_error.gif");
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
+
+span.success{
+    background-image: url("../img/icon_success.gif");
+    background-repeat: no-repeat;
+    padding-left: 20px;
 }

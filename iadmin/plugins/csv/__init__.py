@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.defaults import url, patterns
 import tempfile
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models.fields.related import ForeignKey
 from django.db.models.loading import get_model
@@ -109,16 +110,20 @@ class CSVImporter(IAdminPlugin):
                             if i > 20 and not form.cleaned_data['preview_all']:
                                 break
                             try:
+                                sample = Model()
                                 record, key = self._process_row(row, mapping)
                                 exists = key and Model.objects.filter(**key).exists() or False
                                 if key and exists:
                                     sample = Model.objects.get(**key)
-                                    sample = update_model(sample, record)
                                 else:
-                                    sample = Model(**record)
-                                records.append([sample, exists])
-                            except ValueError, e:
-                                messages.error(request, '%s' % e)
+                                    sample = Model()
+                                sample = update_model(request, sample, record, mapping)
+                                records.append([sample, None])
+                            except (ValidationError), e:
+                                records.append([sample, str(e)])
+                            except (ValueError, ObjectDoesNotExist, ValidationError), e:
+                                #messages.error(request, '%s' % e)
+                                records.append([sample, str(e)])
                         return self._step_3(request, app_name, model_name, temp_file_name, {'records': records,
                                                                                             'form': form})
 
@@ -160,11 +165,11 @@ class CSVImporter(IAdminPlugin):
                         try:
                             if key:
                                 sample, _ = Model.objects.get_or_create(**key)
-                                sample = update_model(sample, record)
-                                sample.save()
                             else:
-                                sample = Model.objects.create(**record)
-                        except IntegrityError, e:
+                                sample = Model()
+                            sample = update_model(request, sample, record, mapping)
+                            sample.save()
+                        except (IntegrityError, ObjectDoesNotExist), e:
                             messages.error(request, str(e))
                 return redirect('%s:%s_%s_changelist' % (self.name, app_name, model_name.lower()))
         else:

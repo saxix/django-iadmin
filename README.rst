@@ -57,5 +57,7 @@ In your admin.py file ::
     from django.contrib.admin.options import TabularInline
     from geo.models import Country, Lake, Location, Ocean
 
-    from iadmin.utils import tabular_factory..
+    from iadmin.utils import tabular_factory
+
+
 

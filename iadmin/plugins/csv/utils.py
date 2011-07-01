@@ -1,6 +1,7 @@
 from _csv import Error
 from contextlib import contextmanager
 import csv
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignKey
 from django.forms.fields import  CharField, BooleanField
@@ -98,14 +99,16 @@ def get_valid_choice(value, choices):
     return False, None
 
 
-def update_model(original, updater):
+def update_model(request, original, updater, mapping):
     for fname, v in updater.items():
-        try:
-            setattr(original, fname, v)
-        except ValueError, e:
-            Field, _, _, _ = original._meta.get_field_by_name(fname)
-
-            raise Exception(Field.rel.to.objects.get())
+        _u, _u, _u, lookup_name, Field = mapping[fname]
+        if isinstance(Field, ForeignKey):
+            if lookup_name:
+                try:
+                    v = Field.rel.to.objects.get(**{lookup_name:v} )
+                except ObjectDoesNotExist, e:
+                    raise ObjectDoesNotExist('%s %s' % (e, v))
+        setattr(original, fname, v)
     return original
 
 
@@ -228,6 +231,7 @@ class CSVPRocessorForm(Form):
 
     def clean(self):
         found = False
+        # todo: we should try to create a dummy model to force some validation ??
         for i, f  in enumerate(self._fields):
             fld = 'fld_%s' % i
             col = 'col_%s' % i
