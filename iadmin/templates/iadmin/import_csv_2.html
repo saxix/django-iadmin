@@ -28,21 +28,26 @@
         })(jQuery);
     </script>
     <style type="text/css">
-        .col{
+        .col {
             width: 100pt;
         }
-        .fld, .rex,.lkf {
+        .fld, .rex, .lkf {
             width: 150pt;
             padding-left: 0px;
         }
-        .key{
-            with:30px;
+        .key {
+            with: 30px;
         }
-        #sample{
+
+        #settings {
+            width: 45%;
+            /*border: 1px solid #000000;*/
+        }
+        #sample {
             width: 50%;
             padding: 0px;
             margin: 0px;
-            border: 1px solid #000000;
+            /*border: 1px solid #000000;*/
             overflow: scroll;
         }
         #sample tr:hover {
@@ -61,40 +66,42 @@
 {% endblock %}
 
 {% block content %}
-    <form enctype="multipart/form-data" method="post" action="{{ page }}">{% csrf_token %}
-        <div class="clear">
-            {% if page > 1 %}<input type="button" id="back" value="{{ lbl_back }}">{% endif %}
-            <input type="submit" value="{{ lbl_next }}">&nbsp;&nbsp;&nbsp;
-            <input type="button" id="reset" value="Reset">&nbsp;&nbsp;&nbsp;
-        </div>
-        <input type="hidden" name="page" value="{{ page }}"
+    <form enctype="multipart/form-data" method="post" action="{{ page }}">
+        <div id="form_content">
+            {% csrf_token %}
+            <div class="clear">
+                {% if page > 1 %}<input type="button" id="back" value="{{ lbl_back }}">{% endif %}
+                <input type="submit" id="next" value="{{ lbl_next }}">&nbsp;&nbsp;&nbsp;
+                <input type="button" id="reset" value="Reset">&nbsp;&nbsp;&nbsp;
+                <input type="hidden" name="page" value="{{ page }}">
+            </div>
 
-        <div id='form' class="left">
-            <table>
-                <tr>
-                    <td colspan="4">Advanced Options</td>
-                    <td><input type="checkbox" {% if form.errors %}checked="checked"{% endif %} id="advanced"
-                               name="advanced"></td>
-                </tr>
-                {{ form }}
-            </table>
-        </div>
-        <div id='sample' class="right">
-
-        <hr/>
-            <table>
-                <tr>{% for i in form.columns_count|range %}
-                    <th>Column #{{ i }}</th>{% endfor %}
-                <tr/>
-                {% for row in form.sample %}
+            <div id="settings" class="left">
+                <table>
                     <tr>
-                        {% for cell in row %}
-                            <td>{{ cell }}</td>
-                        {% endfor %}
+                        <td colspan="4">Advanced Options</td>
+                        <td><input type="checkbox" {% if form.errors %}checked="checked"{% endif %} id="advanced"
+                                   name="advanced"></td>
                     </tr>
-                {% endfor %}
-            </table>
+                    {{ form }}
+                </table>
+            </div>
+
+
+            <div id='sample' class="right">
+                <table>
+                    <tr>{% for i in form.columns_count|range %}
+                        <th>Column #{{ i }}</th>{% endfor %}
+                    <tr/>
+                    {% for row in form.sample %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
         </div>
     </form>
-
 {% endblock %}

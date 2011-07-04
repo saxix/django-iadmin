@@ -46,8 +46,8 @@
                         {% for f in fields %}
                             <td>{{ obj|getattr:f.name }}</td>
                         {% endfor %}
-                        <td>{% if error %}<span class="error">&nbsp;{{ error }}</span>{% else %}<span class="success">&nbsp;Valid!. can be imported</span>{% endif %}</td>
-                        <td>{{ original_row }}</td>
+                        <td>{% if error %}<span class="error">&nbsp;{{ error }}</span>{% else %}<span class="success">&nbsp;Valid!</span>{% endif %}</td>
+                        <td>{% if error %}{{ original_row }}{% endif %}</td>
                     </tr>
                 {% endfor %}
             </table>
