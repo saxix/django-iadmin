@@ -88,6 +88,8 @@ def result_headers(cl):
         }
 CELL_FILTER_ICON = 'funnel_add.png'
 def process_cell_filter(cl, field, attr, value, obj):
+    if not field:
+        return value
     try:
         if hasattr(attr, 'cell_filter_func'):
             lookup_kwarg = ''
@@ -100,15 +102,12 @@ def process_cell_filter(cl, field, attr, value, obj):
             lookup_value = value
         else:
             target = getattr(obj, field.name)
-            #field = self.model_admin.model._meta.get_field_by_name(field_name)
-            #field, attr, value = lookup_field(field_name, obj, self.model_admin)
             if not (obj and target):
                 return ''
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
                 lookup_kwarg = '%s__%s' % (field.name, rel_name)
                 lookup_value = target.pk
-                #url = self.get_query_string( {lookup_kwarg: target.pk})
             else:
                 lookup_kwarg = field.name
                 lookup_value = target
@@ -117,7 +116,6 @@ def process_cell_filter(cl, field, attr, value, obj):
         return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
                (url, settings.MEDIA_URL, CELL_FILTER_ICON)
     except Exception, e:
-        raise
         return str(e)
 
 def items_for_result(cl, result, form):
