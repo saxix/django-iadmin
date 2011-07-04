@@ -79,18 +79,23 @@ class CSVImporter(IAdminPlugin):
         record = {}
         key = {}
         for field_name, (col, rex, is_key, lk, Field) in mapping.items():
-            raw_val = rex.search(row[col]).group(1)
-            field_value = None
-            if isinstance(Field, ForeignKey):
-                try:
-                    field_value = Field.rel.to.objects.get(**{lk: raw_val})
-                except Field.rel.to.DoesNotExist:
-                    pass
-            else:
-                field_value = Field.to_python(raw_val)
-            record[field_name] = field_value
-            if is_key:
-                key[field_name] = record[field_name]
+            try:
+                raw_val = rex.search(row[col]).group(1)
+                field_value = None
+                if isinstance(Field, ForeignKey):
+                    try:
+                        field_value = Field.rel.to.objects.get(**{lk: raw_val})
+                    except Field.rel.to.DoesNotExist:
+                        pass
+                else:
+                    field_value = Field.to_python(raw_val)
+                record[field_name] = field_value
+                if is_key:
+                    key[field_name] = record[field_name]
+            except AttributeError, e:
+                raise AttributeError('Error processing "%s": Invalid regex' % field_name)
+            except Exception, e:
+                raise e.__class__('Error processing "%s"' % field_name, e)
         return record, key
 
     def _step_2(self, request, app_name=None, model_name=None, temp_file_name=None):
@@ -119,7 +124,7 @@ class CSVImporter(IAdminPlugin):
                                     sample = Model()
                                 sample = update_model(request, sample, record, mapping)
                                 records.append([sample, None, row])
-                            except (ValidationError), e:
+                            except (ValidationError, AttributeError), e:
                                 records.append([sample, str(e), row])
                             except (ValueError, ObjectDoesNotExist, ValidationError), e:
                                 #messages.error(request, '%s' % e)

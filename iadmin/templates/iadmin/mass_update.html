@@ -56,7 +56,7 @@
                     </tr>
                 {% endfor %}
                 <tr><td colspan="3"><hr/></td></tr>
-                <tr><th>field</th><th>update</th><th>value</th><th>existing values</th></tr>
+                <tr><th>field name </th><th>update</th><th>new value</th><th>existing values <small><i>(some of the most used )</i></small></th></tr>
                 {% for field in adminform.form.model_fields %}
                     <tr>
                         <td>{% if field.field.required %}
@@ -76,7 +76,7 @@
                 {{ hidden }}
             {% endfor %}
             <input type="hidden" name="action" value="{{ action }}"/>
-            <input type="submit" name="apply" value="Accept records"/>
+            <input type="submit" name="apply" value="Update records"/>
         </form>
     </div>
     <div id='col2'>
