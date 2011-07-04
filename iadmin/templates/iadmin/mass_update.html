@@ -1,7 +1,7 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_modify adminmedia massupdate %}
 {% block extrahead %}{{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
     <style type="text/css">
         #col1 {
             float: left;
@@ -16,10 +16,10 @@
             width: 100%;
         }
     </style>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/massupdate.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/massupdate.js"></script>
     <script language="javascript" type="text/javascript" src="/media/js/admin/DateTimeShortcuts.js"></script>
 {% endblock %}
 

@@ -15,13 +15,13 @@ from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo, LinkToModelWidget
 class AutoCompleteInput(Select):
     class Media:
         js = (
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/autocomplete.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/jquery.autocomplete.pack.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/autocomplete.js",
             )
         css = {
-            'all': (settings.MEDIA_URL + "iadmin/css/jquery.autocomplete.css",)
+            'all': (settings.STATIC_URL + "iadmin/css/jquery.autocomplete.css",)
         }
 
     def render(self, name, value, attrs=None):
@@ -69,12 +69,12 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
 
     class Media:
         js = (
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/jquery.autocomplete.pack.js",
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/autocomplete.js",
-            settings.MEDIA_URL + "iadmin/js/iadmin.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/jquery.autocomplete.pack.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/autocomplete.js",
+            settings.STATIC_URL + "iadmin/js/iadmin.js",
             )
         css = {
-            'all': (settings.MEDIA_URL + "iadmin/css/jquery.autocomplete.css",)
+            'all': (settings.STATIC_URL + "iadmin/css/jquery.autocomplete.css",)
         }

@@ -19,7 +19,7 @@ class LinkToModelWidget(Widget):
         final_attrs['class'] = u"%s edit link_to_model" % final_attrs.get('class', '')
         final_attrs['id'] = "edit_id_%s" % name
         output = [u'&nbsp;&nbsp<a href="#" %s>' % flatatt(final_attrs),
-                  u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>' % (settings.MEDIA_URL,
+                  u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>' % (settings.STATIC_URL,
                                                                                                _('Edit'))]
 
         return mark_safe(u''.join(output))
@@ -70,8 +70,8 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
     class Media:
         # TODO: move specific js to related widgets
         js = (
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/jquery.min.js",
-            settings.MEDIA_URL + "iadmin/js/iadmin.js",
-            settings.MEDIA_URL + "iadmin/js/link_to_model.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/jquery.min.js",
+            settings.STATIC_URL + "iadmin/js/iadmin.js",
+            settings.STATIC_URL + "iadmin/js/link_to_model.js",
             )

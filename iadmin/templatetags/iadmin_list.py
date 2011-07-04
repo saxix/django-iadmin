@@ -115,7 +115,7 @@ def process_cell_filter(cl, field, attr, value, obj):
             return " Unable to create cell filter for field '%s' on value '%s'" %( field, value)
         url = cl.get_query_string( {lookup_kwarg: lookup_value})
         return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
-               (url, settings.MEDIA_URL, CELL_FILTER_ICON)
+               (url, settings.STATIC_URL, CELL_FILTER_ICON)
     except Exception, e:
         if settings.DEBUG:
             return str(e)

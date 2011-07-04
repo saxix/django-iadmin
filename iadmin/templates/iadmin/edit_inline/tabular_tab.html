@@ -26,7 +26,7 @@
           {% if inline_admin_form.original %} {{ inline_admin_form.original }}{% endif %}
           {% if inline_admin_form.show_url %}{% endif %}
           <a href="../../../a/{{ inline_admin_form.original_content_type_id }}/{{ inline_admin_form.original.id }}/">
-              <img src="{{ MEDIA_URL }}iadmin/img/edit.png" width="10" height="10" alt="%s"/></a>
+              <img src="{{ STATIC_URL }}iadmin/img/edit.png" width="10" height="10" alt="%s"/></a>
             </p>{% endif %}
           {% if inline_admin_form.has_auto_field %}{{ inline_admin_form.pk_field.field }}{% endif %}
           {{ inline_admin_form.fk_field.field }}

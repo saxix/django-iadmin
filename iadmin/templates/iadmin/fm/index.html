@@ -114,9 +114,9 @@
                                        type="checkbox"></td>
                             <td>
                                 {% if file.is_directory %}
-                                    <span class="folder"><img src="{{ MEDIA_URL }}iadmin/img/icon-folder.gif"></span>
+                                    <span class="folder"><img src="{{ STATIC_URL }}iadmin/img/icon-folder.gif"></span>
                                 {% else %}
-                                    <span><img src="{{ MEDIA_URL }}iadmin/img/icon-file.gif"></span>
+                                    <span><img src="{{ STATIC_URL }}iadmin/img/icon-file.gif"></span>
                                 {% endif %}
 
                                 {% if file.broken_link %}
@@ -138,7 +138,7 @@
                                 {% endif %}
                             </td>
                             <td>{% if not file.is_directory %}<img
-                                    src="{{ MEDIA_URL }}iadmin/img/mime/{{ file.icon }}"
+                                    src="{{ STATIC_URL }}iadmin/img/mime/{{ file.icon }}"
                                     alt="{{ file.mime }}">{% endif %}</td>
                             <td>{{ file.perms }}</td>
                             <td>{{ file.ctime|date:"m/d/Y" }}</td>
