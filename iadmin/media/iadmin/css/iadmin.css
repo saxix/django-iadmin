@@ -41,3 +41,14 @@ span.success{
     background-repeat: no-repeat;
     padding-left: 20px;
 }
+
+.selector{
+    width:90%;
+}
+.selector-available, .selector-chosen{
+    width: 45%;
+}
+
+.selector-available select, .selector-chosen select {
+    width: 100%;
+}
