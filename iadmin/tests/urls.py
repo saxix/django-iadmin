@@ -7,7 +7,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 
-        (r'admin/', include(iadmin.STATIC_URLs)),
+        (r'admin/', include(iadmin.static_urls)),
 
         (r'^admin/', include(admin.site.urls)),
 )
