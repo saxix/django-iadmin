@@ -86,10 +86,9 @@ def result_headers(cl):
             "url": url,
             "class_attrib" : class_attrib
         }
+
 CELL_FILTER_ICON = 'funnel_add.png'
 def process_cell_filter(cl, field, attr, value, obj):
-    if not field:
-        return value
     try:
         if hasattr(attr, 'cell_filter_func'):
             lookup_kwarg = ''
@@ -100,7 +99,7 @@ def process_cell_filter(cl, field, attr, value, obj):
 
             lookup_kwarg = target_field_name
             lookup_value = value
-        else:
+        elif field:
             target = getattr(obj, field.name)
             if not (obj and target):
                 return ''
@@ -111,12 +110,17 @@ def process_cell_filter(cl, field, attr, value, obj):
             else:
                 lookup_kwarg = field.name
                 lookup_value = target
+        elif settings.DEBUG:
+            # todo add link to docs 
+            return " Unable to create cell filter for field '%s' on value '%s'" %( field, value)
         url = cl.get_query_string( {lookup_kwarg: lookup_value})
-
         return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
                (url, settings.MEDIA_URL, CELL_FILTER_ICON)
     except Exception, e:
-        return str(e)
+        if settings.DEBUG:
+            return str(e)
+        else:
+            return ''
 
 def items_for_result(cl, result, form):
     """
