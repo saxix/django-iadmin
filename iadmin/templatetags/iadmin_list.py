@@ -159,8 +159,8 @@ def process_cell_filter(cl, field, attr, value, obj):
         ['<li class="iadmin-cell-menu-item" ><a href="%s">%s</a></li>' % (url, lbl) for url, lbl in menu_items])
 
     return r'''<div class="cell-menu">
-    <ul class="iadmin-cell-menu">
-    <li><a href="#" class="cell-menu-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+    <ul>
+    <li><a href="#" class="cell-menu-button">&nbsp;</a>
         <ul class="iadmin-cell-menu">%s</li></ul>
     </ul></div>''' % items
 

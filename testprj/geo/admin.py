@@ -24,13 +24,18 @@ class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
     search_fields = ('name', 'fullname')
     cell_filter = ('region', 'continent', 'ISO_code', 'num_code')
-
-#    ajax_search_fields = # not set mean equal to search_fields
+    list_filter = ('name',)
     ajax_list_display = ('fullname',) # beacause autocomplete double check the entry here must be present one of ajax_search_fields
 
-    inlines = (tabular_factory(Location, Inline=TabularInline),
-                )
+    inlines = (tabular_factory(Location, Inline=TabularInline), )
 
+    def __init__(self, model, admin_site):
+        super(CountryAdmin, self).__init__(model, admin_site)
+        model._meta.get_field_by_name('name')[0].alphabetic_filter = True
+
+    def custom_filter(self, request):
+        pass
+    
 class LakeAdmin(admin.ModelAdmin):
     filter_horizontal = ('countries', )
 

@@ -66,6 +66,14 @@ class AlphabeticFilterSpec(ChoicesFilterSpec):
     'alphabetic_filter'.
 
     my_model_field.alphabetic_filter = True
+
+    or
+
+    class MyAdmin(iadmin.IModelAdmin):
+        def __init__(self, model, admin_site):
+            super(CountryAdmin, self).__init__(model, admin_site)
+            model._meta.get_field_by_name('name')[0].alphabetic_filter = True
+
     """
     USE_OUTPUT_FUNC = True
     def __init__(self, f, request, params, model, model_admin):
@@ -93,7 +101,7 @@ class AlphabeticFilterSpec(ChoicesFilterSpec):
     def output(self, cl):
         t = []
         if self.has_output():
-            t.append(_(u'<h3>By %s:</h3>\n<div>\n') % escape(self.title()))
+            t.append(_(u'<h3>By %s:</h3>\n<div class="alphabetic-filter">\n') % escape(self.title()))
             for choice in self.choices(cl):
                 t.append(u'&nbsp;<span%s><a href="%s">%s</a></span>\n' % \
                     ((choice['selected'] and ' class="selected"' or ''),

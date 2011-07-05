@@ -29,6 +29,7 @@ class IModelAdmin(DjangoModelAdmin):
     add_undefined_fields = False
     list_display_rel_links = ()
     cell_filter = ()
+    cell_menu_on_click = False # if true need to click on icon else mouseover is enough
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
@@ -72,7 +73,7 @@ class IModelAdmin(DjangoModelAdmin):
             'iadmin/%s/change_list.html' % app_label,
             'iadmin/change_list.html'
         ]
-        extra_context = {}
+        extra_context = {'cell_menu_on_click': self.cell_menu_on_click}
         return super(IModelAdmin, self).changelist_view(request, extra_context)
 
     def get_changelist(self, request, **kwargs):

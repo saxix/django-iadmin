@@ -26,11 +26,20 @@
     {{ block.super }}
     {{ media.js }}
     <script type="text/javascript">
+        {% if cell_menu_on_click %}
         (function($) {
-            $(document).ready(function($) {
-
+            $(document).ready(function($){
+                $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
+                $('ul.iadmin-cell-menu').css('display', 'none');
+                $('a.cell-menu-button').click(function(){
+                    $(this).next().css('display', 'block');
+                });
+                $('ul.iadmin-cell-menu').mouseleave(function(){
+                    $('ul.iadmin-cell-menu').css('display', 'none');
+                });
             });
         })(django.jQuery);
+        {% endif %}
         {% if action_form %}{% if actions_on_top or actions_on_bottom %}
         (function($) {
             $(document).ready(function($) {

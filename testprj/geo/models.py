@@ -28,7 +28,6 @@ class Country(models.Model):
     region = models.IntegerField(choices = REGIONS, blank = True, null = True)
     continent = models.CharField(choices = CONTINENTS.choices(), max_length = 2)
 
-
     class Meta:
         app_label = 'geo'
         verbose_name_plural = 'Countries'

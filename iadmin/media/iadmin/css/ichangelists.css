@@ -46,17 +46,17 @@ div.cell-menu {
     float: left;
     top: -20px;
     width: 10px;
-    height: 10px;
+    height: 5px;
     right: -20px;
     padding: 0px;
-    padding-right: 3px;
-    margin: 0px;
+    margin-right: 10px;
     /*border: 1px solid red;*/
 }
 
 div.cell-menu  a.cell-menu-button {
     background-image: url("../img/cell_menu.png");
     background-repeat: no-repeat;
+    width: 10px;
 }
 
 div.cell-menu  ul {
@@ -89,6 +89,22 @@ div.cell-menu ul li a {
     border-bottom: 0;
 }
 
-div.cell-menu   li:hover ul, li.over ul {
+div.cell-menu  li:hover ul, li.over ul {
     display: block;
+}
+
+div.alphabetic-filter span{
+    width: 50px;
+    height: 50px;
+    line-height: 20pt;
+    margin: 0px;
+    padding: 2px;
+    text-align: center;
+    /*border: 1px solid red;*/
+    position: relative;
+}
+
+#changelist-filter div.alphabetic-filter span.selected a{
+    color: #5B80B2;
+    font-weight: bold;
 }
