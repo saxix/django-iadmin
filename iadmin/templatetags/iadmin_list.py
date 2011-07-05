@@ -3,22 +3,23 @@ from django.template.context import Context, RequestContext, ContextPopException
 
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.admin.templatetags.admin_list import *
+from django.utils import simplejson
+from django.utils.translation import ugettext as _
 
 register = Library()
 
 def iadmin_list_filter(cl, spec):
-    if hasattr(spec, "USE_OUTPUT_FUNC"):        
+    if hasattr(spec, "USE_OUTPUT_FUNC"):
         return spec.output(cl)
     else:
-        ctx =  {'title': spec.title(), 
-                'choices' : list(spec.choices(cl))
-                }
+        ctx = {'title': spec.title(),
+               'choices': list(spec.choices(cl))
+        }
         t = get_template('admin/filter.html')
         return t.render(Context(ctx))
 
 
 iadmin_list_filter = register.simple_tag(iadmin_list_filter)
-
 
 
 def result_headers(cl):
@@ -29,8 +30,8 @@ def result_headers(cl):
     first = True
     for i, field_name in enumerate(cl.list_display):
         header, attr = label_for_field(field_name, cl.model,
-            model_admin = cl.model_admin,
-            return_attr = True
+                                       model_admin=cl.model_admin,
+                                       return_attr=True
         )
 
         if attr:
@@ -47,11 +48,11 @@ def result_headers(cl):
             if not admin_order_field:
                 yield {"text": header}
                 continue
-                
-            # So this _is_ a sortable non-field.  Go to the yield
-            # after the else clause.
+
+                # So this _is_ a sortable non-field.  Go to the yield
+                # after the else clause.
         else:
-            admin_order_field = None
+            admin_order_field = ''
 
         th_classes = []
         if first and cl.model_admin.list_filter:
@@ -63,64 +64,106 @@ def result_headers(cl):
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[cl.order_type.lower()]
 
         if hasattr(cl.model_admin, 'columns_classes'):
-            th_classes.extend( cl.model_admin.columns_classes.get(field_name, '') )
+            th_classes.extend(cl.model_admin.columns_classes.get(field_name, ''))
 
         keys = cl.params.keys()
-        for check in [admin_order_field, field_name, '%s__id' % field_name]:
-            if check in keys:
-                filtered = True
-                url = cl.get_query_string(remove=[check])
-                th_classes.append( 'filtered' )
-                cl._filtered_on.append( field_name )
-                break
+        for k in keys:
+            parts = k.split('__')
+            op = parts[-1]
+            target = k.replace('__', '_')
+            if '%s_' % field_name in target:
+                if target == ('%s_exact' % field_name) or target == ('%s_id_exact' % field_name):
+                    filtered = True
+                    sortable = False
+                    clear_filter_url = cl.get_query_string(remove=[k])
+                    break
+                elif op in ('not', 'lt', 'gt'):
+                    filtered = True
+                    sortable = True
+                    clear_filter_url = cl.get_query_string(remove=[k])
+                    break
             else:
                 filtered = False
+                sortable = True
+                clear_filter_url = ''
                 url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
+        else:
+            filtered = False
+            sortable = True
+            clear_filter_url = ''
+            url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
 
         class_attrib = mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')
 
         yield {
             "text": header,
             "filtered": filtered,
-            "sortable": True,
+            "sortable": sortable,
             "url": url,
-            "class_attrib" : class_attrib
+            "clear_filter_url": clear_filter_url,
+            "class_attrib": class_attrib
         }
 
 CELL_FILTER_ICON = 'funnel_add.png'
+
+
 def process_cell_filter(cl, field, attr, value, obj):
-    try:
+    labels = {'lt': _('Less than'),
+              'gt': _('Greater than'),
+              'lte': _('Less or equals than'),
+              'gte': _('Greater or equals than'),
+              'exact': _('Equals to'),
+              'not': _('Not equals to'),
+              'rem': _('Remove filter')}
+
+#    default_operators = ('lt', 'gt', 'exact', 'not')
+    default_operators = ('exact', 'not')
+
+    def process_field():
+        operators = getattr(attr, 'cell_filter_operators', default_operators)
+
         if hasattr(attr, 'cell_filter_func'):
-            lookup_kwarg = ''
-            lookup_value = ''
-            return 'TODO'
+            return 'TODO', 'TODO'
         elif hasattr(attr, 'admin_order_field'):
             target_field_name = getattr(attr, 'admin_order_field')
-
-            lookup_kwarg = target_field_name
-            lookup_value = value
+            return target_field_name, value, operators
         elif field:
             target = getattr(obj, field.name)
             if not (obj and target):
-                return ''
+                return '', '', []
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
-                lookup_kwarg = '%s__%s' % (field.name, rel_name)
-                lookup_value = target.pk
+                return '%s__%s' % (field.name, rel_name), target.pk, operators
             else:
-                lookup_kwarg = field.name
-                lookup_value = target
+                return field.name, target, operators
         elif settings.DEBUG:
-            # todo add link to docs 
-            return " Unable to create cell filter for field '%s' on value '%s'" %( field, value)
-        url = cl.get_query_string( {lookup_kwarg: lookup_value})
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/%s"/></a></span>' % \
-               (url, settings.MEDIA_URL, CELL_FILTER_ICON)
-    except Exception, e:
-        if settings.DEBUG:
-            return str(e)
-        else:
-            return ''
+            # todo add link to docs
+            return " Unable to create cell filter for field '%s' on value '%s'" % ( field, value), '', []
+
+
+    lookup_kwarg, lookup_value, operator = process_field()
+    if not lookup_kwarg:
+        return ''
+    
+    menu_items = []
+    active_filters = ",".join ( cl.params.keys() )
+    if lookup_kwarg in active_filters:
+        menu_items.append((cl.get_query_string({}, [lookup_kwarg]),labels['rem']))
+
+    for op in operator:
+        fld = mark_safe(u"%s__%s" % (lookup_kwarg, op))
+        url = cl.get_query_string({fld: lookup_value}, [lookup_kwarg])
+        menu_items.append((url, labels[op]))
+
+    items = "".join(
+        ['<li class="iadmin-cell-menu-item" ><a href="%s">%s</a></li>' % (url, lbl) for url, lbl in menu_items])
+
+    return r'''<div class="cell-menu">
+    <ul class="iadmin-cell-menu">
+    <li><a href="#" class="cell-menu-button">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        <ul class="iadmin-cell-menu">%s</li></ul>
+    </ul></div>''' % items
+
 
 def items_for_result(cl, result, form):
     """
@@ -137,7 +180,6 @@ def items_for_result(cl, result, form):
         except (AttributeError, ObjectDoesNotExist):
             result_repr = EMPTY_CHANGELIST_VALUE
         else:
-
             if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
@@ -148,7 +190,7 @@ def items_for_result(cl, result, form):
                     result_repr = _boolean_icon(value)
                 else:
                     result_repr = smart_unicode(value)
-                # Strip HTML tags in the resulting text, except if the
+                    # Strip HTML tags in the resulting text, except if the
                 # function has an "allow_tags" attribute set to True.
                 if not allow_tags:
                     result_repr = escape(result_repr)
@@ -166,17 +208,18 @@ def items_for_result(cl, result, form):
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
 
-        if hasattr(model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) and field_name in model_admin.cell_filter:
-            a =  process_cell_filter(cl, f, attr, value, result)
-            result_repr = (result_repr,  smart_unicode(mark_safe(a)))
+        if hasattr(model_admin, 'cell_filter') and (
+            field_name not in  cl._filtered_on) and field_name in model_admin.cell_filter:
+            a = process_cell_filter(cl, f, attr, value, result)
+            result_repr = (result_repr, smart_unicode(mark_safe(a)))
         else:
-            result_repr = (result_repr,  '')
+            result_repr = (result_repr, '')
 
         if force_unicode(result_repr[0]) == '':
             result_repr = (mark_safe('&nbsp;'), '')
-        # If list_display_links not defined, add the link tag to the first field
+            # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
-            table_tag = {True:'th', False:'td'}[first]
+            table_tag = {True: 'th', False: 'td'}[first]
             first = False
             url = cl.url_for_result(result)
             # Convert the pk to something that can be used in Javascript.
@@ -187,8 +230,10 @@ def items_for_result(cl, result, form):
                 attr = pk
             value = result.serializable_value(attr)
             result_id = repr(force_unicode(value))[1:]
-            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a>%s</%s>' % \
-                (table_tag, row_class, url, (cl.is_popup and ' onclick="opener.dismissRelatedLookupPopup(window, %s); return false;"' % result_id or ''), conditional_escape(result_repr[0]), conditional_escape(result_repr[1]), table_tag))
+            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a>%s</%s>' %\
+                            (table_tag, row_class, url, (
+                                cl.is_popup and ' onclick="opener.dismissRelatedLookupPopup(window, %s); return false;"' % result_id or '')
+                             , conditional_escape(result_repr[0]), conditional_escape(result_repr[1]), table_tag))
         else:
             # By default the fields come from ModelAdmin.list_editable, but if we pull
             # the fields out of the form instead of list_editable custom admins
@@ -202,6 +247,7 @@ def items_for_result(cl, result, form):
     if form and not form[cl.model._meta.pk.name].is_hidden:
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))
 
+
 def results(cl):
     if cl.formset:
         for res, form in zip(cl.result_list, cl.formset.forms):
@@ -210,11 +256,13 @@ def results(cl):
         for res in cl.result_list:
             yield list(items_for_result(cl, res, None))
 
+
 def result_hidden_fields(cl):
     if cl.formset:
         for res, form in zip(cl.result_list, cl.formset.forms):
             if form[cl.model._meta.pk.name].is_hidden:
                 yield mark_safe(force_unicode(form[cl.model._meta.pk.name]))
+
 
 def result_list(cl):
     """
@@ -224,4 +272,5 @@ def result_list(cl):
             'result_hidden_fields': list(result_hidden_fields(cl)),
             'result_headers': list(result_headers(cl)),
             'results': list(results(cl))}
-result_list = register.inclusion_tag("admin/change_list_results.html")(result_list)
+
+result_list = register.inclusion_tag("iadmin/change_list_results.html")(result_list)

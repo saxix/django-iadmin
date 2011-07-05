@@ -63,6 +63,18 @@ class IModelAdmin(DjangoModelAdmin):
         clean_lookup = LOOKUP_SEP.join(parts)
         return clean_lookup in self.extra_allowed_filter
 
+    def changelist_view(self, request, extra_context=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+
+        self.change_list_template = self.change_list_template or [
+            'iadmin/%s/%s/change_list.html' % (app_label, opts.object_name.lower()),
+            'iadmin/%s/change_list.html' % app_label,
+            'iadmin/change_list.html'
+        ]
+        extra_context = {}
+        return super(IModelAdmin, self).changelist_view(request, extra_context)
+
     def get_changelist(self, request, **kwargs):
         return IChangeList
 

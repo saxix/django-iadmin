@@ -12,7 +12,7 @@ class LocationAdmin(admin.ModelAdmin):
     autocomplete_ajax = True
 
     search_fields = ('name',)
-    cell_filter = ('country', 'country_continent')
+    cell_filter = ('country', 'country_continent', )
     list_display_rel_links = ('country', 'country__continent')
     
     def country_continent(self, h):
@@ -23,7 +23,7 @@ class LocationAdmin(admin.ModelAdmin):
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
     search_fields = ('name', 'fullname')
-    cell_filter = ('region', 'continent')
+    cell_filter = ('region', 'continent', 'ISO_code', 'num_code')
 
 #    ajax_search_fields = # not set mean equal to search_fields
     ajax_list_display = ('fullname',) # beacause autocomplete double check the entry here must be present one of ajax_search_fields
