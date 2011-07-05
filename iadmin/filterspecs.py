@@ -61,6 +61,8 @@ FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'date_range_filter', Fal
 
 class AlphabeticFilterSpec(ChoicesFilterSpec):
     """
+    original code: http://djangosnippets.org/snippets/1051/
+
     Adds filtering by first char (alphabetic style) of values in the admin
     filter sidebar. Set the alphabetic filter in the model field attribute
     'alphabetic_filter'.
