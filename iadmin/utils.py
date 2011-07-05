@@ -1,6 +1,24 @@
 from iadmin.options import ITabularInline
 from django.db import models
 
+
+#def get_attr(obj, attr, default=None):
+#    """Recursive get object's attribute. May use dot notation.
+#
+#    >>> class C(object): pass
+#    >>> a = C()
+#    >>> a.b = C()
+#    >>> a.b.c = 4
+#    >>> get_attr(a, 'b.c')
+#    4
+#    """
+#    if '.' not in attr:
+#        return getattr(obj, attr, default)
+#    else:
+#        L = attr.split('.')
+#        return get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
+
+
 def tabular_factory(model, fields=None, Inline=ITabularInline, form=None, **kwargs):
     """ factory for ITabularInline
             

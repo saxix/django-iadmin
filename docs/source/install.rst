@@ -1,8 +1,31 @@
 .. include globals.rst
 
-Install
-=======
-Edit your settinhs.py and add iadmin application before django.contrib.admin::
+
+Installation
+============
+
+Installing Tastypie is as simple as checking out the source and adding it to
+your project or ``PYTHONPATH``.
+
+    1. Download the dependencies:
+        * Python 2.4+
+        * Django 1.2.3+
+
+    2. Either check out iadmin from GitHub_ or to pull a release off PyPI_.
+     Doing ``sudo pip install django-iadmin`` or
+     ``sudo easy_install django-iadmin`` is all that should be required.
+
+    3. Either symlink the ``iadmin`` directory into your project or copy the
+     directory in. What ever works best for you.
+
+.. _GitHub: http://github.com/saxix/django-iadmin
+.. _PyPI: http://pypi.python.org/
+
+
+Configuration
+=============
+
+Add :mod:`iadmin` to your :setting:`INSTALLED_APPS` ::
 
     INSTALLED_APPS = (
         ...
@@ -33,5 +56,4 @@ In your admin.py file::
 
     import iadmin
     import iadmin.proxy as admin
-
 

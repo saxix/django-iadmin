@@ -36,15 +36,17 @@ class IModelAdmin(DjangoModelAdmin):
     change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
-    
+    columns_attributes = {}
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
         self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
         self.extra_allowed_filter = []
-        
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
-
+#        for element, value in self.columns_attributes.items():
+#            obj,attr = elements.split('.')
+#            setattr(obj, attr, value)
+            
     def _process_cell_filter(self):
         # add cell_filter fields to `extra_allowed_filter` list
         for entry in self.cell_filter:

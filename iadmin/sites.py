@@ -63,7 +63,7 @@ class IAdminSite(AdminSite):
             count_models = lambda model: model.objects.all().count()
         else:
             count_models = lambda model: ''
-
+        
         for model, model_admin in self._registry.items():
             app_label = model._meta.app_label
             has_module_perms = user.has_module_perms(app_label)
@@ -119,6 +119,7 @@ class IAdminSite(AdminSite):
             count_models = lambda model: model.objects.all().count()
         else:
             count_models = lambda model: ''
+
         for model, model_admin in self._registry.items():
             if app_label == model._meta.app_label:
                 if has_module_perms:

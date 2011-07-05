@@ -13,6 +13,7 @@ Table Of Contents
     :maxdepth: 1
 
     intro
+    install
     tutorial
     actions
     settings

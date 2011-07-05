@@ -9,65 +9,30 @@ iAdmin is a replacement of the standard Django Admin.
 This tutorial assumes that you have a basic understanding of Django.
 We will only explain the portions of the code that are iAdmin-specific in any kind of depth.
 
-Installation
-============
+Home Page
+---------
+As installed iAdmin replace the standard home page with a 'portlets like' version.
+The default template use a 5 columns layout, you can move the 'portlets' turu the columns and/or collapse them.
+The layout is saved into a cookie to allow it to be restored.
 
-Installing Tastypie is as simple as checking out the source and adding it to
-your project or ``PYTHONPATH``.
+.. image:: _static/home2.png
 
-    1. Download the dependencies:
-        * Python 2.4+
-        * Django 1.2.3+
-
-    2. Either check out iadmin from GitHub_ or to pull a release off PyPI_.
-     Doing ``sudo pip install django-iadmin`` or
-     ``sudo easy_install django-iadmin`` is all that should be required.
-
-    3. Either symlink the ``iadmin`` directory into your project or copy the
-     directory in. What ever works best for you.
-
-.. _GitHub: http://github.com/saxix/django-iadmin
-.. _PyPI: http://pypi.python.org/
+iAdmin is able to shows the number of rows present in each table, the home page is cached and the cache is
+invalidated each time a model is added/deleted using django :func:`django.db.models.signals.post_save` and
+:func:`django.db.models.signals.post_delete` (see :mod:`django.db.models.signals`).
+If you want enable this feature, you should edit your settings as following::
 
 
-Configuration
-=============
+    IADMIN_CONFIG = { 'count_rows': False,}
 
-Edit your settinhs.py and add iadmin application before django.contrib.admin::
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake'
+        }
+    }
 
-    INSTALLED_APPS = (
-        ...
-        'iadmin',
-        'django.contrib.admin',
-        'django.contrib.messages',
-        ...
-        ...
-    )
-
-
-Add an entry into your urls.conf::
-
-
-    import iadmin.proxy as admin
-    admin.autodiscover()
-    import iadmin.media_urls
-
-    urlpatterns = patterns('',
-                url(r'', include('iadmin.media_urls')),
-                (r'^admin/', include(admin.site.urls)),
-                ...
-                ...
-    )
-
-
-In your admin.py file::
-
-    import iadmin
-    import iadmin.proxy as admin
-
-
-Customization
-=============
+The :setting:`CACHES` configuration is only an example, please refer to Django Cache System for further infos.
 
 
 IModelAdmin
