@@ -1,7 +1,9 @@
 # Django settings for testprj project.
 
 import os
-
+import sys
+HERE = os.path.dirname('__file__')
+sys.path.insert(0, os.path.join(HERE, os.pardir) )
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -89,7 +91,6 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'iadmin',
-    #    'django.contrib.',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.comments',
@@ -106,7 +107,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.syndication',
 
-
     'geo',
     'biblio',
     # Uncomment the next line to enable admin documentation:
@@ -116,7 +116,7 @@ INSTALLED_APPS = (
 IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000
 IADMIN_FM_ROOT = MEDIA_ROOT
 IADMIN_FM_CONFIG = {}
-IADMIN_CONFIG = { 'count_rows': False,}
+IADMIN_CONFIG = { 'count_rows': True,}
 
 CACHES = {
     'default': {
