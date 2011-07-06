@@ -120,28 +120,29 @@ def process_cell_filter(cl, field, attr, value, obj):
     default_operators = ('exact', 'not')
 
     def process_field():
-        operators = getattr(attr, 'cell_filter_operators', default_operators)
+        target = field or  attr
+        col_operators = getattr(target, 'cell_filter_operators', default_operators)
 
         if hasattr(attr, 'cell_filter_func'):
             return 'TODO', 'TODO'
         elif hasattr(attr, 'admin_order_field'):
             target_field_name = getattr(attr, 'admin_order_field')
-            return target_field_name, value, operators
+            return target_field_name, value, col_operators
         elif field:
             target = getattr(obj, field.name)
             if not (obj and target):
                 return '', '', []
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
-                return '%s__%s' % (field.name, rel_name), target.pk, operators
+                return '%s__%s' % (field.name, rel_name), target.pk, col_operators
             else:
-                return field.name, target, operators
+                return field.name, target, col_operators
         elif settings.DEBUG:
             # todo add link to docs
             return " Unable to create cell filter for field '%s' on value '%s'" % ( field, value), '', []
 
 
-    lookup_kwarg, lookup_value, operator = process_field()
+    lookup_kwarg, lookup_value, operators = process_field()
     if not lookup_kwarg:
         return ''
     
@@ -150,7 +151,7 @@ def process_cell_filter(cl, field, attr, value, obj):
     if lookup_kwarg in active_filters:
         menu_items.append((cl.get_query_string({}, [lookup_kwarg]),labels['rem']))
 
-    for op in operator:
+    for op in operators:
         fld = mark_safe(u"%s__%s" % (lookup_kwarg, op))
         url = cl.get_query_string({fld: lookup_value}, [lookup_kwarg])
         menu_items.append((url, labels[op]))
