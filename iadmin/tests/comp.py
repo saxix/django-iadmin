@@ -16,13 +16,3 @@ class CompatibilityTest(TestCase):
         if User in admin.site._registry:
             admin.site.unregister( User )
 
-    def test_templatetags_result_headers(self):
-        """ TemplateSyntaxError  """
-        admin.autodiscover()
-        from django.contrib.admin import ModelAdmin
-        admin.site.silent_unregister(User)
-        admin.site.register(User, ModelAdmin)
-        url = '/admin/auth/user/'
-        r = self.client.get( url )
-        self.assertEqual(r.status_code, 200)
-

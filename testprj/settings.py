@@ -49,9 +49,9 @@ USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-#import iadmin
-#MEDIA_ROOT = os.path.join(os.path.abspath(os.path.dirname(iadmin.__file__)), 'media')
-MEDIA_ROOT = '/'
+import iadmin
+MEDIA_ROOT = os.path.join(os.path.abspath(os.path.dirname(iadmin.__file__)), 'media')
+
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
@@ -95,16 +95,12 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.comments',
     'django.contrib.contenttypes',
-    'django.contrib.databrowse',
     'django.contrib.flatpages',
-    'django.contrib.markup',
     'django.contrib.messages',
     'django.contrib.redirects',
     'django.contrib.sessions',
     'django.contrib.sitemaps',
     'django.contrib.sites',
-    'django.contrib.syndication',
-
     'geo',
     'biblio',
     # Uncomment the next line to enable admin documentation:
