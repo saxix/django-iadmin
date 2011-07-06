@@ -13,12 +13,12 @@ class LocationAdmin(admin.ModelAdmin):
 
     search_fields = ('name',)
     cell_filter = ('country', 'country_continent', )
-    list_display_rel_links = ('country', 'country__continent')
+    list_display_rel_links = ('country', )
     
     def country_continent(self, h):
         return h.country.continent
     country_continent.admin_order_field = 'country__continent'
-    country_continent.admin_filter_value = 'country.continent' #TODO 
+    country_continent.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
 
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
@@ -32,6 +32,7 @@ class CountryAdmin(admin.ModelAdmin):
     def __init__(self, model, admin_site):
         super(CountryAdmin, self).__init__(model, admin_site)
         model._meta.get_field_by_name('name')[0].alphabetic_filter = True
+        model._meta.get_field_by_name('num_code')[0].cell_filter_operators = ('lt', 'gt', 'exact', 'not')
 
     def custom_filter(self, request):
         pass
@@ -47,7 +48,7 @@ import iadmin.shortcuts.auth
 admin.site.register(Country, CountryAdmin)
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Lake, LakeAdmin)
-admin.site.register(Ocean, OceanAdmin)
+admin.site.register(Ocean)
 
 
 from django.conf import settings

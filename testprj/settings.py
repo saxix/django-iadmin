@@ -98,7 +98,6 @@ INSTALLED_APPS = (
     'django.contrib.databrowse',
     'django.contrib.flatpages',
     'django.contrib.formtools',
-    'django.contrib.gis',
     'django.contrib.markup',
     'django.contrib.messages',
     'django.contrib.redirects',
