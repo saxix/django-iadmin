@@ -49,9 +49,9 @@ USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-import iadmin
-MEDIA_ROOT = os.path.join(os.path.abspath(os.path.dirname(iadmin.__file__)), 'media')
-
+#import iadmin
+#MEDIA_ROOT = os.path.join(os.path.abspath(os.path.dirname(iadmin.__file__)), 'media')
+MEDIA_ROOT = '/'
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
@@ -97,7 +97,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.databrowse',
     'django.contrib.flatpages',
-    'django.contrib.formtools',
     'django.contrib.markup',
     'django.contrib.messages',
     'django.contrib.redirects',

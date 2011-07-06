@@ -28,7 +28,7 @@ Table Of Contents
     actions
     settings
 
-    cookbook
+    api
 
     releases/index
     

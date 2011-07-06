@@ -1,4 +1,4 @@
-.. _ref-tutorial:
+.. _tutorial:
 
 =============================
 Getting Started with iAdmin
@@ -9,8 +9,12 @@ Getting Started with iAdmin
 This tutorial assumes that you have a basic understanding of Django.
 We will only explain the portions of the code that are iAdmin-specific in any kind of depth.
 
+
+.. _tutorial-home-page:
+
 Home Page
 =========
+
 As installed iAdmin replace the standard home page with a 'portlets like' version.
 The default template use a 5 columns layout, you can move the 'portlets' turu the columns and/or collapse them.
 The layout is saved into a cookie to allow it to be restored.
@@ -42,6 +46,9 @@ Changelist
 
 .. image:: _static/changelist_view.*
 
+
+.. _tutorial-cell-filter:
+
 Enabling cell filter menu
 -------------------------
 
@@ -63,14 +70,14 @@ If the column is a :class:`django.db.models.Field` instance::
 
     class MyModel(models.model):
         myfield = IntegerField(...)
-        myfield.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
+        myfield.cell_filter_operators = ('lt', 'gt', 'lte', 'gte', 'exact', 'not')
 
 or::
 
     class MyModelAdmin(iadmin.IModelAdmin):
         def __init__(self, model, admin_site):
             super(MyModelAdmin, self).__init__(model, admin_site)
-            model._meta.get_field_by_name('myfield')[0].cell_filter_operators = ('lt', 'gt', 'exact', 'not')
+            model._meta.get_field_by_name('myfield')[0].cell_filter_operators = ('lt', 'gt', 'lte', 'gte', 'exact', 'not')
 
 
 .. note:: Even if second way is more verbose, I suggest that one because decouples more the model layer from the (i)admin application
@@ -95,6 +102,8 @@ be in and until you don't select twice the same column, in that case the last se
 
 .. note:: an icon will be showed on the header of the filtered column(s)
 
+
+.. _list_display_rel_links:
 
 Direct link from list to edit form
 ----------------------------------
