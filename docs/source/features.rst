@@ -1,8 +1,9 @@
-.. _intro:
 
-==================================
-Welcome to django-iAdmin |version|
-==================================
+.. _features:
+
+==============================
+iAdmin |version| features list
+==============================
 
 
 iAdmin is an alternate fully compatible original Django Admin application.

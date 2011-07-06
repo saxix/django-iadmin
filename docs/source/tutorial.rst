@@ -4,26 +4,28 @@
 Getting Started with iAdmin
 =============================
 
-iAdmin is a replacement of the standard Django Admin.
+
 
 This tutorial assumes that you have a basic understanding of Django.
 We will only explain the portions of the code that are iAdmin-specific in any kind of depth.
 
 Home Page
----------
+=========
 As installed iAdmin replace the standard home page with a 'portlets like' version.
 The default template use a 5 columns layout, you can move the 'portlets' turu the columns and/or collapse them.
 The layout is saved into a cookie to allow it to be restored.
 
 .. image:: _static/home2.png
+    :width: 800
+    
 
 iAdmin is able to shows the number of rows present in each table, the home page is cached and the cache is
 invalidated each time a model is added/deleted using django :func:`django.db.models.signals.post_save` and
 :func:`django.db.models.signals.post_delete` (see :mod:`django.db.models.signals`).
-If you want enable this feature, you should edit your settings as following::
+If you want enable this feature, you should set :doc:IADMIN_CONFIG as following::
 
 
-    IADMIN_CONFIG = { 'count_rows': False,}
+    IADMIN_CONFIG = { 'count_rows': True,}
 
     CACHES = {
         'default': {
@@ -35,31 +37,73 @@ If you want enable this feature, you should edit your settings as following::
 The :setting:`CACHES` configuration is only an example, please refer to Django Cache System for further infos.
 
 
-IModelAdmin
------------
+Changelist
+==========
 
-    * **Attributes:**
+.. image:: _static/changelist_view.*
 
-        .. py:attribute:: options.iadmin.IModelAdmin.add_undefined_fields
-        If true create an 'Other' fieldset section with all fields not defined in other fieldsets
+Enabling cell filter menu
+-------------------------
 
-        .. py:attribute:: options.iadmin.IModelAdmin.list_display_rel_links
-        If true create an link to the change form of a model from the changelist cell
+To enable the cell filter menu you need to set :attr:`~iadmin.options.IModelAdmin.cell_filter` ::
 
-        .. py:attribute:: options.iadmin.IModelAdmin.cell_filter
-        list of fieldnames ( columns ) that can be filtered on the changelist. Useful if the values of a filter are too
-        much to be showed in the left filter panel
+    class MyModelAdmin(iadmin.IModelAdmin):
+        cell_filter = ('Region', 'Continent')
 
-        .. py:attribute:: options.iadmin.IModelAdmin.autocomplete_ajax
-        If true use an autocomplete ajax widget for the ForeignKey field
+This will enable the cell filter menu for ``Region`` and  ``Continent`` fields
 
-
-    * **Actions:**
-        .. function:: actions.export_to_csv
-        Export selected queryset as csv file. See :doc:`Export queryset as CSV </actions>`
-
-        .. function:: actions.mass_update
-
-        .. function:: actions.export_as_json
+.. image:: _static/column_filter.*
 
 
+by default only ``Equals to`` and ``Not equals to`` filters are enabled, but also ``Greater than``, ``Less than``,
+``Greater or equals than`` and ``Less or equals than`` are available. To enable them, create an attribute named ``cell_filter_operators``
+attribute for the selected column. You can that in multiple ways.
+
+If the column is a :class:`django.db.models.Field` instance::
+
+    class MyModel(models.model):
+        myfield = IntegerField(...)
+        myfield.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
+
+or::
+
+    class MyModelAdmin(iadmin.IModelAdmin):
+        def __init__(self, model, admin_site):
+            super(MyModelAdmin, self).__init__(model, admin_site)
+            model._meta.get_field_by_name('myfield')[0].cell_filter_operators = ('lt', 'gt', 'exact', 'not')
+
+
+.. note:: Even if second way is more verbose, I suggest that one because decouples more the model layer from the (i)admin application
+
+
+If the column is a callable of the ModelAdmin that represents a certain database field::
+
+
+    class LocationAdmin(admin.ModelAdmin):
+        list_display = ('name', 'country', 'country_continent')
+        cell_filter = ('country', 'country_continent', )
+
+        def country_continent(self, h):
+            return h.country.continent
+        country_continent.admin_order_field = 'country__continent'
+        country_continent.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
+
+.. note:: iAdmin use the ``admin_order_field`` as filtering field
+
+Once that a queryset is filtered you can apply more filter using cell menus or "right side" filters, both of them will
+be in and until you don't select twice the same column, in that case the last selection will be used.
+
+.. note:: an icon will be showed on the header of the filtered column(s)
+
+
+Direct link from list to edit form
+----------------------------------
+
+If you have a column that represent a :ref:`django.db.models.ForeignKey`,  you can create a link from
+each cell in the changelist to the related edit page listing the column name into ``list_display_rel_links`` attribute of IModelAdmin::
+
+    class LocationAdmin(admin.ModelAdmin):
+        list_display = ('name', 'country', 'country_continent')
+        list_display_rel_links = ('country', )
+
+.. note:: The fields listed into ``list_display_rel_links`` MUST be present also in ``list_display``

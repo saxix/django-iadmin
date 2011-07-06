@@ -1,31 +1,33 @@
+
 .. include globals.rst
 
 
 Installation
 ============
 
-Installing Tastypie is as simple as checking out the source and adding it to
+Installing iAdmin is as simple as checking out the source and adding it to
 your project or ``PYTHONPATH``.
 
     1. Download the dependencies:
         * Python 2.4+
         * Django 1.2.3+
 
-    2. Either check out iadmin from GitHub_ or to pull a release off PyPI_.
+    2. Either check out iAdmin from `GitHub`_ or to pull a release off `PyPI`_.
      Doing ``sudo pip install django-iadmin`` or
      ``sudo easy_install django-iadmin`` is all that should be required.
 
     3. Either symlink the ``iadmin`` directory into your project or copy the
      directory in. What ever works best for you.
 
+
 .. _GitHub: http://github.com/saxix/django-iadmin
-.. _PyPI: http://pypi.python.org/
+.. _PyPI: http://pypi.python.org/pypi/django-iadmin/
 
 
 Configuration
 =============
 
-Add :mod:`iadmin` to your :setting:`INSTALLED_APPS` ::
+Add :mod:`iadmin` to your :setting:`INSTALLED_APPS`::
 
     INSTALLED_APPS = (
         ...

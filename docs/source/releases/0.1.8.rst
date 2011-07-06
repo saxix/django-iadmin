@@ -1,0 +1,27 @@
+=================================
+iAdmin version 0.1.8
+=================================
+
+This feature is the first one after the publish on gitHub and the first one
+with some feedback from the community. Does not contains 'big' new features but the intent is to
+provide a more stable well documentent version
+
+
+What's new iAdmin  0.1.8
+========================
+
+Filter by cell drop down menu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Filter the change list is now provided by a dropdown menu on the left of the cell,
+by default this menu contains 'Equals to' and 'Not equals to' respectively to filter the queryset on the same value of
+the selected cell or all the rows where the value is different by it.
+
+Alphabetical Filter
+~~~~~~~~~~~~~~~~~~~
+
+This is a standard "right side" admin filter, originally base on the snippet `snip_1051`_
+
+
+.. _snip_1051: `1051`_ http://djangosnippets.org/snippets/1051/
+

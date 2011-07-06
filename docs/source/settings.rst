@@ -7,24 +7,25 @@ Settings
 ========
 
 
-.. setting:: IADMIN_FILE_UPLOAD_MAX_SIZE
-
 IADMIN_FILE_UPLOAD_MAX_SIZE
----------------------------
-
-.. py:data:: IADMIN_FILE_UPLOAD_MAX_SIZE
++++++++++++++++++++++++++++
 Max size allowed for file upload via filemanage. Default 2000000 bytes
 
-.. py:data:: IADMIN_FM_ROOT
+IADMIN_FM_ROOT
+++++++++++++++
 Absolute path to the root directory of the file manager. Default `MEDIA_ROOT`
 
 
-.. py:data:: IADMIN_FM_CONFIG
+IADMIN_FM_CONFIG
+++++++++++++++++
 Dictionary for the filemanager configuration. Default::
 
     { 'show': lambda fso: not fso.hidden }
 
-.. py:data:: IADMIN_CONFIG
+
+IADMIN_CONFIG
++++++++++++++
+
 iAdmin default configuration::
 
     { 'count_rows': True,
