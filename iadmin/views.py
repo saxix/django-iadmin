@@ -62,7 +62,6 @@ class IChangeList(ChangeList):
         # ValicationError, or ? from a custom field that raises yet something else
         # when handed impossible data.
         except:
-            raise
             raise IncorrectLookupParameters
 
         # Use select_related() if one of the list_display options is a field
