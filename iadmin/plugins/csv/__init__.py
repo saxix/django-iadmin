@@ -23,8 +23,8 @@ class CSVImporter(IAdminPlugin):
     template_step3 = None
 
     def _get_base_context(self, request, app=None, model=None):
-        return template.RequestContext(request, {'app_label': app or '',
-                                                 'model_name': model or '',
+        return template.RequestContext(request, {'app_label': (app or '').lower(),
+                                                 'model_name': (model or '').lower(),
                                                  'root_path': self.admin_site.root_path or '',
                                                  'lbl_next': 'Next >>',
                                                  'lbl_back': '<< Back',

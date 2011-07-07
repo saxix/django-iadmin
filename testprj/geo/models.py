@@ -37,7 +37,12 @@ class Country(models.Model):
         return "%s" % self.fullname
 
 class Location(models.Model):
-    """ Geographical location ( city, place everything with a name and Lat/Lng"""
+    """ Geographical location ( city, place everything with a name and Lat/Lng
+
+    >>> 1+1
+    2
+
+    """
     ACCURACY = Choices(
         K(NONE=0, label='Nessuna'),
         K(COUNTRY=10, label='Country'),

@@ -29,7 +29,6 @@ IADMIN_CONFIG
 iAdmin default configuration::
 
     { 'count_rows': True,
-
     }
 
 

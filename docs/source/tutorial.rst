@@ -116,3 +116,48 @@ each cell in the changelist to the related edit page listing the column name int
         list_display_rel_links = ('country', )
 
 .. note:: The fields listed into ``list_display_rel_links`` MUST be present also in ``list_display``
+
+
+Extra actions
+-------------
+
+.. toctree::
+    :maxdepth: 2
+
+    actions
+
+FileManager
+===========
+
+.. image:: _static/file_manager.png
+
+FileManager is a simple files and directories management application that allow you to:
+  * browse files/directories on your server
+  * upload files.
+  * delete/rename files and or directories.
+  * create .tar archives
+  
+Configuring FileManager
+-----------------------
+First of all, you need to set :ref:`IADMIN_FM_ROOT` in your settings, the absolute path of the base directory,
+by default this value is equal to :setting:`MEDIA_ROOT`.
+
+To limit the visibility of files and directory you can use the :ref:`IADMIN_jFM_CONFIG` do set a callback that handle the file list::
+
+    def filemanager_file_visibility_manager(fso):
+        return not fso.hidden
+    IADMIN_FM_CONFIG = { 'show': filemanager_file_visibility_manager }
+
+the callback is passed a :ref:`iadmin.
+
+
+Info Panel
+==========
+
+
+Import from CSV
+===============
+
+
+Configuring
+
