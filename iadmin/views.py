@@ -1,5 +1,5 @@
 #
-from _ast import operator
+import operator
 from django.conf import settings
 from django.contrib.admin.filterspecs import FilterSpec
 from django.contrib.admin.options import IncorrectLookupParameters

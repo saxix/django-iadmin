@@ -1,9 +1,23 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
+{% block extrahead %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
+    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script>
+        (function($) {
+            $(document).ready(function() {
+                var $tabs = $('#tabs').tabs({ cookie: { expires: 30 }});
+            });
+        })(jQuery);
+    </script>
+{% endblock %}
+
 {% block breadcrumbs %}
     {% if not is_popup %}
         <div class="breadcrumbs">
-            <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+            <a href="../../">{% trans "Home" %}</a> &rsaquo;
             Info
         </div>
     {% endif %}
@@ -11,28 +25,53 @@
 
 
 {% block content %}
-    <div class="env-info">
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-apps" class="">&nbsp;&nbsp;Applications&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-sys" class="">&nbsp;&nbsp;System&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-lib" class="">&nbsp;&nbsp;Packages&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-path" class="">&nbsp;&nbsp;Pythonpath&nbsp;&nbsp;</a></li>
 
-        <div class='right'><a href='export'>export</a></div>
-        
-
-        <div  class='left'><h1>Packages:</h1>
-        <table>
-            {% for line in lib %}<tr><td>{{ line }}</td></tr>{% endfor %}
-        </table>
+        </ul>
+        <div id="tabs-apps">
+            <table>
+                {% for line in apps %}
+                    <tr>
+                        <td>{{ line.0 }}</td>
+                        <td>{{ line.1 }}</td>
+                    </tr>{% endfor %}
+            </table>
+        </div>
+        <div id="tabs-sys">
+            <table>
+                <tr><td>Platform:</td><td>{{ sys.os.0 }}</td></tr>
+                <tr><td>Kernel</td><td>{{ sys.os.2 }}</td></tr>
+                <tr><td>Architecture</td><td>{{ sys.os.4 }}</td></tr>
+                <tr><td>Python:</td><td>{{ sys.version|join:"." }}</td></tr>
+                <tr><td>OS</td><td>{{ sys.os.3 }}</td></tr>
+                <tr><td>User</td><td>{{ user }}</td></tr>
+            </table>
         </div>
 
-        <div class='right'><h1>Path:</h1>
-        <table >
-            {% for line in path %}<tr><td>{{ line }}</td></tr>{% endfor %}
-        </table>
-        </div>
-         <hr/>
-        <div ><h1>Apps:</h1>
-        <table>
-            {% for line in apps %}<tr><td>{{ line.0 }} {{ line.1 }}</td></tr>{% endfor %}
-        </table>
+        <div id="tabs-lib">
+            <table>
+                {% for line in lib %}
+                    <tr>
+                        <td>{{ line }}</td>
+                    </tr>{% endfor %}
+            </table>
         </div>
 
-    </div>
+        <div id="tabs-path">
+            <table>
+            <tr><th>current dir: {{ curdir }}</th></tr>
+                {% for line in path %}
+                    <tr>
+                        <td>{{ line }}</td>
+                    </tr>{% endfor %}
+            </table>
+        </div>
+
+
+
 {% endblock %}
