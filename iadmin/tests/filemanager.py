@@ -2,6 +2,10 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test.testcases import TestCase
 import tempfile
+try:
+    from mock import patch
+except ImportError:
+    patch = None
 import os
 
 files = []
@@ -13,14 +17,15 @@ def touch(fname):
     f.close()
     files.append(fullpath)
 
+
 class FileManagerTest(TestCase):
     urls = 'iadmin.tests.urls'
     fixtures = ['test.json',]
-    maxDiff = None
+#    maxDiff = None
 
     def setUp(self):
         super(FileManagerTest, self).setUp()
-        self.client.login(username='sax', password='123')
+        assert self.client.login(username='sax', password='123')
         settings.IADMIN_FM_ROOT = os.path.join(os.path.dirname(__file__),'fmenv')
         if os.path.exists(os.path.join(settings.IADMIN_FM_ROOT, RENAMED_FILENAME)):
             os.unlink(os.path.join(settings.IADMIN_FM_ROOT, RENAMED_FILENAME))
@@ -63,16 +68,24 @@ class FileManagerTest(TestCase):
         r = self.client.get( home )
         self.assertFalse(file_to_delete.name in [f.absolute_path for f in  r.context['files']])
 
-    def test_rename(self):
-        file_to_rename = tempfile.NamedTemporaryFile(dir=settings.IADMIN_FM_ROOT, prefix='iadmin')
-        home = reverse('admin:iadmin.fm.index', kwargs={'path':''})
-        url = reverse('admin:iadmin.fm.rename')
+    def test_permission_denied_rename_dir(self):
+        fm = reverse('admin:iadmin.fm.index', kwargs={'path':''})
+        assert self.client.login(username='user_no_perm_for_file_manager', password='123')
+        r = self.client.get( fm )
+        path = r.context['files'][0].absolute_path # this should be dir1
+        name = os.path.basename(path)
+        rename_url = reverse('admin:iadmin.fm.rename')
+        r = self.client.get( rename_url, {'oldname':name, 'newname':'222', 'base':''} )
+        self.assertEqual(r.status_code, 403)
 
-        r = self.client.get( url, {'base': os.path.dirname(file_to_rename.name),
-                                    'oldname': os.path.basename(file_to_rename.name),
-                                    'newname': RENAMED_FILENAME} )
-
-        self.assertRedirects(r, home)
-        r = self.client.get( home )
-        self.assertFalse(file_to_rename.name in [f.absolute_path for f in  r.context['files']])
-        self.assertTrue(RENAMED_FILENAME  in [f.name for f in  r.context['files']])
+    def test_permission_granted_rename_dir(self):
+        if patch:
+            fm = reverse('admin:iadmin.fm.index', kwargs={'path':''})
+            assert self.client.login(username='user_permission_file_manager', password='123')
+            r = self.client.get( fm )
+            path = r.context['files'][0].absolute_path # this should be dir1
+            name = os.path.basename(path)
+            rename_url = reverse('admin:iadmin.fm.rename')
+            with patch('os.rename'):
+                r = self.client.get( rename_url, {'oldname':name, 'newname':'222', 'base':''} )
+            self.assertEqual(r.status_code, 302, 200)

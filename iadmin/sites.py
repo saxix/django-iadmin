@@ -1,5 +1,6 @@
 
 import datetime
+import os
 import django
 from django.conf import settings
 from django.conf.urls.defaults import url, patterns
@@ -22,7 +23,11 @@ from .options import IModelAdmin
 #from .wizard import ImportForm, csv_processor_factory, set_model_attribute
 from iadmin.plugins import FileManager, CSVImporter
 from iadmin.conf import config
-
+try:
+    from getpass import getuser
+except ImportError:
+    getuser = lambda : 'info not available'
+    
 INDEX_CACHE_KEY = 'iadmin:admin_index'
 def cache_admin(method, key=None):
     entry = key or method.__name__
@@ -215,6 +220,10 @@ class IAdminSite(AdminSite):
 #        apps = [app for app in get_apps()]
 
         context = {'lib': lib,
+                   'curdir': os.path.abspath( os.path.curdir),
+                   'user': getuser(),
+                   'os': os,
+                   'sys': {'platform':sys.platform, 'version': sys.version_info, 'os':os.uname()},
                    'info_url': reverse('admin:admin_env_info', current_app=self.name),
                    'root_path': self.root_path or '/'+self.name + '/',
                    'path': sys.path,

@@ -41,7 +41,7 @@ packages, data_files = scan_dir( 'iadmin' )
 
 setup(
     name = "django-iadmin",
-    version = iadmin.__version__,
+    version = ".".join(iadmin.__version__),
     url = 'https://github.com/saxix/django-iadmin',
     author = 'sax',
     author_email = 'sax@k-tech.it',
@@ -51,7 +51,7 @@ setup(
     include_package_data=True,
     platforms = ['any'],
     zip_safe=False,
-    install_requires=[],
+    install_requires=['mock',],
     dependecy_link =[],
     classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',

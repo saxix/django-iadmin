@@ -49,8 +49,8 @@ USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-import iadmin
-MEDIA_ROOT = os.path.join(os.path.abspath(os.path.dirname(iadmin.__file__)), 'media')
+#import iadmin
+MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -107,8 +107,13 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     )
 
+import iadmin
+__IADMIN_ROOT = os.path.abspath(os.path.dirname(iadmin.__file__))
+MEDIA_ROOT = os.path.join(__IADMIN_ROOT, 'media')
+
+
 IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000
-IADMIN_FM_ROOT = MEDIA_ROOT
+IADMIN_FM_ROOT = os.path.join(__IADMIN_ROOT, 'tests', 'fmenv')
 IADMIN_FM_CONFIG = {}
 IADMIN_CONFIG = { 'count_rows': True,}
 
