@@ -12,6 +12,10 @@
 Actions
 =======
 
+.. contents::
+    :local:
+    :depth: 1
+
 
 Export queryset as CSV
 ======================
@@ -37,8 +41,8 @@ Options
          - create header ro with field names
 
        * - delimiter
-         - `,` `;` `|` `:`
-         - A one-character string used to separate fields. It defaults to ';'. (see: :py:const:`csv.Dialect.delimiter`)
+         - `,` `;` `|` `:`"#csv.Dialect.delimiter
+         - A one-character string used to separate fields. It defaults to ';'. (see: :py:`csv.Dialect.delimiter`) :ref:`csv.Dialect.delimiter <py:csv.Dialect.delimiter>`
 
        * - quotechar
          - " ' `
@@ -83,7 +87,7 @@ Quoting
 
 .. py:data:: QUOTE_ALL
 
-   Instructs :class:`csv.writer` objects to quote all fields.
+   Instructs :py:`csv.writer` objects to quote all fields.
 
 
 .. py:data:: QUOTE_MINIMAL
@@ -121,3 +125,7 @@ Allow you to 'mass update' muliple rows to a specific value. Each row can be set
 manager method `update` neither custom sql instead use the slower method `save` for each object to ensure custom validation.
 
 
+Graphs
+======
+
+TODO

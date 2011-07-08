@@ -64,7 +64,7 @@ This will enable the cell filter menu for ``Region`` and  ``Continent`` fields
 
 by default only ``Equals to`` and ``Not equals to`` filters are enabled, but also ``Greater than``, ``Less than``,
 ``Greater or equals than`` and ``Less or equals than`` are available. To enable them, create an attribute named ``cell_filter_operators``
-attribute for the selected column. You can that in multiple ways.
+for the selected column. You can do that in multiple ways.
 
 If the column is a :class:`django.db.models.Field` instance::
 
@@ -98,7 +98,7 @@ If the column is a callable of the ModelAdmin that represents a certain database
 .. note:: iAdmin use the ``admin_order_field`` as filtering field
 
 Once that a queryset is filtered you can apply more filter using cell menus or "right side" filters, both of them will
-be in and until you don't select twice the same column, in that case the last selection will be used.
+be in 'AND' until you don't select twice the same column, in that case the last selection will be used.
 
 .. note:: an icon will be showed on the header of the filtered column(s)
 
@@ -129,35 +129,56 @@ Extra actions
 FileManager
 ===========
 
-.. image:: _static/file_manager.png
-
 FileManager is a simple files and directories management application that allow you to:
   * browse files/directories on your server
   * upload files.
   * delete/rename files and or directories.
   * create .tar archives
   
+.. image:: _static/file_manager.png
+
+
+
 Configuring FileManager
 -----------------------
-First of all, you need to set :ref:`IADMIN_FM_ROOT` in your settings, the absolute path of the base directory,
+First of all, you need to set :setting:`IADMIN_FM_ROOT` in your settings, the absolute path of the base directory,
 by default this value is equal to :setting:`MEDIA_ROOT`.
 
-To limit the visibility of files and directory you can use the :ref:`IADMIN_jFM_CONFIG` do set a callback that handle the file list::
+To limit the visibility of files and directory you can use the :ref:`settings.IADMIN_FM_CONFIG` do set a callback that handle the file list::
 
     def filemanager_file_visibility_manager(fso):
         return not fso.hidden
     IADMIN_FM_CONFIG = { 'show': filemanager_file_visibility_manager }
 
-the callback is passed a :ref:`iadmin.
+the callback is passed a :ref:`iadmin.plugins.fm.fs.File` or :ref:`iadmin.plugins.fm.fs.Dir` and must returns ``False``
+if the element should not be showed.
 
+Several permissions are provided to restricts access to FM operations::
+
+    ['can_upload_file',
+     'can_create_dir',
+     'can_delete_file',
+     'can_delete_dir',
+     'can_rename_dir',
+     'can_rename_dir']
+ 
 
 Info Panel
 ==========
 
+TODO
 
 Import from CSV
 ===============
 
+TODO
 
-Configuring
+
+IModelAdmin
+===========
+
+Ajax autocomplete
+-----------------
+
+
 
