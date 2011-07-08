@@ -1,24 +1,6 @@
 from iadmin.options import ITabularInline
 from django.db import models
 
-
-#def get_attr(obj, attr, default=None):
-#    """Recursive get object's attribute. May use dot notation.
-#
-#    >>> class C(object): pass
-#    >>> a = C()
-#    >>> a.b = C()
-#    >>> a.b.c = 4
-#    >>> get_attr(a, 'b.c')
-#    4
-#    """
-#    if '.' not in attr:
-#        return getattr(obj, attr, default)
-#    else:
-#        L = attr.split('.')
-#        return get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
-
-
 def tabular_factory(model, fields=None, Inline=ITabularInline, form=None, **kwargs):
     """ factory for ITabularInline
             
@@ -26,7 +8,6 @@ def tabular_factory(model, fields=None, Inline=ITabularInline, form=None, **kwar
     ...     inlines = [tabular_factory(Permission)]
     """
     name = "%sInLine" % model.__class__.__name__
-    #form = "%sForm" % model.__class__.__name__
     attrs = {'model': model, 'fields': fields}
     if form:
         attrs['form'] = form
@@ -102,29 +83,3 @@ def iter_get_attr(obj, attr, default=None):
         L = attr.split('.')
         return iter_get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
 
-
-def lookup_field(name, obj, model_admin=None):
-    opts = obj._meta
-    try:
-        f = opts.get_field(name)
-    except models.FieldDoesNotExist:
-        # For non-field values, the value is either a method, property or
-        # returned via a callable.
-        if callable(name):
-            attr = name
-            value = attr(obj)
-        elif (model_admin is not None and hasattr(model_admin, name) and
-          not name == '__str__' and not name == '__unicode__'):
-            attr = getattr(model_admin, name)
-            value = attr(obj)
-        else:
-            attr = getattr(obj, name)
-            if callable(attr):
-                value = attr()
-            else:
-                value = attr
-        f = None
-    else:
-        attr = None
-        value = getattr(obj, name)
-    return f, attr, value    
