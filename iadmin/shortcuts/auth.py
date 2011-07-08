@@ -45,7 +45,7 @@ class GroupAdmin(IModelAdmin, GA):
     
 class PermissionAdmin(IModelAdmin):
     list_display = ('name', 'content_type', 'codename', 'app')
-    search_fields = ('name', 'codenamne')
+    search_fields = ('name', 'codename')
     cell_filter = ('content_type', 'app')
     if django.VERSION[1] >= 3: # before 1.3 cannot filter on 2^ level field
         list_filter = ('content_type__app_label', )
