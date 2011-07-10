@@ -34,6 +34,7 @@ Table Of Contents
     settings
     api
     releases/index
+    help
     
 
 Indices and tables

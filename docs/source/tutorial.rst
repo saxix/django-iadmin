@@ -166,12 +166,32 @@ Several permissions are provided to restricts access to FM operations::
 Info Panel
 ==========
 
-TODO
+This page show you information about installed django applications, pythonpath and availables packages, python  version and OS
+
+.. image:: _static/info_page.png
+
 
 Import from CSV
 ===============
 
-TODO
+This very flexible and high customizable feature allow to load data directly from a CSV file.
+In the first step of the wizard you have to:
+
+  1. Choose the main table to load, don't care if your CSV contains data of multiple table, you cna manage that.
+  2. Upload your CSV file
+
+After submitted the form, if everything is ok and the CSV is well formatted, iAdmin will show you the page to customize
+the field/column mapping
+
+.. image:: _static/import_2.png
+    :width: 800
+
+
+On the upper right side of the window will be displayed the first 10 rows of the CSV (``sample frame``), on upper left side you can set some
+flag and down you can set the rules for field mapping.
+
+.. note:: Pay attention at the first row of the ``sample frame``, if the CSV contains a header row, you have to advise the importer checking the ``header`` flag in the options panel
+
 
 
 IModelAdmin

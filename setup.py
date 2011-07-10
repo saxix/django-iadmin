@@ -1,8 +1,19 @@
 #!/usr/bin/env python
-from distutils.core import setup
+try:
+    from setuptools import setup
+    from sphinx.setup_command import BuildDoc
+    cmdclass = {'build_sphinx': BuildDoc}
+except ImportError:
+    from distutils.core import setup
+    cmdclass = {}
+    
 from distutils.command.install import INSTALL_SCHEMES
 import os
 import iadmin
+
+
+NAME = 'diango-iadmin'
+VERSION = RELEASE = iadmin.get_version()
 
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
@@ -11,6 +22,8 @@ packages, data_files = [], []
 root_dir = os.path.dirname(__file__)
 if root_dir != '':
     os.chdir(root_dir)
+
+
 
 def fullsplit(path, result=None):
     """
@@ -26,7 +39,8 @@ def fullsplit(path, result=None):
         return result
     return fullsplit(head, [tail] + result)
 
-def scan_dir( target, packages = [], data_files=[] ):
+
+def scan_dir( target, packages=[], data_files=[] ):
     for dirpath, dirnames, filenames in os.walk(target):
         # Ignore dirnames that start with '.'
         for i, dirname in enumerate(dirnames):
@@ -37,28 +51,33 @@ def scan_dir( target, packages = [], data_files=[] ):
             data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
     return packages, data_files
 
-packages, data_files = scan_dir( 'iadmin' )
+packages, data_files = scan_dir('iadmin')
 
 setup(
-    name = "django-iadmin",
-    version = iadmin.get_version(),
-    url = 'https://github.com/saxix/django-iadmin',
-    author = 'sax',
-    author_email = 'sax@os4d.org',
+    name=NAME,
+    version=RELEASE,
+    url='https://github.com/saxix/django-iadmin',
+    author='sax',
+    author_email='sax@os4d.org',
     license='BSD',
-    packages = packages,
-    data_files = data_files,
+    packages=packages,
+    cmdclass=cmdclass,
+    data_files=data_files,
     include_package_data=True,
-    platforms = ['any'],
+    platforms=['any'],
     zip_safe=False,
-    install_requires=['mock',],
-    dependecy_link =[],
-    classifiers = ['Development Status :: 4 - Beta',
-                   'Environment :: Web Environment',
-                   'Framework :: Django',
-                   'Operating System :: OS Independent',
-                   'Programming Language :: Python',
-                   'Intended Audience :: Developers',
-                   ],
-    long_description = open('README.rst').read()
+    install_requires=['mock', ],
+    command_options={
+        'build_sphinx': {
+            'version': ('setup.py', VERSION),
+            'release': ('setup.py', RELEASE)}
+    },
+    classifiers=['Development Status :: 4 - Beta',
+                 'Environment :: Web Environment',
+                 'Framework :: Django',
+                 'Operating System :: OS Independent',
+                 'Programming Language :: Python',
+                 'Intended Audience :: Developers',
+                 ],
+    long_description=open('README.rst').read()
 )
