@@ -1,11 +1,16 @@
 from django.contrib.admin.options import TabularInline
 from geo.models import Country, Lake, Location, Ocean
+import iadmin.proxy as admin
+try:
+    from iadmin.shortcuts.djangoreversion  import VersionAdmin
+except ImportError:
+    VersionAdmin = admin.ModelAdmin
 
 from iadmin.utils import tabular_factory
 
 __author__ = 'sax'
 
-import iadmin.proxy as admin
+
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name', 'country', 'country_continent')
@@ -20,7 +25,7 @@ class LocationAdmin(admin.ModelAdmin):
     country_continent.admin_order_field = 'country__continent'
     country_continent.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
 
-class CountryAdmin(admin.ModelAdmin):
+class CountryAdmin(VersionAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
     search_fields = ('name', 'fullname')
     cell_filter = ('region', 'continent', 'ISO_code', 'num_code')

@@ -31,7 +31,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Europe/Rome'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -89,7 +89,7 @@ TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'iadmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -103,9 +103,13 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'geo',
     'biblio',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    )
+    ]
+
+try:
+    import reversion
+    INSTALLED_APPS += ['reversion']
+except ImportError:
+    pass
 
 import iadmin
 __IADMIN_ROOT = os.path.abspath(os.path.dirname(iadmin.__file__))

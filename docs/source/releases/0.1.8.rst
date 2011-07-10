@@ -1,3 +1,4 @@
+
 =================================
 iAdmin version 0.1.8
 =================================
@@ -24,4 +25,9 @@ This is a standard "right side" admin filter, originally base on the snippet `sn
 
 
 .. _snip_1051: `1051`_ http://djangosnippets.org/snippets/1051/
+.. _django-reversion: `django-reversion`_ https://github.com/etianen/django-reversion
 
+Others.....
+~~~~~~~~~~~
+* New info page layout
+* easy integration with django-reversion_
