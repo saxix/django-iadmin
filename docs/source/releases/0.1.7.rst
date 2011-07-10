@@ -7,7 +7,7 @@ is the first one provided to the community.
 
 
 Features
---------
+========
 
 - multiple columns portlets-like home page
 - tabbed view of inlines

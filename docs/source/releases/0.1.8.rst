@@ -1,4 +1,7 @@
 
+.. _snip1051: http://djangosnippets.org/snippets/1051/
+.. _`django-reversion`: http://github.com/etianen/django-reversion
+
 =================================
 iAdmin version 0.1.8
 =================================
@@ -21,11 +24,10 @@ the selected cell or all the rows where the value is different by it.
 Alphabetical Filter
 ~~~~~~~~~~~~~~~~~~~
 
-This is a standard "right side" admin filter, originally base on the snippet `snip_1051`_
+This is a standard "right side" admin filter, originally based on the snippet `snip1051`_
 
+.. image:: _static/alphabetic_filter.png
 
-.. _snip_1051: `1051`_ http://djangosnippets.org/snippets/1051/
-.. _django-reversion: `django-reversion`_ https://github.com/etianen/django-reversion
 
 Others.....
 ~~~~~~~~~~~

@@ -239,7 +239,7 @@ intersphinx_mapping = {'py':{'http://docs.python.org/2.6': None},
 #}
 
 
-extlinks = {'issue': ('http://bitbucket.org/birkenfeld/sphinx/issue/%s',
+extlinks = {'issue': ('https://github.com/saxix/django-iadmin/issues/%s',
                       'issue ')}
 
 autodoc_default_flags = ['members', 'undoc_members', 'show-inheritance']
