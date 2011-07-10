@@ -43,10 +43,7 @@ class IModelAdmin(DjangoModelAdmin):
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
-#        for element, value in self.columns_attributes.items():
-#            obj,attr = elements.split('.')
-#            setattr(obj, attr, value)
-            
+
     def _process_cell_filter(self):
         # add cell_filter fields to `extra_allowed_filter` list
         for entry in self.cell_filter:
