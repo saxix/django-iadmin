@@ -33,8 +33,9 @@ Add an entry into your urls.conf::
 
 
     import iadmin.proxy as admin
-    admin.autodiscover()
     import iadmin.media_urls
+
+    admin.autodiscover()
 
     urlpatterns = patterns('',
                 url(r'', include('iadmin.media_urls')),

@@ -10,7 +10,9 @@ iAdmin documentation
 
 iAdmin is a replacement of the standard Django Admin application that offer some useful extra :ref:`features <features>`.
 
+.. admonition:: Work in progress
 
+    This document is still incomplete e under development
 
 =================
 Table Of Contents
@@ -23,7 +25,6 @@ Table Of Contents
 
 
 .. toctree::
-    :numbered:
     :maxdepth: 2
     
     install

@@ -12,9 +12,6 @@
 Actions
 =======
 
-.. contents::
-    :local:
-    :depth: 1
 
 
 Export queryset as CSV
@@ -37,16 +34,16 @@ Options
          - meaning
 
        * - header
-         - checked/unchecked
+         - true/false
          - create header ro with field names
 
        * - delimiter
-         - `,` `;` `|` `:`"#csv.Dialect.delimiter
-         - A one-character string used to separate fields. It defaults to ';'. (see: :py:`csv.Dialect.delimiter`) :ref:`csv.Dialect.delimiter <py:csv.Dialect.delimiter>`
+         - `,` `;` `|` `:` 
+         - A one-character string used to separate fields. Default: ``;``.
 
        * - quotechar
          - " ' `
-         - A one-character string used to quote fields containing special characters, such as the delimiter or quotechar, or which contain new-line characters. It defaults to '"'.
+         - A one-character string used to quote fields containing special characters, such as the delimiter or quotechar, or which contain new-line characters. Default: ``"``.
 
        * - quoting
          -
@@ -87,7 +84,7 @@ Quoting
 
 .. py:data:: QUOTE_ALL
 
-   Instructs :py:`csv.writer` objects to quote all fields.
+   Instructs `csv.writer` objects to quote all fields.
 
 
 .. py:data:: QUOTE_MINIMAL
@@ -115,15 +112,16 @@ Quoting
 Export queryset as fixture
 ==========================
 
-TODO
-
+Export selectet table as django fixture, with options ``--natural --indent=3``
 
 Mass update
 ===========
 
-Allow you to 'mass update' muliple rows to a specific value. Each row can be set of ignored. This action *do not* use
+Allow you to 'mass update' multiple rows to a specific value. Each row can be set of ignored. This action *do not* use
 manager method `update` neither custom sql instead use the slower method `save` for each object to ensure custom validation.
 
+.. image:: _static/mass_update.png
+    :width: 800
 
 Graphs
 ======
