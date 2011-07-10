@@ -1,4 +1,5 @@
 # Django settings for testprj project.
+REVERSION_PRESENT = True
 
 import os
 import sys
@@ -105,11 +106,8 @@ INSTALLED_APPS = [
     'biblio',
     ]
 
-try:
-    import reversion
-    INSTALLED_APPS += ['reversion']
-except ImportError:
-    pass
+if REVERSION_PRESENT:
+    INSTALLED_APPS += ['reversion',]
 
 import iadmin
 __IADMIN_ROOT = os.path.abspath(os.path.dirname(iadmin.__file__))
