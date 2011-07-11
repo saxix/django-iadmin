@@ -14,7 +14,7 @@ from django.template.context import Context
 from django.template.loader import get_template
 
 class NullFilterSpec(FilterSpec):
-    def __init__(self, f, request, params, model, model_admin):
+    def __init__(self, f, request, params, model, model_admin, field_path=None):
         super(NullFilterSpec, self).__init__(f, request, params, model, model_admin)
         self.lookup_kwarg = '%s__isnull' % f.name
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
@@ -36,7 +36,7 @@ class DateRangeFilterSpec(FilterSpec):
     USE_OUTPUT_FUNC = True
     template = 'xadmin/widgets/date_range_filter.html'
     
-    def __init__(self, f, request, params, model, model_admin):
+    def __init__(self, f, request, params, model, model_admin, field_path=None):
         super(DateRangeFilterSpec, self).__init__(f, request, params, model, model_admin)
         self._from = request.GET.get('born__gte', "")
         self._to = request.GET.get('born__lte', "")
@@ -78,7 +78,7 @@ class AlphabeticFilterSpec(ChoicesFilterSpec):
 
     """
     USE_OUTPUT_FUNC = True
-    def __init__(self, f, request, params, model, model_admin):
+    def __init__(self, f, request, params, model, model_admin, field_path=None):
         super(AlphabeticFilterSpec, self).__init__(f, request, params, model,
                                                    model_admin)
         self.lookup_kwarg = '%s__istartswith' % f.name
@@ -126,7 +126,7 @@ class ComboFilterSpec(AllValuesFilterSpec):
     """
     USE_OUTPUT_FUNC = True
     
-    def __init__(self, f, request, params, model, model_admin):
+    def __init__(self, f, request, params, model, model_admin, field_path=None):
         super(ComboFilterSpec, self).__init__(f, request, params, model, model_admin)
         self.lookup_val = request.GET.get(f.name, None)    
         self.lookup_choices = model_admin.queryset(request).distinct().order_by(f.name).values(f.name)
