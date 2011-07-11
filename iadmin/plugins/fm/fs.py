@@ -1,9 +1,16 @@
 #
 from datetime import datetime
 from exceptions import OSError
-from grp import getgrgid
+try:
+    from grp import getgrgid
+except ImportError:
+    getgrgid = lambda id: 'N/A' # todo: is there a way to get group on Windows ?
+try:
+    from pwd import getpwuid
+except ImportError:
+    getpwuid = lambda id: 'N/A' # todo: is there a way to get group on Windows ?
+    
 import mimetypes
-from pwd import getpwuid
 from django import http
 from django.core.urlresolvers import reverse
 import os
