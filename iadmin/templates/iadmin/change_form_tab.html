@@ -53,7 +53,7 @@
 
             {% block after_field_sets %}{% endblock %}
 
-
+            {% if is_popup %}<div style="display: none;">{% endif %}
             {% if inline_admin_formsets %}
                 <div id="tabs">
                     <ul>
@@ -75,6 +75,7 @@
 
                 </div>
             {% endif %}
+            {% if is_popup %}</div>{% endif %}
             {% block after_related_objects %}{% endblock %}
 
 

@@ -22,6 +22,8 @@ def iadmin_list_filter(cl, spec):
 iadmin_list_filter = register.simple_tag(iadmin_list_filter)
 
 
+
+
 def result_headers(cl):
     """
     Generates the list column headers.

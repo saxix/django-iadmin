@@ -1,24 +1,123 @@
+{% load i18n istatic %}
 {% if result_hidden_fields %}
-<div class="hiddenfields"> {# DIV for HTML validation #}
+<div class="hiddenfields">{# DIV for HTML validation #}
 {% for item in result_hidden_fields %}{{ item }}{% endfor %}
 </div>
 {% endif %}
 {% if results %}
-<table cellspacing="0" id="result_list">
+<div class="results">
+<table id="result_list">
 <thead>
 <tr>
-{% for header in result_headers %}<th{{ header.class_attrib }}>
+{% for header in result_headers %}
+<th scope="col" {{ header.class_attrib }}>
 {% if header.filtered %}<span class="col-filtered"><a title="remove filter" href="{{ header.clear_filter_url }}">&nbsp;&nbsp;&nbsp;</a></span>{% endif %}
 {% if header.sortable %}<a href="{{ header.url }}">{% endif %}
-{{ header.text|capfirst }}
-{% if header.sortable %}</a>{% endif %}
-    </th>{% endfor %}
+  <span class="text">{{ header.text|capfirst }}</span>
+  {% if header.sortable %}
+    {% if header.sort_pos > 0 %}<span class="sortpos">
+      {% if header.sort_pos == 1 %}<img id="primary-sort-icon" src="{% static "admin/img/icon_cog.gif" %}" alt="" />&nbsp;{% endif %}
+      {{ header.sort_pos }}</span>
+    {% endif %}
+    <span class="clear"></span></a>
+  {% endif %}
+</th>{% endfor %}
 </tr>
 </thead>
 <tbody>
 {% for result in results %}
+{% if result.form.non_field_errors %}
+    <tr><td colspan="{{ result|length }}">{{ result.form.non_field_errors }}</td></tr>
+{% endif %}
 <tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
 {% endfor %}
 </tbody>
 </table>
+</div>
+
+{# Sorting popup: #}
+<div id="sorting-popup-div">
+<table>
+  <caption>
+   {% trans "Sorting by:" %}
+  </caption>
+  <tbody>
+  {% for header in result_headers|dictsort:"sort_pos" %}
+    {% if header.sort_pos > 0 %}
+    <tr>
+      <td>{{ header.sort_pos }}</td>
+      <td>{{ header.text|capfirst }}</td>
+      <td>{% if header.ascending %}{% trans "ascending" %}{% else %}{% trans "descending" %}{% endif %}</td>
+      <td><a href="{{ header.url_toggle }}">{% trans "toggle" %}</a></td>
+      <td><a href="{{ header.url_remove }}">{% trans "remove" %}</a></td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+<div class="reset"><a href="{{ reset_sorting_url }}">{% trans "Reset sorting" %}</a></div>
+<div class="cancel"><a href="javascript:void" id="sorting-popup-dismiss">{% trans "Cancel" %}</a></div>
+</div>
+<script type="text/javascript">
+<!--
+(function($) {
+    $(document).ready(function() {
+        var popup = $('#sorting-popup-div');
+        var img = $('#primary-sort-icon');
+        /* These next lines seems necessary to prime the popup: */
+        popup.offset({left:0, top:-1000});
+        popup.show();
+        if ($.browser.msie) {
+            // Can't find a way to make IE autosize the div.
+            popup.width(300);
+        }
+        var popupWidth = popup.width();
+        popup.hide();
+
+        var visible = false;
+
+        var escHandler = function(ev) {
+            if (ev.which == 27) {
+                hidePopup();
+                ev.preventDefault();
+            }
+        };
+
+        var showPopup = function() {
+            var pos = img.offset();
+            pos.top += img.height();
+            if (pos.left + popupWidth >
+                $(window).width()) {
+                pos.left -= popupWidth;
+            }
+            popup.show();
+            popup.offset(pos);
+            visible = true;
+            $(document).bind('keyup', escHandler);
+        };
+
+        var hidePopup = function() {
+            popup.hide();
+            visible = false;
+            $(document).unbind('keyup', escHandler);
+        };
+
+        $('#primary-sort-icon').click(function(ev) {
+            ev.preventDefault();
+            if (visible) {
+                hidePopup();
+            } else {
+                showPopup();
+            }
+        });
+
+        $('#sorting-popup-dismiss').click(function(ev) {
+            hidePopup();
+            ev.preventDefault()
+        });
+    });
+})(django.jQuery);
+//-->
+</script>
+
 {% endif %}

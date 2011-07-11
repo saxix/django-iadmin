@@ -24,7 +24,15 @@ class IFilterSpec(FilterSpec):
 
 class IChangeList(ChangeList):
 
-    def get_query_set(self):
+    def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
+                 list_select_related, list_per_page, list_editable, model_admin):
+
+        self._filtered_on = []
+
+        super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
+                                          search_fields, list_select_related, list_per_page, list_editable, model_admin)
+
+    def get_query_set(self, request=None):
         qs = self.root_query_set
         lookup_params = self.params.copy() # a dictionary of the query string
         for i in (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, IS_POPUP_VAR):
