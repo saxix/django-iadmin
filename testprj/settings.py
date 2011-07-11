@@ -1,5 +1,5 @@
 # Django settings for testprj project.
-REVERSION_PRESENT = True
+
 
 import os
 import sys
@@ -89,6 +89,16 @@ TEMPLATE_DIRS = (
 # Don't forget to use absolute paths, not relative paths.
     os.path.join(os.path.dirname(__file__), 'templates'),
 )
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    #'django.core.context_processors.static',
+    'context_processors.static',#
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
+)
+
 
 INSTALLED_APPS = [
     'iadmin',
@@ -104,14 +114,17 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'geo',
     'biblio',
+    'reversion'
     ]
 
-if REVERSION_PRESENT:
-    INSTALLED_APPS += ['reversion',]
+
+
 
 import iadmin
 __IADMIN_ROOT = os.path.abspath(os.path.dirname(iadmin.__file__))
-MEDIA_ROOT = os.path.join(__IADMIN_ROOT, 'media')
+MEDIA_ROOT = os.path.join(__IADMIN_ROOT, 'static')
+STATIC_ROOT = os.path.join(__IADMIN_ROOT, 'static')
+STATIC_URL = '/m/static/'
 
 
 IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000
