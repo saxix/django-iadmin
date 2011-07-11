@@ -2,16 +2,16 @@
 {% load i18n %}
 
 {% block extrastyle %}{{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}iadmin/css/portlets.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/portlets.css"/>
 {% endblock %}
 {% block extrahead %}
     {{ block.super }}
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery-ui.min.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.cookie.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/iadmin.js"></script>
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/portlets.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/iadmin.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/portlets.js"></script>
     <script>
         init_portlets(jQuery, "{{ app_label }}");
     </script>

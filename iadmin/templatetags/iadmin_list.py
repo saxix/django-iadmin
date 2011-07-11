@@ -80,7 +80,8 @@ def result_headers(cl):
                 elif op in ('not', 'lt', 'gt'):
                     filtered = True
                     sortable = True
-                    clear_filter_url = cl.get_query_string(remove=[k])
+                    clear_filter_url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type},remove=[k])
+                    url = cl.get_query_string({ORDER_VAR: i, ORDER_TYPE_VAR: new_order_type})
                     break
             else:
                 filtered = False

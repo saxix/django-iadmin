@@ -189,7 +189,7 @@ class IAdminSite(AdminSite):
         if not obj:
             return ''
         url = self.reverse_model(obj.__class__, obj.pk)
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (url, settings.MEDIA_URL)
+        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (url, settings.STATIC_URL)
 
     _link_to_model = link_to_model
 

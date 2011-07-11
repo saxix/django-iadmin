@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n iadmin %}
 {% block extrahead %}{{ block.super }}
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
     <script type="text/javascript">
         (function($) {
             $(document).ready(function($) {
