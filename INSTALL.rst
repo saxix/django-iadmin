@@ -6,13 +6,13 @@ Install
 Edit your settinhs.py and add iadmin application before django.contrib.admin::
 
     INSTALLED_APPS = (
-        ...
         'iadmin',
         'django.contrib.admin',
         'django.contrib.messages',
         ...
         ...
     )
+    STATIC_URL = MEDIA_URL # iAdmin use STATIC_URL. You have to create this entry 
 
 
 Add an entry into your urls.conf::
