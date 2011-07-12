@@ -43,6 +43,12 @@ Edit your settings.py and add iadmin application before django.contrib.admin ::
     IADMIN_FM_ROOT = # file manager home
     IADMIN_FM_CONFIG = {}
 
+
+    # iAdmin use STATIC_URL. You have to create this entry. Use this lines ONLY if you don't use staticfiles app,
+    # leave your STATIC_* configuration otherwise
+    STATIC_URL = MEDIA_URL
+    STATIC_ROOT = MEDIA_ROOT
+
 Add an entry into your urls.conf ::
 
     from django.conf.urls.defaults import *
