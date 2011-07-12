@@ -1,6 +1,5 @@
 include README.rst
 include AUTHORS
-include INSTALL.rst
 include LICENSE
 include MANIFEST.in
 include setup.py
