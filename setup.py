@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 try:
     from setuptools import setup
-    from sphinx.setup_command import BuildDoc
-    cmdclass = {'build_sphinx': BuildDoc}
 except ImportError:
     from distutils.core import setup
-    cmdclass = {}
-    
+
 from distutils.command.install import INSTALL_SCHEMES
 import os
 import iadmin
@@ -61,7 +58,6 @@ setup(
     author_email='sax@os4d.org',
     license='BSD',
     packages=packages,
-    cmdclass=cmdclass,
     data_files=data_files,
     include_package_data=True,
     platforms=['any'],
