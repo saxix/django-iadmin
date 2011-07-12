@@ -33,10 +33,21 @@ class IModelAdmin(DjangoModelAdmin):
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
-    change_form_template = 'iadmin/change_form_tab.html'
+#    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
     columns_attributes = {}
+
+#    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+#        if add and self.add_form_template is not None:
+#            form_template = self.add_form_template
+#        else:
+#            form_template = self.change_form_template
+#        return super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
+#
+#    def change_view(self, request, object_id, extra_context=None):
+#        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
+
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
         self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
@@ -198,7 +209,7 @@ class ITabularInline(DjangoTabularInline):
             modeladmin =  self.admin_site._registry.get( db_field.rel.to, False )
             if isinstance(modeladmin, IModelAdmin):
                 service = reverse( 'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name) )
-                if service:
+                if service and db_field.name not in self.raw_id_fields:
                     formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site, service)
             return formfield
 
