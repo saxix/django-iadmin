@@ -33,7 +33,7 @@ class IModelAdmin(DjangoModelAdmin):
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
-#    change_form_template = 'iadmin/change_form_tab.html'
+    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
     columns_attributes = {}
@@ -65,6 +65,8 @@ class IModelAdmin(DjangoModelAdmin):
 
     def lookup_allowed(self, lookup, value):
         # overriden to allow filter on cell_filter fields
+#        import django.contrib.admin.options
+#        django.contrib.admin.options.QUERY_TERMS.update({'not':'not'})
         original = super(IModelAdmin, self).lookup_allowed(lookup, value)
         if original:
             return True

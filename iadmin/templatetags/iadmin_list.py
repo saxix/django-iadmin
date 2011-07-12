@@ -128,6 +128,7 @@ def process_cell_filter(cl, field, attr, value, obj):
 
 #    default_operators = ('lt', 'gt', 'exact', 'not')
     default_operators = ('exact', 'not')
+#    default_operators = ('exact', )
 
     def process_field():
         target = field or  attr

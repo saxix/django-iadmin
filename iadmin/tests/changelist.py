@@ -9,6 +9,7 @@ class ChangeListTest(TestCase):
         super(ChangeListTest, self).setUp()
         assert self.client.login(username='sax', password='123')
 
-    def test_order(self):
+    def test_not_clause(self):
         url = "/admin/auth/permission/"
-        r = self.client.get(url, {'content_type__app_label':'iadmin'})
+        r = self.client.get(url, {'content_type__app_label__not':'iadmin'})
+        self.assertEqual(r.status_code, 200)
