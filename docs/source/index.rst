@@ -5,7 +5,7 @@
 iAdmin documentation
 ====================
 
-:Release: |version|
+:Release: |release|
 :Date: |today|
 
 iAdmin is a replacement of the standard Django Admin application that offer some useful extra :ref:`features <features>`.

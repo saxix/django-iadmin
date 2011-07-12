@@ -28,8 +28,25 @@ Add :mod:`iadmin` to your :setting:`INSTALLED_APPS`::
         'django.contrib.admin',
         'django.contrib.messages',
     )
-    STATIC_URL = MEDIA_URL # iAdmin use STATIC_URL. You have to create this entry
-    
+    IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000 #
+    IADMIN_FM_ROOT = # file manager home
+    IADMIN_FM_CONFIG = {}
+
+
+
+
+.. admonition:: Users of Diango <1.3
+
+    iAdmin use STATIC_URL. You have to create this entry in your settings. Use this lines ONLY if you don't use staticfiles app,
+    leave your STATIC_* configuration otherwise
+
+::
+
+    STATIC_URL = '/s/static/'
+    STATIC_ROOT = MEDIA_ROOT
+
+
+
 
 Add an entry into your urls.conf::
 
