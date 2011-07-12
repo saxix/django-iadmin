@@ -4,16 +4,9 @@
 API
 ===
 
-IModelAdmin
------------
 
-.. autoclass:: iadmin.options.IModelAdmin
-   :members: add_undefined_fields, list_display_rel_links, cell_filter
-   :undoc-members:
+.. class:: iadmin.options.IModelAdmin
 
-
-
-.. class:: IModelAdmin
 
 .. attribute:: ModelAdmin.date_hierarchy
 
