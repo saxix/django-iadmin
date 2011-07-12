@@ -93,8 +93,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
-    #'django.core.context_processors.static',
-    'context_processors.static',#
+    'context_processors.static', # allow django 1.2 to work
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
 )
@@ -114,7 +113,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'geo',
     'biblio',
-    'reversion'
+    'reversion' # hack!! see __init__.py
     ]
 
 
