@@ -12,4 +12,3 @@ class ChangeListTest(TestCase):
     def test_order(self):
         url = "/admin/auth/permission/"
         r = self.client.get(url, {'content_type__app_label':'iadmin'})
-        print r
