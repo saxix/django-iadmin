@@ -9,7 +9,7 @@ import os
 import iadmin
 
 
-NAME = 'diango-iadmin'
+NAME = 'django-iadmin'
 VERSION = RELEASE = iadmin.get_version()
 
 for scheme in INSTALL_SCHEMES.values():
