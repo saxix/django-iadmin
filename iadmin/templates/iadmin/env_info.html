@@ -46,9 +46,10 @@
             <table>
                 <tr><td>Platform:</td><td>{{ sys.os.0 }}</td></tr>
                 <tr><td>Kernel</td><td>{{ sys.os.2 }}</td></tr>
+                <tr><td>OS</td><td>{{ sys.os.3 }}</td></tr>
                 <tr><td>Architecture</td><td>{{ sys.os.4 }}</td></tr>
                 <tr><td>Python:</td><td>{{ sys.version|join:"." }}</td></tr>
-                <tr><td>OS</td><td>{{ sys.os.3 }}</td></tr>
+                <tr><td>Django:</td><td>{{ sys.django }}</td></tr>
                 <tr><td>User</td><td>{{ user }}</td></tr>
             </table>
         </div>
