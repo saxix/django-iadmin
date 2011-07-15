@@ -216,14 +216,12 @@ class IAdminSite(AdminSite):
 
         import pkg_resources, sys
         lib = sorted([str(e) for e in pkg_resources.working_set], lambda x,y: cmp(x.lower(), y.lower()))
-        lib.append ('Django %s' % django.get_version())
-#        apps = [app for app in get_apps()]
 
         context = {'lib': lib,
                    'curdir': os.path.abspath( os.path.curdir),
                    'user': getuser(),
                    'os': os,
-                   'sys': {'platform':sys.platform, 'version': sys.version_info, 'os':os.uname()},
+                   'sys': {'platform':sys.platform, 'version': sys.version_info, 'os':os.uname(), 'django':django.get_version()},
                    'info_url': reverse('admin:admin_env_info', current_app=self.name),
                    'root_path': self.root_path or '/'+self.name + '/',
                    'path': sys.path,
@@ -290,12 +288,17 @@ class IAdminSite(AdminSite):
         urlpatterns += super(IAdminSite, self).get_urls()
         return urlpatterns
 
-    def register(self, model_or_iterable, admin_class=None, **options):
+    def register(self, model_or_iterable, admin_class=None, override=False, **options):
         """
             register a model or an iterable using IModelAdmin
         """
         if not admin_class:
             admin_class = IModelAdmin
+        if isinstance(model_or_iterable, ModelBase):
+            model_or_iterable = [model_or_iterable]
+        for model in model_or_iterable:
+            if override and model in self._registry:
+                self.unregister(model)
         super(IAdminSite, self).register(model_or_iterable, admin_class, **options)
 
     def silent_unregister(self, model_or_iterable):
