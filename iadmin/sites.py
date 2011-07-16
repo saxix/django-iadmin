@@ -297,9 +297,12 @@ class IAdminSite(AdminSite):
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
-            if override and model in self._registry:
-                self.unregister(model)
-        super(IAdminSite, self).register(model_or_iterable, admin_class, **options)
+            if model in self._registry:
+                if override:
+                    self.unregister(model)
+                else:
+                    continue
+            super(IAdminSite, self).register(model, admin_class, **options)
 
     def silent_unregister(self, model_or_iterable):
         """
@@ -311,15 +314,19 @@ class IAdminSite(AdminSite):
             if model in self._registry:
                 del self._registry[model]
 
-    def register_app(self, app):
+    def register_app(self, app, admin_class=None ):
         """
             register all models of application <app>
             Note: app must use the syntax `app.models`
         """
         from django.db.models.loading import get_models
+
+        if not admin_class:
+            admin_class = IModelAdmin
+            
         for m in get_models(app):
             if not m in self._registry:
-                self.register(m, IModelAdmin)
+                self.register(m, admin_class)
 
     register_missing = register_app
 
