@@ -54,9 +54,9 @@ class PermissionAdmin(IModelAdmin):
         return obj.content_type.app_label
     app.admin_order_field = 'content_type__app_label'
 
-admin.site.silent_unregister(User)
-admin.site.silent_unregister(Group)
+#admin.site.silent_unregister(User)
+#admin.site.silent_unregister(Group)
 
-admin.site.register(User, UserAdmin)
-admin.site.register(Group, GroupAdmin)
-admin.site.register(Permission, PermissionAdmin)
+admin.site.register(User, UserAdmin, override=True)
+admin.site.register(Group, GroupAdmin, override=True)
+admin.site.register(Permission, PermissionAdmin, override=True)
