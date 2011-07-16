@@ -8,6 +8,8 @@ from django.utils.translation import  ugettext as _
 
 __all__ = ['RelatedFieldWidgetWrapperLinkTo']
 
+assert settings.STATIC_URL, "iAdmin require STATIC_URL in settings"
+
 class LinkToModelWidget(Widget):
     def __init__(self, linked_widget, model, attrs=None):
     #        self.linked_widget = linked_widget
