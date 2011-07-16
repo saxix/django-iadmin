@@ -37,9 +37,16 @@ class VersionAdmin(IModelAdmin, VA):
     def changelist_view(self, request, extra_context=None):
         """Renders the change view."""
         opts = self.model._meta
+        app_label = opts.app_label
+
         context = {"recoverlist_url": reverse("%s:%s_%s_recoverlist" % (self.admin_site.name, opts.app_label, opts.module_name)),
                    "add_url": reverse("%s:%s_%s_add" % (self.admin_site.name, opts.app_label, opts.module_name)),}
         context.update(extra_context or {})
+        self.change_list_template = self.change_list_template or [
+            'iadmin/%s/%s/change_list.html' % (app_label, opts.object_name.lower()),
+            'iadmin/%s/change_list.html' % app_label,
+            'iadmin/reversion_change_list.html'
+        ]
         return super(VersionAdmin, self).changelist_view(request, context)
 
     
