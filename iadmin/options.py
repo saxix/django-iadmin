@@ -14,7 +14,7 @@ from . import ajax
 from .views import IChangeList
 import django.utils.simplejson as json
 from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo
-
+from django import forms
 __all__ = ['IModelAdmin', 'ITabularInline']
 
 AUTOCOMPLETE = 'a'
@@ -38,7 +38,10 @@ class IModelAdmin(DjangoModelAdmin):
     columns_classes = {}
     columns_attributes = {}
 
-#    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+    def change_view(self, request, object_id, extra_context=None):
+        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
+
+    #    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
 #        if add and self.add_form_template is not None:
 #            form_template = self.add_form_template
 #        else:
@@ -197,6 +200,14 @@ class IModelAdmin(DjangoModelAdmin):
 class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
+
+    #if True enable link to change view from inlines. Must be False if the related Model is not registered in the admin
+    edit_link = False
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(ITabularInline, self).get_formset(request, obj, **kwargs)
+        formset.edit_link = self.edit_link
+        return formset
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         formfield = super(ITabularInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
