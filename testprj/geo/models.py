@@ -22,9 +22,12 @@ class Country(models.Model):
     ISO3_code = models.CharField(max_length = 3, blank = True, null = True)
     num_code = models.CharField(max_length = 3, blank = True, null = True)
     name = models.CharField(max_length = 100, db_index = True)
+
     fullname = models.CharField(max_length = 100, db_index = True)
+    population = models.IntegerField(max_length = 100, db_index = True, blank = True, null = True)
 
-
+    iana_tld = models.CharField('IANA Country Code TLD', max_length = 3, blank = True, null = True)
+    currency= models.CharField('ISO 4217 Currency Code', max_length = 3, blank = True, null = True)
     region = models.IntegerField(choices = REGIONS, blank = True, null = True)
     continent = models.CharField(choices = CONTINENTS.choices(), max_length = 2)
 

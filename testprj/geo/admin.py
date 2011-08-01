@@ -26,7 +26,7 @@ class LocationAdmin(admin.ModelAdmin):
     country_continent.cell_filter_operators = ('lt', 'gt', 'exact', 'not')
 
 class CountryAdmin(VersionAdmin):
-    list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'fullname', 'region', 'continent')
+    list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'iana_tld', 'currency', 'population', 'fullname', 'region', 'continent')
     search_fields = ('name', 'fullname')
     cell_filter = ('region', 'continent', 'ISO_code', 'num_code')
     list_filter = ('name',)

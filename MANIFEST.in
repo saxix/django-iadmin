@@ -4,6 +4,6 @@ include LICENSE
 include MANIFEST.in
 include setup.py
 recursive-include iadmin *.py
-recursive-include iadmin/media *
+recursive-include iadmin/static *
 recursive-include iadmin/templates *
 prune iadmin/tests

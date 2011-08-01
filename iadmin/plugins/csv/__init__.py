@@ -5,6 +5,7 @@ from django.conf.urls.defaults import url, patterns
 import tempfile
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.core.urlresolvers import reverse
 from django.db.models.fields.related import ForeignKey
 from django.db.models.loading import get_model
@@ -51,10 +52,9 @@ class CSVImporter(IAdminPlugin):
         if request.method == 'POST':
             form = ImportForm(app, model, request.POST, request.FILES)
             if form.is_valid():
-                file = request.FILES['csv']
-
+                f = request.FILES['csv']
                 fd = open(temp_file_name, 'wb')
-                for chunk in file.chunks():
+                for chunk in f.chunks():
                     fd.write(chunk)
                 fd.close()
                 if settings.DEBUG:
@@ -169,13 +169,16 @@ class CSVImporter(IAdminPlugin):
                         record, key = self._process_row(row, mapping)
                         try:
                             if key:
-                                sample, _ = Model.objects.get_or_create(**key)
+                                if form.cleaned_data['create_missing']:
+                                    sample, _ = Model.objects.get_or_create(**key)
+                                else:
+                                    sample = Model.objects.get(**key)
                             else:
                                 sample = Model()
                             sample = update_model(request, sample, record, mapping)
                             sample.save()
                         except (IntegrityError, ObjectDoesNotExist), e:
-                            messages.error(request, str(e))
+                            messages.error(request, '%s: %s' % (str(e), row) )
                 return redirect('%s:%s_%s_changelist' % (self.name, app_name, model_name.lower()))
         else:
             pass

@@ -4,6 +4,9 @@ Django iAdmin
 
 iAdmin is a replacement of standard django admin application.
 
+.note:: Django 1.4 required
+
+
 Features
 --------
 
@@ -27,47 +30,7 @@ Project links
 * Download: http://pypi.python.org/pypi/django-iadmin/
 * Mailing-list: django-iadmin@googlegroups.com
 
-Install
-----
-Edit your settings.py and add iadmin application before django.contrib.admin ::
+Installation
+------------
 
-    INSTALLED_APPS = (
-        ...
-        'iadmin',
-        'django.contrib.admin',
-        'django.contrib.messages',
-        ...
-        ...
-    )
-    IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000 #
-    IADMIN_FM_ROOT = # file manager home
-    IADMIN_FM_CONFIG = {}
-
-
-    # iAdmin use STATIC_URL. You have to create this entry. Use this lines ONLY if you don't use staticfiles app,
-    # leave your STATIC_* configuration otherwise
-    STATIC_URL = '/s/static/'
-    STATIC_ROOT = MEDIA_ROOT
-
-Add an entry into your urls.conf ::
-
-    from django.conf.urls.defaults import *
-    import iadmin.proxy as admin
-
-    admin.autodiscover()
-
-    urlpatterns = patterns('',
-            (r'', include('iadmin.media_urls')), # only for development
-            (r'^admin/', include(admin.site.urls)),
-    )
-
-
-In your admin.py file ::
-
-    from django.contrib.admin.options import TabularInline
-    from geo.models import Country, Lake, Location, Ocean
-
-    from iadmin.utils import tabular_factory
-
-
-
+Read installation instruction at http://packages.python.org/django-iadmin/install.html

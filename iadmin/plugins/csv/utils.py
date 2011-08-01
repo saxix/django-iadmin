@@ -32,7 +32,6 @@ class CsvFileField(FileField):
                     csv_reader.next()
             except Error, e:
                 raise ValidationError("Unable to load csv file (%s)" % e)
-            data.close()
         return ret
 
 
@@ -189,9 +188,10 @@ def csv_processor_factory(app_name, model_name, csv_filename):
 
     class_name = "%s%sImportForm" % (app_name, model_name)
     attrs = {
-        'header': BooleanField(label='Header', initial=False, required=False),
-        'validate': BooleanField(label='Form validation', initial=False, required=False),
-        'preview_all': BooleanField(label='Preview all records', initial=False, required=False),
+#        'header': BooleanField(label='Header', initial=False, required=False),
+#        'validate': BooleanField(label='Form validation', initial=False, required=False),
+#        'preview_all': BooleanField(label='Preview all records', initial=False, required=False),
+#        'create_missing': BooleanField(label='Create missing rows', initial=False, required=False),
         'columns_count': columns_count,
         'sample': rows,
         '_model': model,
@@ -222,6 +222,11 @@ def open_csv(filename):
 
 
 class CSVPRocessorForm(Form):
+    header =  BooleanField(label='Header', initial=False, required=False)
+    validate =  BooleanField(label='Form validation', initial=False, required=False)
+    preview_all =  BooleanField(label='Preview all records', initial=False, required=False)
+    create_missing =  BooleanField(label='Create missing rows', initial=False, required=False)
+
     def _head(self, rows=10):
         with open_csv(self._filename) as csv:
             output = []
@@ -262,7 +267,7 @@ class CSVPRocessorForm(Form):
     def _html_output(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row):
         top_errors = self.non_field_errors() # Errors that should be displayed above all fields.
         output, hidden_fields = [], []
-        for name in ('header', 'preview_all', 'validate'):
+        for name in ('header', 'preview_all', 'validate', 'create_missing'):
             field = self.fields[name]
             bf = BoundField(self, field, name)
             bf_errors = self.error_class(

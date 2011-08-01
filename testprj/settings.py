@@ -48,21 +48,6 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-#import iadmin
-MEDIA_ROOT = ''
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/m/'
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/adminmedia/'
-
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'n9qk!44i75$8%xmg1-2s3h%)qfy42e2z5_#_wa1u0xzq02g$+_'
 
@@ -105,6 +90,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.comments',
     'django.contrib.contenttypes',
+    'django.contrib.staticfiles',
     'django.contrib.flatpages',
     'django.contrib.messages',
     'django.contrib.redirects',
@@ -113,7 +99,6 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'geo',
     'biblio',
-    'reversion' # hack!! see __init__.py
     ]
 
 
@@ -121,8 +106,8 @@ INSTALLED_APPS = [
 
 import iadmin
 __IADMIN_ROOT = os.path.abspath(os.path.dirname(iadmin.__file__))
-MEDIA_ROOT = os.path.join(__IADMIN_ROOT, 'static')
-STATIC_ROOT = os.path.join(__IADMIN_ROOT, 'static')
+#MEDIA_ROOT = os.path.join(__IADMIN_ROOT, 'static')
+#STATIC_ROOT = os.path.join(__IADMIN_ROOT, 'static')
 STATIC_URL = '/m/static/'
 
 
@@ -138,10 +123,3 @@ CACHES = {
     }
 }
 
-
-if False and DEBUG:
-    # Debug Toolbar settings
-    INTERNAL_IPS = ('127.0.0.1',)
-    INSTALLED_APPS += ('debug_toolbar',)
-    MIDDLEWARE_CLASSES += ( 'debug_toolbar.middleware.DebugToolbarMiddleware',)
-    SITE_ID = 1

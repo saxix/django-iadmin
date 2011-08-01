@@ -1,0 +1,69 @@
+html, body, div, span, applet, button, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	line-height: normal;
+	vertical-align: baseline;
+	background: transparent;
+}
+
+:focus {
+	outline: 0;
+}
+
+/* ------------------------- */
+
+body {
+	background: #fff url(/icons/expired/bg.gif) left 270px repeat-x;
+	font: 11px Tahoma, Geneva, sans-serif;
+	color: #333;
+	text-align: center;
+	padding-top: 100px;
+}
+
+a {
+	text-decoration: underline;
+	color: #2968c6;
+}
+
+
+#notice {
+	width: 591px;
+	height: 116px;
+	position: relative;
+	background: url(/icons/expired/expire.gif) no-repeat;
+	margin: auto;
+}
+
+
+#notice h1 {
+        position: relative;
+        top: 22px;
+        font-size: 25px;
+        color: white;
+	font-weight: bold;
+        width: 100%;
+        text-shadow: #153668 1px 1px 1px;
+        filter: Shadow(Color=#153668, Direction=135, Strength=1);
+}
+
+#notice h2 {
+        width: 100%;
+        position: relative;
+        top: 52px;
+        left: center;
+        margin-left: auto;
+        margin-right: auto;
+	color: #000;
+}
+
+#notice div {
+        position: absolute;
+        top: 120px;
+	line-height: 20px;
+	margin: auto;
+	margin-top: 20px;
+        width: 100%;
+}
