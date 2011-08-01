@@ -61,7 +61,7 @@ def export_to_csv(modeladmin, request, queryset):
         if form.is_valid():
             response = HttpResponse(mimetype='text/csv')
             response[
-            'Content-Disposition'] = 'attachment;filename="%s.csv"' % queryset.model._meta.verbose_name_plural.lower()
+            'Content-Disposition'] = 'attachment;filename="%s.csv"' % queryset.model._meta.verbose_name_plural.lower().replace(" ", "_")
             try:
                 writer = csv.writer(response,
                                     escapechar=str(form.cleaned_data['escapechar']),
@@ -234,7 +234,7 @@ def export_as_json(modeladmin, request, queryset):
     json = ser.get_serializer('json')()
     ret = json.serialize(records, use_natural_keys=True, indent=2)
     response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment;filename="%s.json"' % queryset.model._meta.verbose_name_plural.lower()
+    response['Content-Disposition'] = 'attachment;filename="%s.json"' % queryset.model._meta.verbose_name_plural.lower().replace(" ", "_")
     response.content = ret
     return response
 
