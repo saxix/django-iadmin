@@ -237,7 +237,7 @@ class IAdminSite(AdminSite):
                    'sys': {'platform': sys.platform, 'version': sys.version_info, 'os': os.uname(),
                            'django': django.get_version()},
 #                   'info_url': reverse('%s:admin_env_info' % self.app_name, current_app=self.name),
-                   'root_path': self.root_path or '/' + self.name + '/',
+#                   'root_path': self.root_path or '/' + self.name + '/',
                    'path': sys.path,
                    'apps': _apps()
         }
