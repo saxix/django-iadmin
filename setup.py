@@ -62,7 +62,7 @@ setup(
     include_package_data=True,
     platforms=['any'],
     zip_safe=False,
-    install_requires=['mock', ],
+    install_requires=['mock', 'django-extra-fields'],
     command_options={
         'build_sphinx': {
             'version': ('setup.py', VERSION),

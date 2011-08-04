@@ -4,8 +4,9 @@ Django iAdmin
 
 iAdmin is a replacement of standard django admin application.
 
-.note:: This is a high unstable repository. I'm working for Django 1.4 and django-admin-tools integration.
-Do NOT use if you don't know what you are doing....
+*This is a high unstable repository. I'm working for Django 1.4 and django-admin-tools integration.
+Do NOT use if you don't know what you are doing....*
+
 
 
 Features

@@ -29,7 +29,7 @@ def register(**kwargs):
 class UserPreferences(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False, default='')
     user = models.ForeignKey('auth.User', blank=False, null=False)
-    data = dexf.fields.JSONField(blank=True, null=False)
+    data = dexf.fields.DictField(blank=True, null=False)
 
 
     def __unicode__(self):
