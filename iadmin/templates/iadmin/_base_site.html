@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% load url from future %}
+{% load iadmin i18n %}
+{% block extrahead %}
+{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>#}
+{% endblock %}
+{% block title %}{{ title }} | iAdmin console{% endblock %}
+{% block branding %}
+    <h1 id="site-name"><a href='{% url 'admin:index' %}'>iAdmin console</a></h1>
+{% endblock %}
+
+    {% block userlinks %}
+        {{ block.super }}
+         / <a href='{% url 'admin:iadmin.info' %}'>Info</a>&nbsp;&nbsp;&nbsp;
+    {% endblock userlinks %}
+
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a
+        href="{% url 'admin:index' %}">{% trans 'Home' %}</a>{% if title %} &rsaquo; {{ title }}{% endif %}
+    </div>{% endblock %}
+
+{% block content %}
+
+{% endblock %}
+{% block footer %}<div id="footer">
+    {{ current_app }}
+
+
+</div>{% endblock %}

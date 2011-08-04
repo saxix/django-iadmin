@@ -1,10 +1,13 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/index.html" %}
 {% load i18n %}
 {% block extrahead %}{{ block.super }}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>
+    
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/iadmin.js"></script>
     <script>
         (function($) {
             $(document).ready(function() {
@@ -50,7 +53,7 @@
                 <tr><td>Architecture</td><td>{{ sys.os.4 }}</td></tr>
                 <tr><td>Python:</td><td>{{ sys.version|join:"." }}</td></tr>
                 <tr><td>Django:</td><td>{{ sys.django }}</td></tr>
-                <tr><td>User</td><td>{{ user }}</td></tr>
+                <tr><td>User</td><td>{{ os_user }}</td></tr>
             </table>
         </div>
 

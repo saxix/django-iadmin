@@ -2,6 +2,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import signals
 from django.db import models
+import dexf.fields
 
 class FileManager(models.Model):
     """ dummy class to link FileManager Permission
@@ -25,6 +26,20 @@ def register(**kwargs):
     for p in FileManager.Meta.permissions:
         register_permission(p)
 
+class UserPreferences(models.Model):
+    name = models.CharField(max_length=100, blank=False, null=False, default='')
+    user = models.ForeignKey('auth.User', blank=False, null=False)
+    data = dexf.fields.JSONField(blank=True, null=False)
+
+
+    def __unicode__(self):
+        return "%s:%s user preferences" % (self.user.username, self.name)
+
+    class Meta:
+        ordering = ('user',)
+        unique_together = ('user', 'name'),
+        app_label = 'iadmin'
+
+
+
 signals.post_syncdb.connect(register)
-
-

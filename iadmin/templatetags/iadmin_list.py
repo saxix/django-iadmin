@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.template.loader import get_template, select_template
 from django.template.context import Context, RequestContext, ContextPopException
 
@@ -151,7 +152,8 @@ def process_cell_filter(cl, field, attr, value, obj):
         elif settings.DEBUG:
             # todo add link to docs
             return " Unable to create cell filter for field '%s' on value '%s'" % ( field, value), '', []
-
+        else:
+            return ''
 
     lookup_kwarg, lookup_value, operators = process_field()
     if not lookup_kwarg:

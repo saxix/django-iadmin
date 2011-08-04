@@ -1,16 +1,19 @@
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline
 from django.contrib.admin.util import flatten_fieldsets
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
 from django.http import HttpResponse
+from django.template.response import TemplateResponse
 from django.utils.encoding import force_unicode, smart_str
 from django.utils.functional import update_wrapper
 from django.db import models, transaction
 from . import ajax
+from django.utils.safestring import mark_safe
 from .views import IChangeList
 import django.utils.simplejson as json
 from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo
@@ -33,7 +36,7 @@ class IModelAdmin(DjangoModelAdmin):
     ajax_search_fields = None
     ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
-    change_form_template = 'iadmin/change_form_tab.html'
+#    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
     columns_attributes = {}
@@ -41,15 +44,55 @@ class IModelAdmin(DjangoModelAdmin):
     def change_view(self, request, object_id, extra_context=None):
         return super(IModelAdmin, self).change_view(request, object_id, extra_context)
 
-    #    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
-#        if add and self.add_form_template is not None:
-#            form_template = self.add_form_template
-#        else:
-#            form_template = self.change_form_template
-#        return super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
-#
-#    def change_view(self, request, object_id, extra_context=None):
-#        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+        target_template = None
+        if add and self.add_form_template is None:
+            target_template = 'add_form_template'
+        elif self.change_form_template is None:
+            target_template = 'change_form_template'
+        if target_template:
+            setattr(self, target_template, [
+                "%s/%s/%s/change_form_i.html" % (self.admin_site.app_name, app_label, opts.object_name.lower()),
+                "%s/%s/change_form_i.html" % (self.admin_site.app_name, app_label),
+                "%s/change_form_i.html" % self.admin_site.app_name,
+                "iadmin/change_form_i.html",
+            ])
+        return super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+        ordered_objects = opts.get_ordered_objects()
+        context.update({
+            'add': add,
+            'change': change,
+            'has_add_permission': self.has_add_permission(request),
+            'has_change_permission': self.has_change_permission(request, obj),
+            'has_delete_permission': self.has_delete_permission(request, obj),
+            'has_file_field': True, # FIXME - this should check if form or formsets have a FileField,
+            'has_absolute_url': hasattr(self.model, 'get_absolute_url'),
+            'ordered_objects': ordered_objects,
+            'form_url': mark_safe(form_url),
+            'opts': opts,
+            'content_type_id': ContentType.objects.get_for_model(self.model).id,
+            'save_as': self.save_as,
+            'save_on_top': self.save_on_top,
+#            'root_path': self.admin_site.root_path,
+        })
+        if add and self.add_form_template is not None:
+            form_template = self.add_form_template
+        else:
+            form_template = self.change_form_template
+        form_template = None
+        return TemplateResponse(request, form_template or [
+            "%s/%s/%s/change_form_i.html" % (self.admin_site.app_name, app_label, opts.object_name.lower()),
+            "%s/%s/change_form_i.html" % (self.admin_site.app_name, app_label),
+            "%s/change_form_i.html" % self.admin_site.app_name,
+            "iadmin/change_form_i.html",
+        ], context, current_app=self.admin_site.name)
+
 
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
@@ -84,9 +127,11 @@ class IModelAdmin(DjangoModelAdmin):
         app_label = opts.app_label
 
         self.change_list_template = self.change_list_template or [
-            'iadmin/%s/%s/change_list.html' % (app_label, opts.object_name.lower()),
-            'iadmin/%s/change_list.html' % app_label,
-            'iadmin/change_list.html'
+#            '%s/%s/%s/change_list.html' % (self.admin_site.name, app_label, opts.object_name.lower()),
+#            '%s/%s/change_list.html' % (self.admin_site.name, app_label),
+#            '%s/change_list.html' % self.admin_site.name,
+#            'iadmin/change_list.html',
+            'admin/change_list.html'
         ]
         extra_context = {'cell_menu_on_click': self.cell_menu_on_click}
         return super(IModelAdmin, self).changelist_view(request, extra_context)
