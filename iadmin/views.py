@@ -1,7 +1,6 @@
 #
 import operator
 from django.conf import settings
-from django.contrib.admin.filterspecs import FilterSpec
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.util import lookup_field
 from django.db import models
@@ -10,17 +9,11 @@ from django.db.models.fields import FieldDoesNotExist
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.utils.encoding import smart_str
-from .filterspecs import *
 import django
 
 __author__ = 'sax'
 
 from django.contrib.admin.views.main import ChangeList, IS_POPUP_VAR, SEARCH_VAR, ORDER_TYPE_VAR, ORDER_VAR, ALL_VAR
-
-class IFilterSpec(FilterSpec):
-    def __init__(self, f, request, params, model, model_admin):
-        self.field = f
-        self.params = params
 
 
 class IChangeList(ChangeList):
