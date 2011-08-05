@@ -1,3 +1,4 @@
+from urlparse import urljoin
 from django.conf import settings
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.core.urlresolvers import reverse, NoReverseMatch
@@ -5,6 +6,11 @@ from django.forms.util import flatatt
 from django.forms.widgets import Widget
 from django.utils.safestring import mark_safe
 from django.utils.translation import  ugettext as _
+try:
+    from django.templatetags.static import static
+except ImportError:
+    def static(path):
+        return urljoin(settings.STATIC_URL, path)
 
 __all__ = ['RelatedFieldWidgetWrapperLinkTo']
 
@@ -21,8 +27,7 @@ class LinkToModelWidget(Widget):
         final_attrs['class'] = u"%s edit link_to_model" % final_attrs.get('class', '')
         final_attrs['id'] = "edit_id_%s" % name
         output = [u'&nbsp;&nbsp<a href="#" %s>' % flatatt(final_attrs),
-                  u'<img src="%siadmin/img/link.png" width="10" height="10" alt="%s"/></a>' % (settings.STATIC_URL,
-                                                                                               _('Edit'))]
+                  u'<img src="%s" width="10" height="10" alt="%s"/></a>' % (static('iadmin/img/link.png'),_('Edit'))]
 
         return mark_safe(u''.join(output))
 
@@ -56,8 +61,8 @@ class RelatedFieldWidgetWrapperLinkTo(RelatedFieldWidgetWrapper):
                 # TODO: "id_" is hard-coded here. This should instead use the correct
                 return u'''&nbsp;&nbsp;
                           <a href="%s" class="add-another" id="add_id_%s" onclick="return showAddAnotherPopup(this);">
-                          <img src="%simg/admin/icon_addlink.gif" width="10" height="10" alt="%s"/></a>''' %\
-                       (add_related_url, name, settings.ADMIN_MEDIA_PREFIX, _('Add Another'))
+                          <img src="%s" width="10" height="10" alt="%s"/></a>''' %\
+                       (add_related_url, name, static('admin/img/icon_addlink.gif'), _('Add Another'))
         except NoReverseMatch:
             pass
         return ''
