@@ -3,7 +3,8 @@
 
 {% block extrastyle %}{{ block.super }}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
-{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/portlets.css"/>#}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/portlets.css"/>
 {% endblock %}
 {% block extrahead %}
     {{ block.super }}
@@ -11,9 +12,9 @@
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/iadmin.js"></script>
-{#    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/portlets.js"></script>#}
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/portlets.js"></script>
     <script>
-{#        init_portlets(jQuery, "{{ app_label }}");#}
+        init_portlets(jQuery, "{{ app_label }}");
     </script>
 {% endblock %}
 
@@ -27,7 +28,7 @@
     <ul class="messagelist" id="nojsmessage">
         <li class="error">Please enable javascript.</li>
     </ul>
-    <div id="ccontent-main">
+    <div id="content-main">
         <div class="column" id='column1'>
             {% if app_list %}
                 {% for app in app_list %}
@@ -39,7 +40,7 @@
                             <table summary="{% blocktrans with app.name as name %}Models available in the {{ name }} application.{% endblocktrans %}">
                                 {% for model in app.models %}
                                     <tr>
-                                        {% if model.perms.change %}
+                                        {% if model.perms.change or model.perms.view %}
                                             <th scope="row" width="100%"><a
                                                     href="{{ model.admin_url }}">{{ model.name }}</a></th>
                                         {% else %}
@@ -52,12 +53,16 @@
                                         {% else %}
                                             <td>&nbsp;</td>
                                         {% endif %}
-
                                         {% if model.perms.change %}
                                             <td><a href="{{ model.admin_url }}"
                                                    class="changelink">{% trans 'Edit' %}</a></td>
-                                        {% else %}
-                                            <td>&nbsp;</td>
+                                        {%  else %}
+                                            {% if model.perms.view %}
+                                                <td><a href="{{ model.admin_url }}"
+                                                       class="viewlink">{% trans 'View' %}</a></td>
+                                            {% else %}
+                                                <td>&nbsp;</td>
+                                            {% endif %}
                                         {% endif %}
                                     </tr>
                                 {% endfor %}

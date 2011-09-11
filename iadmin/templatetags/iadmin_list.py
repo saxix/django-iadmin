@@ -188,7 +188,7 @@ def items_for_result(cl, result, form):
     model_admin = cl.model_admin
     for field_name in cl.list_display:
         row_class = ''
-
+        result_repr = ''
         try:
             f, attr, value = lookup_field(field_name, result, cl.model_admin)
         except (AttributeError, ObjectDoesNotExist):
@@ -215,7 +215,8 @@ def items_for_result(cl, result, form):
                 if isinstance(f.rel, models.ManyToOneRel):
                     result_repr = escape(getattr(result, f.name))
                     if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
-                        result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
+                        result_repr += cl.url_for_obj(result, f.name)
+                        #result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
                 else:
                     result_repr = display_for_field(value, f)
 
@@ -235,7 +236,7 @@ def items_for_result(cl, result, form):
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True: 'th', False: 'td'}[first]
             first = False
-            url = cl.url_for_result(result)
+            url = cl.url_for_result( result )
             # Convert the pk to something that can be used in Javascript.
             # Problem cases are long ints (23L) and non-ASCII strings.
             if cl.to_field:

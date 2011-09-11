@@ -1,4 +1,8 @@
 import datetime
+from django.contrib.admin.options import ModelAdmin
+from django.contrib.admin.util import quote
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
 import os
 import django
 from django.conf import settings
@@ -59,7 +63,32 @@ class IAdminSite(AdminSite):
     register_all_models = False
     plugins = [CSVImporter, FileManager]
 
-    def xindex(self, request, extra_context=None):
+    def autodiscover(self):
+        from django.utils.importlib import import_module
+        for app in settings.INSTALLED_APPS:
+            try:
+                django.contrib.admin.sites.site, bak = self, django.contrib.admin.site
+                mod = import_module(app)
+                # Attempt to import the app's admin module.
+                try:
+                    before_import_registry = copy.copy(django.contrib.admin.site._registry)
+                    import_module('%s.%s' % (app, module) )
+                except:
+                    # Reset the model registry to the state before the last import as
+                    # this import will have to reoccur on the next request and this
+                    # could raise NotRegistered and AlreadyRegistered exceptions
+                    # (see #8245).
+                    selected_site._registry = before_import_registry
+
+                    # Decide whether to bubble up this error. If the app just
+                    # doesn't have an admin module, we can ignore the error
+                    # attempting to import it, otherwise we want it to bubble up.
+                    if module_has_submodule(mod, 'admin'):
+                        raise
+            finally:
+                django.contrib.admin.sites.site =  bak
+
+    def index(self, request, extra_context=None):
         """
         Displays the main admin index page, which lists all of the installed
         apps that have been registered in this site.
@@ -71,7 +100,6 @@ class IAdminSite(AdminSite):
             count_models = lambda model: model.objects.all().count()
         else:
             count_models = lambda model: ''
-
         for model, model_admin in self._registry.items():
             app_label = model._meta.app_label
             has_module_perms = user.has_module_perms(app_label)
@@ -109,13 +137,12 @@ class IAdminSite(AdminSite):
         context = {
             'title': _('Site administration'),
             'app_list': app_list,
-            'info_url': reverse('%s:admin_env_info' % self.app_name, current_app=self.name)
         }
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.name)
         return render_to_response(self.index_template or
-                                  ('%s/index.html' % self.name,
-                                   'iadmin/index.html',
+                                  (
+                                      'iadmin/index.html',
                                    'admin/index.html',
                                       ), context, context_instance=context_instance)
 
@@ -123,7 +150,7 @@ class IAdminSite(AdminSite):
     #    index = never_cache(cache_admin(index, INDEX_CACHE_KEY))
 
     @cache_app_index
-    def xapp_index(self, request, app_label, extra_context=None):
+    def app_index(self, request, app_label, extra_context=None):
         user = request.user
         has_module_perms = user.has_module_perms(app_label)
         app_dict = {}
@@ -164,18 +191,15 @@ class IAdminSite(AdminSite):
         app_dict['models'].sort(lambda x, y: cmp(x['name'], y['name']))
         context = {
             'title': _('%s administration') % capfirst(app_label),
-            #            'info_url': reverse('admin:admin_env_info', current_app=self.name),
             'app_list': [app_dict],
             'app_label': app_label,
-            'root_path': self.root_path,
             }
         context.update(extra_context or {})
         context_instance = template.RequestContext(request, current_app=self.name)
         return render_to_response(self.app_index_template or
-                                  ( '%s/%s/app_index.html' % (self.name, app_label),
-                                    'admin/%s/app_index.html' % app_label,
-                                    '%s/app_index.html' % self.name,
-                                    'iadmin/app_index.html',), context,
+                                  (
+                                    'iadmin/app_index.html',
+                                    'admin/app_index.html',), context,
                                   context_instance=context_instance
         )
 
@@ -195,15 +219,6 @@ class IAdminSite(AdminSite):
         view = "%s:%s_%s_change" % (self.app_name, clazz._meta.app_label, clazz.__name__.lower())
         url = reverse(view, args=[int(pk)])
         return url
-
-    def link_to_model(self, obj, label=None):
-        if not obj:
-            return ''
-        url = self.reverse_model(obj.__class__, obj.pk)
-        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (
-            url, settings.STATIC_URL)
-
-    _link_to_model = link_to_model
 
     def format_date(self, request):
         d = datetime.datetime.now()
@@ -236,17 +251,10 @@ class IAdminSite(AdminSite):
                    'os': os,
                    'sys': {'platform': sys.platform, 'version': sys.version_info, 'os': os.uname(),
                            'django': django.get_version()},
-#                   'info_url': reverse('%s:admin_env_info' % self.app_name, current_app=self.name),
-#                   'root_path': self.root_path or '/' + self.name + '/',
                    'path': sys.path,
                    'apps': _apps()
         }
         context_instance = template.RequestContext(request, current_app=self.name)
-        #        if export:
-        #            response = HttpResponse(mimetype='text/plain')
-        #            response['Content-Disposition'] = 'attachment;filename="environment.txt"'
-        #            response.content = '\n'.join([str(e) for e in lib])
-        #            return response
 
         return render_to_response(('%s/env_info.html' % self.name,
                                    'iadmin/env_info.html'), context, context_instance=context_instance)
@@ -303,9 +311,9 @@ class IAdminSite(AdminSite):
         urlpatterns += super(IAdminSite, self).get_urls()
         return urlpatterns
 
-    def copy_registry(self, other):
-        for model, a in other._registry.items():
-            self.register(model, a.__class__)
+#    def copy_registry(self, other):
+#        for model, a in other._registry.items():
+#            self.register(model, a.__class__)
 
     def register(self, model_or_iterable, admin_class=None, override=False, **options):
         """
@@ -315,6 +323,7 @@ class IAdminSite(AdminSite):
             admin_class = IModelAdmin
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
+
         for model in model_or_iterable:
             if model in self._registry:
                 if override:
@@ -333,21 +342,58 @@ class IAdminSite(AdminSite):
             if model in self._registry:
                 del self._registry[model]
 
-    def register_app(self, app, admin_class=None ):
-        """
-            register all models of application <app>
-            Note: app must use the syntax `app.models`
-        """
-        from django.db.models.loading import get_models
+#    def register_app(self, app, admin_class=None,  override=False ):
+#        """
+#            register all models of application <app>
+#            Note: app must use the syntax `app.models`
+#        """
+#        from django.db.models.loading import get_models
+#
+#        if not admin_class:
+#            admin_class = IModelAdmin
+#
+#        for m in get_models(app):
+#            self.register(m, admin_class, override=override)
+#    register_missing = register_app
 
+class IPublicModelAdmin(IModelAdmin):
+    def has_add_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
+
+
+class IPublicSite(IAdminSite):
+
+    def admin_view(self, view, cacheable=False):
+        def inner(request, *args, **kwargs):
+            if not self.has_permission(request):
+                return self.login(request)
+            return view(request, *args, **kwargs)
+        if not cacheable:
+            inner = never_cache(inner)
+        # We add csrf_protect here so this function can be used as a utility
+        # function for any view, without having to repeat 'csrf_protect'.
+        if not getattr(view, 'csrf_exempt', False):
+            inner = csrf_protect(inner)
+        return update_wrapper(inner, view)
+
+    def has_permission(self, request):
+        """
+        Returns True if the given HttpRequest has permission to view
+        *at least one* page in the admin site.
+        """
+        return True
+
+    def register(self, model_or_iterable, admin_class=None, override=False, **options):
         if not admin_class:
-            admin_class = IModelAdmin
+            admin_class = IPublicModelAdmin
 
-        for m in get_models(app):
-            if not m in self._registry:
-                self.register(m, admin_class)
-
-    register_missing = register_app
+        super(IPublicSite, self).register(model_or_iterable, admin_class, override, **options)
 
 
 def invalidate_index(sender, **kwargs):
