@@ -52,3 +52,15 @@ span.success{
 .selector-available select, .selector-chosen select {
     width: 100%;
 }
+
+.viewlink {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: transparent;
+    /*background-image: url("../img/icon_addlink.gif");*/
+    background-origin: padding-box;
+    background-position: 0 0.2em;
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    padding-left: 12px;
+}
