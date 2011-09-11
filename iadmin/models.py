@@ -26,20 +26,14 @@ def register(**kwargs):
     for p in FileManager.Meta.permissions:
         register_permission(p)
 
-class UserPreferences(models.Model):
-    name = models.CharField(max_length=100, blank=False, null=False, default='')
-    user = models.ForeignKey('auth.User', blank=False, null=False)
-    data = dexf.fields.DictField(blank=True, null=False)
-
-
-    def __unicode__(self):
-        return "%s:%s user preferences" % (self.user.username, self.name)
-
-    class Meta:
-        ordering = ('user',)
-        unique_together = ('user', 'name'),
-        app_label = 'iadmin'
-
-
+def create_readonly_permission(sender, **kwargs):
+    from django.contrib.auth.models import Permission
+    from django.db.models.loading import get_models
+    from django.contrib.contenttypes.models import ContentType
+    for model in get_models(sender):
+        codename, name = ("view_%s" % model.__name__.lower(), "Can view %s" % model._meta.verbose_name.title())
+        ct = ContentType.objects.get_for_model(model)
+        Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': name})
 
 signals.post_syncdb.connect(register)
+signals.post_syncdb.connect(create_readonly_permission)
