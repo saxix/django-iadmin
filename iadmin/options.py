@@ -176,8 +176,9 @@ class IModelAdmin(DjangoModelAdmin):
         ChangeList = self.get_changelist(request)
         try:
             cl = ChangeList(request, self.model, list_display, self.list_display_links,
-                            self.list_filter, self.date_hierarchy, self.search_fields,
-                            self.list_select_related, self.list_per_page, self.list_editable, self)
+                self.list_filter, self.date_hierarchy, self.search_fields,
+                self.list_select_related, self.list_per_page, self.list_max_show_all, self.list_editable, self)
+
             cl.readonly = not self.has_change_permission(request, None)
         except IncorrectLookupParameters:
             # Wacky lookup parameters were given, so redirect to the main
