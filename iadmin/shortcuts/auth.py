@@ -1,3 +1,7 @@
+from django.conf import settings
+from django.core.urlresolvers import resolve, reverse
+from django.db.models.loading import get_model
+from django.utils.safestring import mark_safe
 import iadmin.proxy as admin
 from django.contrib.auth.admin import UserAdmin as UA, GroupAdmin as GA
 from iadmin.options import IModelAdmin
@@ -9,7 +13,7 @@ class UserAdmin(IModelAdmin, UA):
 
     actions = ['make_active', 'make_inactive',]
     list_filter = ['is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',]
-    list_display = ['username', 'last_name', 'first_name', 'email', 'date_joined', 'is_active', 'is_staff']
+    list_display = ['username', 'last_name', 'first_name', 'email', 'date_joined', 'is_active', 'is_staff', 'profile']
     list_display_links = ['first_name', 'last_name', 'email', 'username']
 
     fieldsets = (
@@ -21,6 +25,16 @@ class UserAdmin(IModelAdmin, UA):
         )
     filter_horizontal = ('user_permissions', 'groups')
     columns_classes = {'last_name':['w200'], 'first_name':['w200'], 'email':['w200']}
+
+    def profile(self, obj):
+        if hasattr(settings, 'AUTH_PROFILE_MODULE'):
+            app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
+            model = get_model(app_label, model_name)
+            if model in self.admin_site._registry:
+                url = reverse(('admin:%s_%s_change' % (app_label, model_name)).lower(), args=[obj.pk])
+                return '<a href="%s">profile</a>' % url
+        return ''
+    profile.allow_tags = True
 
     def make_active(self, request, queryset):
         rows_updated = queryset.update(is_active=True)
