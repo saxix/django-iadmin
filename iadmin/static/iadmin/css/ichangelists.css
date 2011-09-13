@@ -43,7 +43,8 @@ table .linktomodel, table .linktomodel {
 }
 
 div.cell-menu {
-    float: left;
+    /*float: left;*/
+    /*float: right;*/
     top: -20px;
     width: 10px;
     height: 5px;
@@ -63,7 +64,8 @@ div.cell-menu  ul {
     margin: 0;
     padding: 0;
     list-style-type: none;
-    width: 18px;
+    width: 118px;
+    /*width: 400px;*/
 }
 
 div.cell-menu ul li {
@@ -76,7 +78,7 @@ div.cell-menu li ul {
     display: none;
     background: #FFFFFF;
     left: 0px;
-    width: 130px;
+    #width: 1130px;
     border: 1px solid #ccc;
     position: absolute;
     z-index: 2;
