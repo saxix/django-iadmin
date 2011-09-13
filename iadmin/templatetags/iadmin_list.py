@@ -156,11 +156,12 @@ def process_cell_filter(cl, field, attr, value, obj):
             return 'TODO', 'TODO'
         elif hasattr(attr, 'admin_order_field'):
             target_field_name = getattr(attr, 'admin_order_field')
-            return target_field_name, value, col_operators
+            linked_object = iter_get_attr(obj, target_field_name.replace('__','.'))
+            return target_field_name, linked_object.pk, col_operators
         elif field:
             target = getattr(obj, field.name)
-            if not (obj and target):
-                return '', '', []
+#            if not (obj and target):
+#                return '', '', []
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
                 return '%s__%s' % (field.name, rel_name), target.pk, col_operators
@@ -173,7 +174,7 @@ def process_cell_filter(cl, field, attr, value, obj):
             return ''
 
     lookup_kwarg, lookup_value, operators = process_field()
-    if not lookup_kwarg:
+    if lookup_kwarg is None:
         return ''
 
     menu_items = []
@@ -189,11 +190,17 @@ def process_cell_filter(cl, field, attr, value, obj):
     items = "".join(
         ['<li class="iadmin-cell-menu-item" ><a href="%s">%s</a></li>' % (url, lbl) for url, lbl in menu_items])
 
-    return r'''<div class="cell-menu">
-    <ul>
-    <li><a href="#" class="cell-menu-button">&nbsp;</a>
-        <ul class="iadmin-cell-menu">%s</li></ul>
-    </ul></div>''' % items
+#    items = "".join(
+#        ['<li class="iadmin-cell-menu-item" ><span>"%s">%s</span></li>' % (url, lbl) for url, lbl in menu_items])
+
+    if items:
+        return r'''<div class="cell-menu">
+        <ul>
+        <li><a href="#" class="cell-menu-button">&nbsp;</a>
+            <ul class="iadmin-cell-menu">%s</ul>
+        </ul></div>''' % items
+    else:
+        return ''
 #
 #
 def items_for_result(cl, result, form, context=None):
@@ -202,10 +209,10 @@ def items_for_result(cl, result, form, context=None):
     """
     def handle_link():
         if (field_name in model_admin.list_display_rel_links):
-            if admin_link_field:
-                linked_object = iter_get_attr(result, admin_link_field)
+            if admin_order_field:
+                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
             else:
-                linked_object = f.rel.to
+                linked_object = getattr(result, field_name) #f.rel.to
             return mark_safe( cl.url_for_obj(context['request'], linked_object) )
         return mark_safe('')
 
@@ -216,12 +223,13 @@ def items_for_result(cl, result, form, context=None):
     for field_name in cl.list_display:
         row_class = ''
         result_repr = ''
+        cell_filter_menu = ''
         try:
             f, attr, value = lookup_field(field_name, result, cl.model_admin)
         except (AttributeError, ObjectDoesNotExist):
             result_repr = EMPTY_CHANGELIST_VALUE
         else:
-            admin_link_field = getattr(attr, "admin_link_field", None)
+            admin_order_field = getattr(attr, "admin_order_field", None)
             if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
@@ -240,39 +248,21 @@ def items_for_result(cl, result, form, context=None):
                 else:
                     result_repr = mark_safe(result_repr)
             else:
-
-#                if isinstance(f.rel, models.ManyToOneRel):
-#                    result_repr = escape(getattr(result, f.name))
-#                    if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
-#                        if admin_order_field:
-#                            link_to = getattr(result, admin_order_field)
-#                        else:
-#                            link_to = f.rel.to
-#                        result_repr += cl.url_for_obj(context['request'], link_to)
-##                        result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
-#                if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
-#                    if admin_order_field:
-#                        linked_object = getattr(result, admin_order_field)
-#                    else:
-#                        linked_object = f.rel.to
-#                    result_repr = escape(getattr(result, f.name))
-#                    result_repr += cl.url_for_obj(context['request'], linked_object)
-#                else:  #default django display
                 result_repr = display_for_field(value, f)
 
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
-        result_repr += handle_link()
-        if hasattr(model_admin, 'cell_filter') and (
-            field_name not in  cl._filtered_on) and field_name in model_admin.cell_filter:
-            a = process_cell_filter(cl, f, attr, value, result)
-            result_repr = (result_repr, smart_unicode(mark_safe(a)))
-        else:
-            result_repr = (result_repr, '')
+        link = handle_link()
 
-        if force_unicode(result_repr[0]) == '':
-            result_repr = (mark_safe('&nbsp;'), '')
-            # If list_display_links not defined, add the link tag to the first field
+        if hasattr(model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) \
+                                                and field_name in model_admin.cell_filter:
+            a = process_cell_filter(cl, f, attr, value, result)
+            cell_filter_menu = smart_unicode(mark_safe(a))
+
+        if force_unicode(result_repr) == '':
+            result_repr = mark_safe('&nbsp;')
+            
+        # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True: 'th', False: 'td'}[first]
             first = False
@@ -285,10 +275,10 @@ def items_for_result(cl, result, form, context=None):
                 attr = pk
             value = result.serializable_value(attr)
             result_id = repr(force_unicode(value))[1:]
-            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a>%s</%s>' %\
+            yield mark_safe(u'<%s%s><a href="%s"%s>%s</a> %s %s</%s>' %\
                             (table_tag, row_class, url, (
                                 cl.is_popup and ' onclick="opener.dismissRelatedLookupPopup(window, %s); return false;"' % result_id or '')
-                             , conditional_escape(result_repr[0]), conditional_escape(result_repr[1]), table_tag))
+                             , conditional_escape(result_repr), link,  conditional_escape(cell_filter_menu), table_tag))
         else:
             # By default the fields come from ModelAdmin.list_editable, but if we pull
             # the fields out of the form instead of list_editable custom admins
@@ -297,8 +287,9 @@ def items_for_result(cl, result, form, context=None):
                 bf = form[field_name]
                 result_repr = mark_safe(force_unicode(bf.errors) + force_unicode(bf))
             else:
-                result_repr = '%s%s' % (conditional_escape(result_repr[0]), conditional_escape(result_repr[1]))
+                result_repr = '%s%s%s' % (conditional_escape(result_repr), link, conditional_escape( cell_filter_menu ))
             yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
+
     if form and not form[cl.model._meta.pk.name].is_hidden:
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))
 
