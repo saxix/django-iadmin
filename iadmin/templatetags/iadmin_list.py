@@ -7,8 +7,25 @@ from django.contrib.admin.templatetags.admin_list import *
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
+
 register = Library()
 
+def iter_get_attr(obj, attr, default=None):
+    """Recursive get object's attribute. May use dot notation.
+
+    >>> class C(object): pass
+    >>> a = C()
+    >>> a.b = C()
+    >>> a.b.c = 4
+    >>> iter_get_attr(a, 'b.c')
+    4
+    """
+    if '.' not in attr:
+        return getattr(obj, attr, default)
+    else:
+        L = attr.split('.')
+        return iter_get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
+    
 def iadmin_list_filter(cl, spec):
     if hasattr(spec, "USE_OUTPUT_FUNC"):
         return spec.output(cl)
@@ -179,10 +196,20 @@ def process_cell_filter(cl, field, attr, value, obj):
     </ul></div>''' % items
 #
 #
-def items_for_result(cl, result, form):
+def items_for_result(cl, result, form, context=None):
     """
     Generates the actual list of data.
     """
+    def handle_link():
+        if (field_name in model_admin.list_display_rel_links):
+            if admin_link_field:
+                linked_object = iter_get_attr(result, admin_link_field)
+            else:
+                linked_object = f.rel.to
+            return mark_safe( cl.url_for_obj(context['request'], linked_object) )
+        return mark_safe('')
+
+
     first = True
     pk = cl.lookup_opts.pk.attname
     model_admin = cl.model_admin
@@ -194,10 +221,12 @@ def items_for_result(cl, result, form):
         except (AttributeError, ObjectDoesNotExist):
             result_repr = EMPTY_CHANGELIST_VALUE
         else:
+            admin_link_field = getattr(attr, "admin_link_field", None)
             if f is None: # no field maybe modeladmin method
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
-                custom_filter = getattr(attr, 'cell_filter_func', False)
+
+#                custom_filter = getattr(attr, 'cell_filter_func', False)
 
                 if boolean:
                     allow_tags = True
@@ -210,19 +239,30 @@ def items_for_result(cl, result, form):
                     result_repr = escape(result_repr)
                 else:
                     result_repr = mark_safe(result_repr)
-
             else:
-                if isinstance(f.rel, models.ManyToOneRel):
-                    result_repr = escape(getattr(result, f.name))
-                    if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
-                        result_repr += cl.url_for_obj(result, f.name)
-                        #result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
-                else:
-                    result_repr = display_for_field(value, f)
+
+#                if isinstance(f.rel, models.ManyToOneRel):
+#                    result_repr = escape(getattr(result, f.name))
+#                    if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
+#                        if admin_order_field:
+#                            link_to = getattr(result, admin_order_field)
+#                        else:
+#                            link_to = f.rel.to
+#                        result_repr += cl.url_for_obj(context['request'], link_to)
+##                        result_repr += mark_safe(model_admin.admin_site._link_to_model(getattr(result, f.name)))
+#                if hasattr(model_admin, 'list_display_rel_links') and f.name in model_admin.list_display_rel_links:
+#                    if admin_order_field:
+#                        linked_object = getattr(result, admin_order_field)
+#                    else:
+#                        linked_object = f.rel.to
+#                    result_repr = escape(getattr(result, f.name))
+#                    result_repr += cl.url_for_obj(context['request'], linked_object)
+#                else:  #default django display
+                result_repr = display_for_field(value, f)
 
                 if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
                     row_class = ' class="nowrap"'
-
+        result_repr += handle_link()
         if hasattr(model_admin, 'cell_filter') and (
             field_name not in  cl._filtered_on) and field_name in model_admin.cell_filter:
             a = process_cell_filter(cl, f, attr, value, result)
@@ -263,13 +303,29 @@ def items_for_result(cl, result, form):
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))
 
 al.items_for_result = items_for_result
-#def results(cl):
-#    if cl.formset:
-#        for res, form in zip(cl.result_list, cl.formset.forms):
-#            yield list(items_for_result(cl, res, form))
-#    else:
-#        for res in cl.result_list:
-#            yield list(items_for_result(cl, res, None))
+
+def results(cl, context):
+    if cl.formset:
+        for res, form in zip(cl.result_list, cl.formset.forms):
+            yield ResultList(form, items_for_result(cl, res, form))
+    else:
+        for res in cl.result_list:
+            yield ResultList(None, items_for_result(cl, res, None, context=context))
+
+@register.inclusion_tag("admin/change_list_results.html", takes_context=True)
+def result_list(context, cl):
+    """
+    Displays the headers and data list together
+    """
+    headers = list(result_headers(cl))
+    for h in headers:
+        # Sorting in templates depends on sort_pos attributeue
+        h.setdefault('sort_pos', 0)
+    return {'cl': cl,
+            'result_hidden_fields': list(result_hidden_fields(cl)),
+            'result_headers': headers,
+            'reset_sorting_url': cl.get_query_string(remove=[ORDER_VAR]),
+            'results': list(results(cl, context))}
 #
 #
 #def result_hidden_fields(cl):

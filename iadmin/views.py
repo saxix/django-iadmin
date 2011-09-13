@@ -3,6 +3,7 @@ import operator
 from django.conf import settings
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.util import lookup_field, quote
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist
@@ -10,6 +11,7 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.utils.encoding import smart_str
 import django
+from django.utils.safestring import mark_safe
 
 __author__ = 'sax'
 
@@ -50,15 +52,16 @@ class IChangeList(ChangeList):
             return "%s/view/" % quote(getattr(result, self.pk_attname))
         return "%s/" % quote(getattr(result, self.pk_attname))
 
-#    def url_for_obj(self, request, obj):
-#        if not obj:
-#            return ''
-#        if self.model_admin.has_change_permission(request, obj):
-#            return "%s/" % quote(getattr(obj, obj._meta.pk_attname))
-#        elif self.model_admin.has_view_permission(request, obj):
-#            return "view/%s/" % quote(getattr(obj, obj._meta.pk_attname))
-##        return '&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (
-##            url, settings.STATIC_URL)
+    def url_for_obj(self, request, obj):
+        if not obj:
+            return 'xxx'
+        if self.model_admin.has_change_permission(request, obj):
+            view = "%s:%s_%s_change" % (self.model_admin.admin_site.app_name, obj._meta.app_label, obj.__class__.__name__.lower())
+            url = reverse(view, args=[int(obj.pk)])
+        elif self.model_admin.has_view_permission(request, obj):
+            url = "view/%s/" % quote(getattr(obj, obj._meta.pk_attname))
+        return mark_safe('&nbsp;<span class="linktomodel"><a href="%s"><img src="%siadmin/img/link.png"/></a></span>' % (
+            url, settings.STATIC_URL))
 
 AGENTS = {lambda x: 'Firefox' in x: ['Firefox', 'iadmin/nojs/firefox.html'],
           lambda x: 'Chrome' in x: ['Chrome', 'iadmin/nojs/chrome.html'],
