@@ -147,10 +147,16 @@ def process_cell_filter(cl, field, attr, value, obj):
 #    default_operators = ('lt', 'gt', 'exact', 'not')
     default_operators = ('exact', 'not')
 #    default_operators = ('exact', )
+        #col_operators = getattr(target, 'cell_filter_operators', default_operators)
 
     def process_field():
         target = field or  attr
-        col_operators = getattr(target, 'cell_filter_operators', default_operators)
+        #col_operators = getattr(target, 'cell_filter_operators', default_operators)
+        if field:
+            col_operators = cl.model_admin.cell_filter_operators.get(field.name, default_operators)
+        elif attr:
+            col_operators = getattr(target, 'cell_filter_operators', default_operators)
+        
 
         if hasattr(attr, 'cell_filter_func'):
             return 'TODO', 'TODO'
