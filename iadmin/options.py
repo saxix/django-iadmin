@@ -42,6 +42,7 @@ class IModelAdmin(DjangoModelAdmin):
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     columns_classes = {}
     columns_attributes = {}
+    cell_filter_operators = {}
 
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
