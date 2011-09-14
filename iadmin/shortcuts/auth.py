@@ -30,6 +30,9 @@ class UserAdmin(IModelAdmin, UA):
         if hasattr(settings, 'AUTH_PROFILE_MODULE'):
             app_label, model_name = settings.AUTH_PROFILE_MODULE.split('.')
             model = get_model(app_label, model_name)
+            # FIXME: should be a better way to do this
+            # move in ModelAdmin
+            model._default_manager.using(obj._state.db).get_or_create(user=obj)
             if model in self.admin_site._registry:
                 url = reverse(('admin:%s_%s_change' % (app_label, model_name)).lower(), args=[obj.pk])
                 return '<a href="%s">profile</a>' % url
