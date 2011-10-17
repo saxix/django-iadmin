@@ -58,7 +58,8 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
 #        rel_to = self.rel.to
 #        info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
 
-        output = [HiddenInput().render(name, id, **hidden),
+        output = [TextInput().render("lk_%s"  % name, label, **hidden),
+                    TextInput().render(name, id, **hidden),
                   AutoCompleteInput().render('', label, **kwargs),
                   '<input type="hidden" value="%s"/>' % self.service,
                   self._link_to_code(name),

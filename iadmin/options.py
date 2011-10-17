@@ -1,15 +1,17 @@
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.options import IncorrectLookupParameters, csrf_protect_m
-from django.contrib.admin.util import flatten_fieldsets, unquote
+from django.contrib.admin.util import flatten_fieldsets, unquote, model_format_dict
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db.models.fields import AutoField
+from django.db.models.fields import AutoField, BLANK_CHOICE_DASH
 from . import widgets
 from . import actions as ac
+import iadmin.actions.tools
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse, SimpleTemplateResponse
+from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
 from django.db import models, transaction
@@ -40,9 +42,13 @@ class IModelAdmin(DjangoModelAdmin):
     autocomplete_ajax = False
     #    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
+#    tools = [ac.tools.empty_table, ac.tools.add_record]
+    tools = [ac.tools.add_record]
     columns_classes = {}
     columns_attributes = {}
     cell_filter_operators = {}
+
+    tool_form = helpers.ActionForm
 
     def __init__(self, model, admin_site):
         self.ajax_search_fields = self.ajax_search_fields or self.search_fields
@@ -56,6 +62,62 @@ class IModelAdmin(DjangoModelAdmin):
         if not self.has_delete_permission(request, None):
             acts.pop('delete_selected')
         return acts
+
+    def _get_action_tools_choices(self, iterable, request, default_choices=BLANK_CHOICE_DASH):
+        """
+        Return a list of choices for use in a form object.  Each choice is a
+        tuple (name, description).
+        """
+        choices = [] + default_choices
+        for func, name, description in iterable:
+            choice = (name, description % model_format_dict(self.opts))
+            choices.append(choice)
+        return choices
+
+    def get_action_choices(self, request, default_choices=BLANK_CHOICE_DASH):
+        return self._get_action_tools_choices(self.get_actions(request).itervalues(), request, default_choices)
+
+    def get_tools_choices(self, request, default_choices=BLANK_CHOICE_DASH):
+        return self._get_action_tools_choices(self.get_tools(request).itervalues(), request, default_choices)
+
+    def get_tools(self, request):
+        """
+        Return a dictionary mapping the names of all actions for this
+        ModelAdmin to a tuple of (callable, name, description) for each action.
+        """
+        # If self.actions is explicitally set to None that means that we don't
+        # want *any* actions enabled on this page.
+        from django.contrib.admin.views.main import IS_POPUP_VAR
+        if self.tools is None or IS_POPUP_VAR in request.GET:
+            return SortedDict()
+
+        tools = []
+
+#        # Gather actions from the admin site first
+#        for (name, func) in self.admin_site.tools:
+#            description = getattr(func, 'short_description', name.replace('_', ' '))
+#            tools.append((func, name, description))
+
+        # Then gather them from the model admin and all parent classes,
+        # starting with self and working back up.
+        for klass in self.__class__.mro()[::-1]:
+            class_tools = getattr(klass, 'tools', [])
+            # Avoid trying to iterate over None
+            if not class_tools:
+                continue
+            tools.extend([self.get_action(tool) for tool in class_tools])
+
+        # get_action might have returned None, so filter any of those out.
+        tools = filter(None, tools)
+
+        # Convert the actions into a SortedDict keyed by name.
+        tools = SortedDict([
+            (name, (func, name, desc))
+            for func, name, desc in tools
+        ])
+
+        return tools
+
 
     def has_change_permission(self, request, obj=None):
         return super(IModelAdmin, self).has_change_permission(request, obj)
@@ -126,12 +188,11 @@ class IModelAdmin(DjangoModelAdmin):
             target_template = 'change_form_template'
         if target_template:
             setattr(self, target_template, [
-                "iadmin/%s/%s/change_form_i.html" % (app_label, opts.object_name.lower()),
-                "iadmin/%s/change_form_i.html" % app_label,
-                "iadmin/change_form_i.html",
+                "iadmin/%s/%s/change_form.html" % (app_label, opts.object_name.lower()),
+                "iadmin/%s/change_form.html" % app_label,
+                "iadmin/change_form.html",
                 ])
         return super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
-
 
     def _process_cell_filter(self):
         # add cell_filter fields to `extra_allowed_filter` list
@@ -165,7 +226,8 @@ class IModelAdmin(DjangoModelAdmin):
 
         # Check actions to see if any are available on this changelist
         actions = self.get_actions(request)
-
+        tools = self.get_tools(request)
+#        actions.update(tools)
         # Remove action checkboxes if there aren't any actions available.
         list_display = list(self.get_list_display(request))
         if not actions:
@@ -200,6 +262,12 @@ class IModelAdmin(DjangoModelAdmin):
         # below.
         action_failed = False
         selected = request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)
+
+
+        # Tools  with no confirmation
+#        if (tools and request.method == 'POST' and  'index' in request.POST and '_save' not in request.POST):
+#            response = self.response_tool(request, queryset=None)
+#            return response
 
         # Actions with no confirmation
         if (actions and request.method == 'POST' and
@@ -280,6 +348,13 @@ class IModelAdmin(DjangoModelAdmin):
         else:
             action_form = None
 
+        if tools:
+            tools_form = self.action_form(auto_id=None)
+            tools_form.fields['select_across'].initial = 1
+            tools_form.fields['action'].choices = self.get_tools_choices(request)
+        else:
+            tools_form = None
+
         selection_note_all = ungettext('%(total_count)s selected',
                                        'All %(total_count)s selected', cl.result_count)
 
@@ -295,6 +370,7 @@ class IModelAdmin(DjangoModelAdmin):
             'has_view_permission': self.has_view_permission(request),
             'app_label': app_label,
             'action_form': action_form,
+            'tool_form': tools_form,
             'actions_on_top': self.actions_on_top,
             'actions_on_bottom': self.actions_on_bottom,
             'actions_selection_counter': self.actions_selection_counter,
@@ -520,11 +596,62 @@ class IModelAdmin(DjangoModelAdmin):
 
     declared_fieldsets = property(_declared_fieldsets)
 
+    def response_tool(self, request, queryset):
+        """
+        Handle an admin action. This is called if a request is POSTed to the
+        changelist; it returns an HttpResponse if the action was handled, and
+        None otherwise.
+        """
+
+        # There can be multiple action forms on the page (at the top
+        # and bottom of the change list, for example). Get the action
+        # whose button was pushed.
+        try:
+            tool_index = int(request.POST.get('index', 0))
+        except ValueError:
+            tool_index = 0
+
+        # Construct the action form.
+        data = request.POST.copy()
+#        data.pop(helpers.ACTION_CHECKBOX_NAME, None)
+#        data.pop("index", None)
+
+        # Use the action whose button was pushed
+        try:
+            data.update({'action': data.getlist('action')[tool_index]})
+        except IndexError:
+            # If we didn't get an action from the chosen form that's invalid
+            # POST data, so by deleting action it'll fail the validation check
+            # below. So no need to do anything here
+            pass
+
+        action_form = self.tool_form(data, auto_id=None)
+        action_form.fields['action'].choices = self.get_tools_choices(request)
+
+        # If the form's valid we can handle the action.
+        if action_form.is_valid():
+            action = action_form.cleaned_data['action']
+            select_across = action_form.cleaned_data['select_across']
+            func, name, description = self.get_tools(request)[action]
+
+            response = func(self, request, queryset)
+
+            # Actions may return an HttpResponse, which will be used as the
+            # response from the POST. If not, we'll be a good little HTTP
+            # citizen and redirect back to the changelist page.
+            if isinstance(response, HttpResponse):
+                return response
+            else:
+                return HttpResponseRedirect(request.get_full_path())
+        else:
+            msg = _("No action selected.")
+            self.message_user(request, msg)
+            return None
 
 class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
-
+    
     #if True enable link to change view from inlines. Must be False if the related Model is not registered in the admin
     edit_link = False
 

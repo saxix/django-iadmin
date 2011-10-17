@@ -142,7 +142,7 @@ class IAdminSite(AdminSite):
         context_instance = template.RequestContext(request, current_app=self.name)
         return render_to_response(self.index_template or
                                   (
-                                      'iadmin/index.html',
+#                                      'iadmin/index.html',
                                    'admin/index.html',
                                       ), context, context_instance=context_instance)
 
@@ -198,7 +198,7 @@ class IAdminSite(AdminSite):
         context_instance = template.RequestContext(request, current_app=self.name)
         return render_to_response(self.app_index_template or
                                   (
-                                    'iadmin/app_index.html',
+#                                    'iadmin/app_index.html',
                                     'admin/app_index.html',), context,
                                   context_instance=context_instance
         )
@@ -387,7 +387,7 @@ class IPublicSite(IAdminSite):
         Returns True if the given HttpRequest has permission to view
         *at least one* page in the admin site.
         """
-        return True
+        return request.user.is_active
 
     def register(self, model_or_iterable, admin_class=None, override=False, **options):
         if not admin_class:

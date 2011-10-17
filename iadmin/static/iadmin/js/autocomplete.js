@@ -14,7 +14,7 @@
                 $(this).autocomplete(url, { formatResult:formatResult, formatItem:formatItem})
                         .result(function(event, data, formatted) {$(this).prev().val(formatted);})
                             .focus(function(){$(this).prev().val('');})
-                        .blur(function(){$(this).search();});
+//                        .blur(function(){$(this).search();});
             })
         };
 

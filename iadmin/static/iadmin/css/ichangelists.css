@@ -110,3 +110,8 @@ div.alphabetic-filter span{
     color: #5B80B2;
     font-weight: bold;
 }
+
+.itools{
+    border: 1px solid black;
+    align:right;
+}

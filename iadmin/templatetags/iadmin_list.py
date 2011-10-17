@@ -353,3 +353,12 @@ def result_list(context, cl):
 ##            'results': list(results(cl))}
 #
 #result_list = register.inclusion_tag("iadmin/change_list_results.html")(al.result_list)
+
+@register.inclusion_tag('iadmin/tools.html', takes_context=True)
+def admin_tools(context):
+    """
+    Track the number of times the action field has been rendered on the page,
+    so we know which value to use.
+    """
+    context['tool_index'] = context.get('tool_index', -1) + 1
+    return context

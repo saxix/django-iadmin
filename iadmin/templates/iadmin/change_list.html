@@ -11,18 +11,18 @@
     {{ media.js }}
     <script type="text/javascript">
         {% if cell_menu_on_click %}
-        (function($) {
-            $(document).ready(function($){
-                $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
-                $('ul.iadmin-cell-menu').css('display', 'none');
-                $('a.cell-menu-button').click(function(){
-                    $(this).next().css('display', 'block');
-                });
-                $('ul.iadmin-cell-menu').mouseleave(function(){
+            (function($) {
+                $(document).ready(function($) {
+                    $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
                     $('ul.iadmin-cell-menu').css('display', 'none');
+                    $('a.cell-menu-button').click(function() {
+                        $(this).next().css('display', 'block');
+                    });
+                    $('ul.iadmin-cell-menu').mouseleave(function() {
+                        $('ul.iadmin-cell-menu').css('display', 'none');
+                    });
                 });
-            });
-        })(django.jQuery);
+            })(django.jQuery);
         {% endif %}
     </script>
 {% endblock %}
@@ -31,9 +31,26 @@
     {% if cl.has_filters %}
         <div id="changelist-filter">
             <h2>{% trans 'Filter' %}</h2>
+            <h3><a href="?">Clear all</a></h3>
             {% for spec in cl.filter_specs %}{% iadmin_list_filter cl spec %}{% endfor %}
         </div>
     {% endif %}
+{% endblock %}
+
+{% block object-tools %}
+        {% if tool_form %}{% admin_tools %}{% endif %}
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                {% if has_add_permission %}
+                <li>
+                    <a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+                        {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+                    </a>
+                </li>
+    {% endif %}
+            {% endblock %}
+        </ul>
+
 {% endblock %}
 
 {% block result_list %}
