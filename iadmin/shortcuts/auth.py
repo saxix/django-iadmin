@@ -15,7 +15,7 @@ class UserAdmin(IModelAdmin, UA):
     list_filter = ['is_active', 'is_staff', 'is_superuser', 'date_joined', 'last_login',]
     list_display = ['username', 'last_name', 'first_name', 'email', 'date_joined', 'is_active', 'is_staff', 'profile']
     list_display_links = ['first_name', 'last_name', 'email', 'username']
-
+    
     fieldsets = (
             (None, {'fields': (('username', 'first_name', 'last_name', 'email'),)}),
 
@@ -64,11 +64,11 @@ class PermissionAdmin(IModelAdmin):
     list_display = ('name', 'content_type', 'codename', 'app')
     search_fields = ('name', 'codename')
     cell_filter = ('content_type', 'app')
-    if django.VERSION[1] >= 3: # before 1.3 cannot filter on 2^ level field
-        list_filter = ('content_type__app_label', )
-
+    list_filter = ('content_type__app_label', )
+#
     def app(self, obj):
         return obj.content_type.app_label
+#    app.admin_order_field = 'content_type'
     app.admin_order_field = 'content_type__app_label'
 
 #admin.site.silent_unregister(User)
