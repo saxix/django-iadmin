@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models.base import Model
 from django.template.loader import get_template, select_template
 from django.template.context import Context, RequestContext, ContextPopException
 
@@ -144,14 +145,10 @@ def process_cell_filter(cl, field, attr, value, obj):
               'not': _('Not equals to'),
               'rem': _('Remove filter')}
 
-#    default_operators = ('lt', 'gt', 'exact', 'not')
     default_operators = ('exact', 'not')
-#    default_operators = ('exact', )
-        #col_operators = getattr(target, 'cell_filter_operators', default_operators)
 
     def process_field():
         target = field or  attr
-        #col_operators = getattr(target, 'cell_filter_operators', default_operators)
         if field:
             col_operators = cl.model_admin.cell_filter_operators.get(field.name, default_operators)
         elif attr:
@@ -162,12 +159,16 @@ def process_cell_filter(cl, field, attr, value, obj):
             return 'TODO', 'TODO'
         elif hasattr(attr, 'admin_order_field'):
             target_field_name = getattr(attr, 'admin_order_field')
-            linked_object = iter_get_attr(obj, target_field_name.replace('__','.'))
-            return target_field_name, linked_object.pk, col_operators
+            parts = target_field_name.split('__')
+            t = ".".join(parts)
+            linked_object = iter_get_attr(obj, t )
+            if isinstance(t, Model):
+                return target_field_name, linked_object.pk, col_operators
+            else:
+                return target_field_name, linked_object, col_operators
+
         elif field:
             target = getattr(obj, field.name)
-#            if not (obj and target):
-#                return '', '', []
             if isinstance(field.rel, models.ManyToOneRel):
                 rel_name = field.rel.get_related_field().name
                 return '%s__%s' % (field.name, rel_name), target.pk, col_operators
