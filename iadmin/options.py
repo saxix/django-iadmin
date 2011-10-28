@@ -2,22 +2,22 @@ import django
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.options import IncorrectLookupParameters, csrf_protect_m
-from django.contrib.admin.util import flatten_fieldsets, unquote, model_format_dict
+from django.contrib.admin.util import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db.models.fields import AutoField, BLANK_CHOICE_DASH
+from django.db.models.fields import AutoField
 from . import widgets
 from . import actions as ac
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse, SimpleTemplateResponse
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
 from django.db import models, transaction
 from . import ajax
-from django.utils.html import escape, escapejs
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
+import logging
 from .views import IChangeList
 import django.utils.simplejson as json
 from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo
@@ -359,8 +359,15 @@ class IModelAdmin(DjangoModelAdmin):
             else:
                 return "%s__icontains" % field_name
 
+
         bit = request.GET.get('q', '')
         fmt = request.GET.get('fmt', AUTOCOMPLETE)
+
+        logging.info(self.ajax_search_fields )
+        logging.info(self.search_fields )
+
+        logging.info([{construct_search(str(field_name)): bit} for field_name in self.ajax_search_fields] )
+
         if bit == '?': # show all if user inputs `?`
             or_queries = {}
         else:
@@ -370,6 +377,7 @@ class IModelAdmin(DjangoModelAdmin):
         flds = list(self.ajax_list_display)
         field_names = [f.name for f in self.model._meta.fields]
         qs = self.model.objects.filter(*or_queries)
+        logging.info( qs )
         data = []
         for record in qs:
             row = [force_unicode(record.pk)]
@@ -396,6 +404,7 @@ class IModelAdmin(DjangoModelAdmin):
             ret = ser().serialize(qs)
         else: #AUTOCOMPLETE
             ret = '\n'.join(map("|".join, data))
+#        raise Exception( qs )
         return HttpResponse(ret, content_type='text/plain')
 
 
@@ -530,6 +539,7 @@ class IModelAdmin(DjangoModelAdmin):
 class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
+    autocomplete_ajax = False
     
     #if True enable link to change view from inlines. Must be False if the related Model is not registered in the admin
     edit_link = False
@@ -553,10 +563,27 @@ class ITabularInline(DjangoTabularInline):
             if isinstance(modeladmin, IModelAdmin):
                 service = reverse(
                     'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name))
-                if service and db_field.name not in self.raw_id_fields:
+                if (service is not None) and db_field.name not in self.raw_id_fields:
                     formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
-                                                                   service)
+                                                                   service=service)
             return formfield
 
         return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
+    def dformfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.pop("request", None)
+        if isinstance(db_field, models.ForeignKey):
+            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+            related_modeladmin = self.admin_site._registry.get(db_field.rel.to, None)
+            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
+                service = reverse('admin:%s_%s_ajax' % (
+                    related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name))
+                if service:
+                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
+                                                                   service=service)
+                return formfield
+            elif formfield:
+                formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
+                return formfield
+
+        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
