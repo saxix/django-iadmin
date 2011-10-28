@@ -1,14 +1,10 @@
 #from .widgets import *
 import copy
-import logging
 from django.conf import settings
-from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-from django.core.urlresolvers import reverse, NoReverseMatch
 from django.forms.util import flatatt
 from django.forms.widgets import TextInput, MultiWidget, Select, HiddenInput, Input, Widget
 from django.utils.encoding import smart_unicode, force_unicode
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
 from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo, LinkToModelWidget
 
 
@@ -58,8 +54,7 @@ class AjaxFieldWidgetWrapper(RelatedFieldWidgetWrapperLinkTo):
 #        rel_to = self.rel.to
 #        info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
 
-        output = [TextInput().render("lk_%s"  % name, label, **hidden),
-                    TextInput().render(name, id, **hidden),
+        output = [ HiddenInput().render(name, id, **hidden),
                   AutoCompleteInput().render('', label, **kwargs),
                   '<input type="hidden" value="%s"/>' % self.service,
                   self._link_to_code(name),
