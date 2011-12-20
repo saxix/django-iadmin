@@ -170,11 +170,9 @@ class IModelAdmin(DjangoModelAdmin):
         actions = self.get_actions(request)
         # Remove action checkboxes if there aren't any actions available.
         list_display = list(self.get_list_display(request))
-        if not actions:
-            try:
-                list_display.remove('action_checkbox')
-            except ValueError:
-                pass
+        if actions:
+            # Add the action checkboxes if there are any actions available.
+            list_display = ['action_checkbox'] +  list(list_display)
 
         ChangeList = self.get_changelist(request)
         try:

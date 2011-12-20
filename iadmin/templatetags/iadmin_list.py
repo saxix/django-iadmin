@@ -238,6 +238,9 @@ def items_for_result(cl, result, form, context=None):
         else:
             admin_order_field = getattr(attr, "admin_order_field", None)
             if f is None: # no field maybe modeladmin method
+                if field_name == u'action_checkbox':
+                    row_class = ' class="action-checkbox"'
+
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
 
@@ -255,10 +258,19 @@ def items_for_result(cl, result, form, context=None):
                 else:
                     result_repr = mark_safe(result_repr)
             else:
-                result_repr = display_for_field(value, f)
-
-                if isinstance(f, models.DateField) or isinstance(f, models.TimeField):
+                if isinstance(f.rel, models.ManyToOneRel):
+                    field_val = getattr(result, f.name)
+                    if field_val is None:
+                        result_repr = EMPTY_CHANGELIST_VALUE
+                    else:
+                        result_repr = escape(field_val)
+                else:
+                    result_repr = display_for_field(value, f)
+                if isinstance(f, models.DateField)\
+                or isinstance(f, models.TimeField)\
+                or isinstance(f, models.ForeignKey):
                     row_class = ' class="nowrap"'
+
         link = handle_link()
 
         if hasattr(model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) \
@@ -268,7 +280,7 @@ def items_for_result(cl, result, form, context=None):
 
         if force_unicode(result_repr) == '':
             result_repr = mark_safe('&nbsp;')
-            
+
         # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True: 'th', False: 'td'}[first]
@@ -302,28 +314,28 @@ def items_for_result(cl, result, form, context=None):
 
 al.items_for_result = items_for_result
 
-def results(cl, context):
-    if cl.formset:
-        for res, form in zip(cl.result_list, cl.formset.forms):
-            yield ResultList(form, items_for_result(cl, res, form))
-    else:
-        for res in cl.result_list:
-            yield ResultList(None, items_for_result(cl, res, None, context=context))
+#def results(cl, context):
+#    if cl.formset:
+#        for res, form in zip(cl.result_list, cl.formset.forms):
+#            yield ResultList(form, items_for_result(cl, res, form))
+#    else:
+#        for res in cl.result_list:
+#            yield ResultList(None, items_for_result(cl, res, None, context=context))
 
-@register.inclusion_tag("admin/change_list_results.html", takes_context=True)
-def result_list(context, cl):
-    """
-    Displays the headers and data list together
-    """
-    headers = list(result_headers(cl))
-    for h in headers:
-        # Sorting in templates depends on sort_pos attributeue
-        h.setdefault('sort_pos', 0)
-    return {'cl': cl,
-            'result_hidden_fields': list(result_hidden_fields(cl)),
-            'result_headers': headers,
-            'reset_sorting_url': cl.get_query_string(remove=[ORDER_VAR]),
-            'results': list(results(cl, context))}
+#@register.inclusion_tag("admin/change_list_results.html", takes_context=True)
+#def result_list(context, cl):
+#    """
+#    Displays the headers and data list together
+#    """
+#    headers = list(result_headers(cl))
+#    for h in headers:
+#        # Sorting in templates depends on sort_pos attributeue
+#        h.setdefault('sort_pos', 0)
+#    return {'cl': cl,
+#            'result_hidden_fields': list(result_hidden_fields(cl)),
+#            'result_headers': headers,
+#            'reset_sorting_url': cl.get_query_string(remove=[ORDER_VAR]),
+#            'results': list(results(cl, context))}
 #
 #
 #def result_hidden_fields(cl):
