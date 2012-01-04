@@ -1,5 +1,5 @@
 $(function() {
-    $('#col1 input[type=text], #col1 select').each(function() {
+    $('.col_field input, .col_field select').each(function() {
         $(this).attr('disabled', 'disabled');
     });
     $('.fastfieldvalue').click(function() {
@@ -12,9 +12,10 @@ $(function() {
             $('option', target).each(function(i, selected) {
                 if ($(this).text() == selection) {
                     $(this).attr('selected', true);
-                    return;
                 }
             });
+        } else if ($(target).is('input[type=checkbox]')) {
+            $(target).attr('checked', selection=='True');
         } else if ($(target).is('input')) {
             $(target).val(selection);
         }

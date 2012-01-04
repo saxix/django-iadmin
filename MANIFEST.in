@@ -3,6 +3,7 @@ include AUTHORS
 include LICENSE
 include MANIFEST.in
 include setup.py
+include requirements.txt
 recursive-include iadmin *.py
 recursive-include iadmin/static *
 recursive-include iadmin/templates *

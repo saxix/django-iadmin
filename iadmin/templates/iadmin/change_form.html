@@ -1,3 +1,4 @@
+{# overriden to handle tab style inlines #}
 {% extends "admin/base_site.html" %}
 {% load i18n iadmin_modify adminmedia static %}
 {% load url from future %}
@@ -110,4 +111,8 @@
 
         </div>
     </form></div>
+    <script type="text/javascript">
+        {# must be here due how filter_horizontal initilization code #}
+        addEvent(window, "load", function(e) {django.jQuery.fn.filter_horizontal(); });
+    </script>
 {% endblock %}

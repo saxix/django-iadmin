@@ -4,29 +4,38 @@ Created on 28/ott/2009
 
 @author: sax
 '''
-from collections import defaultdict
-import datetime
 from django.db.models.aggregates import Count
 from django.db.models.fields.related import ForeignKey
+from django.forms.fields import CharField, BooleanField, ChoiceField
+from django.forms.forms import Form, DeclarativeFieldsMetaclass
+from django.forms.widgets import HiddenInput, MultipleHiddenInput
 from django.utils import simplejson as json
-from django import forms
 from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.forms import FileField, ModelForm
-from django.forms.models import modelform_factory
-from django.http import HttpResponse, HttpResponseRedirect
-import csv
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.utils.encoding import force_unicode, smart_str
-from django.utils.safestring import mark_safe
 from django.contrib.admin import helpers
-from django.utils import formats
-from django.utils import dateformat
-from iadmin.plugins.csv.utils import graph_form_factory
 
 
+def graph_form_factory(model):
+    app_name = model._meta.app_label
+    model_name = model.__name__
 
+    model_fields = [(f.name, f.verbose_name) for f in model._meta.fields if not f.primary_key]
+    graphs = [('PieChart', 'PieChart'), ('BarChart', 'BarChart')]
+    model_fields.insert(0, ('', 'N/A'))
+    class_name = "%s%sGraphForm" % (app_name, model_name)
+    attrs = {'initial': {'app': app_name, 'model': model_name},
+             '_selected_action': CharField(widget=MultipleHiddenInput),
+             'select_across': BooleanField(initial='0', widget=HiddenInput, required=False),
+             'app': CharField(initial=app_name, widget=HiddenInput),
+             'model': CharField(initial=model_name, widget=HiddenInput),
+             'graph_type': ChoiceField(label="Graph type", choices=graphs, required=True),
+             'axes_x': ChoiceField(label="Group by and count by", choices=model_fields, required=True),
+             #             'axes_y' : ChoiceField(label="Y values", choices=model_fields, required=False),
+    }
+
+    return DeclarativeFieldsMetaclass(str(class_name), (Form,), attrs)
 
 def graph_queryset(modeladmin, request, queryset):
     MForm = graph_form_factory(modeladmin.model)
@@ -45,12 +54,14 @@ def graph_queryset(modeladmin, request, queryset):
                     data_labels = []
                     for value, cnt in cc:
                         data_labels.append(str(field.rel.to.objects.get(pk=value)))
+                elif isinstance(field, BooleanField):
+                    data_labels = [str(l) for l, v in cc]
                 elif hasattr(modeladmin.model, 'get_%s_display' % field.name):
                     data_labels = []
                     for value, cnt in cc:
                         data_labels.append(force_unicode(dict(field.flatchoices).get(value, value), strings_only=True))
                 else:
-                    data_labels = [l for l, v in cc]
+                    data_labels = [str(l) for l, v in cc]
                 data = [v for l, v in cc]
                 table = zip(data_labels, data)
             except Exception, e:

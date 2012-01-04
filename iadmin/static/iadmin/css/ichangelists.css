@@ -2,33 +2,40 @@
     background-repeat: no-repeat !important;
 }
 
-table thead th.col-filtered a {
+a.col-filtered{
+    float: left;
     background-attachment: scroll;
     background-color: transparent;
-    background-image: url("../img/funnel_new.png");
-    background-position: right -1px;
+    background-image: url("../img/funnel_del.png");
+    background-position: right 1px;
     background-repeat: no-repeat;
-    padding-right: 20px;
+    margin-right: 2px;
+    margin-left: 2px;
+    width: 16px;
+    height: 16px;
 }
 
-#result_list th .col-filtered {
-    background-attachment: scroll !important;
-    background-color: transparent !important;
-    background-image: url("../img/funnel_new.png") !important;
+/*#result_list th .col-filtered {*/
+    /*background-attachment: scroll !important;*/
+    /*background-color: transparent !important;*/
+    /*background-image: url("../img/funnel_new.png") !important;*/
     /*background-position: right -1px !important;*/
-    background-repeat: no-repeat !important;
-    margin-right: 2px !important;
-    padding-right: 2px !important;
-    float: left;
-}
-#result_list th .col-filtered a{
-    background-image: none !important;
-}
-table .linktomodel, table .linktomodel {
-    float: right;
-    width: 16px;
-    padding-left: 10px;
-}
+    /*background-repeat: no-repeat !important;*/
+    /*margin-right: 2px !important;*/
+    /*padding-right: 2px !important;*/
+    /*float: left;*/
+/*}*/
+/*#result_list th .col-filtered a{*/
+    /*background-image: none !important;*/
+/*}*/
+/*table .linktomodel, table .linktomodel {*/
+    /*background-image: url("../img/link.png");*/
+    /*background-repeat: no-repeat;*/
+    /*float: right;*/
+    /*width: 16px;*/
+    /*height: 16px;*/
+    /*padding-left: 10px;*/
+/*}*/
 
 .w200 {
     min-width: 200px;
@@ -42,76 +49,145 @@ table .linktomodel, table .linktomodel {
 
 }
 
-div.cell-menu {
-    /*float: left;*/
-    /*float: right;*/
-    top: -20px;
-    width: 10px;
-    height: 5px;
-    right: -20px;
-    padding: 0px;
-    margin-right: 10px;
-    /*border: 1px solid red;*/
+td.iadmin-cell-filter{
+    /*text-wrap: none;*/
+    /*border: 1px solid blue;*/
+    /*background-image: url("../img/cell_menu.png");*/
+    /*position: relative;*/
 }
 
-div.cell-menu  a.cell-menu-button {
+.iadmin-cell-menu-container {
+    /*float: right;*/
+    float: left;
+    /*top: -20px;*/
+    /*width: 100px;*/
+    /*height: 5px;*/
+    /*right: -20px;*/
+    /*padding: 0px;*/
+    /*padding-right: 10px;*/
+    /*background-color: #FFFFFF;*/
+    position: relative;
+    /*margin-left: 10px;*/
+    /*margin-right: 10px;*/
+    /*left : -20px;*/
+    /*border: 1px solid red;*/
+    /*display: block;*/
+}
+
+.iadmin-cell-menu-button {
     background-image: url("../img/cell_menu.png");
     background-repeat: no-repeat;
-    width: 10px;
+    /*border: 1px solid green;*/
+    width: 8px;
+    cursor: pointer;
+    height: 8px;
+    /*float: left;*/
+    margin-right: 5px;
+    /*padding-right: 10px;*/
+    /*top: -10px;*/
+    /*left: 50px;*/
+    /*line-height: 1px;*/
+    display: block;
+    /*position: inherit;*/
+    /*z-index: 1001;*/
 }
-
-div.cell-menu  ul {
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
+ul.iadmin-cell-menu{
+    display: none;
+    background-color: #FFFFFF;
+    position: absolute;
+    z-index: 1100;
     width: 118px;
-    /*width: 400px;*/
+    left: -10px;
+    float: left;
+    /*top:10px;*/
+    padding: 0px;
+    /*margin-top: 10px;*/
+    /*margin-left: 10px;*/
+    -moz-box-shadow: 5px 5px 5px #ccc;
+    -webkit-box-shadow: 5px 5px 5px #ccc;
+    box-shadow: 5px 5px 5px #ccc;
+    border: 1px solid gray;
 }
-
-div.cell-menu ul li {
-    position: relative;
+li.iadmin-cell-menu-item{
     list-style-type: none;
     padding: 3px;
 }
-
-div.cell-menu li ul {
-    display: none;
-    background: #FFFFFF;
-    left: 0px;
-    #width: 1130px;
-    border: 1px solid #ccc;
-    position: absolute;
-    z-index: 2;
-    top: 0px;
+li.iadmin-cell-menu-item:hover {
+    background-color: #f0f0f0;
+    color: #000000;
 }
-
-div.cell-menu ul li a {
-    text-decoration: none;
-    padding: 5px;
-    border-bottom: 0;
+.shadow {
+    -moz-box-shadow: 5px 5px 5px #ccc;
+    -webkit-box-shadow: 5px 5px 5px #ccc;
+    box-shadow: 5px 5px 5px #ccc;
 }
+/*td.cell-filter{*/
+    /*padding-left: 20px;*/
+/*}*/
+/*.cell-menu *{*/
+    /*float: left;*/
+    /*z-index: 2000;*/
+/*}*/
+/*.cell-menu  ul {*/
+    /*margin: 0;*/
+    /*padding: 0;*/
+    /*list-style-type: none;*/
+    /*width: 118px;*/
 
-div.cell-menu  li:hover ul, li.over ul {
-    display: block;
-}
+    /*width: 400px;*/
+/*}*/
 
-div.alphabetic-filter span{
-    width: 50px;
-    height: 50px;
-    line-height: 20pt;
-    margin: 0px;
-    padding: 2px;
-    text-align: center;
+/*.cell-menu ul li {*/
+    /*position: relative;*/
+    /*list-style-type: none;*/
+    /*padding: 3px;*/
+    /*border: 1px solid green;*/
+    /*background: #FFFFFF;*/
+    /*width: 100%;*/
+/*}*/
+
+/*.cell-menu ul li:hover {*/
+    /*background-color: #f0f0f0;*/
+    /*color: #000000;*/
+/*}*/
+/*.cell-menu li ul {*/
+    /*display: none;*/
+    /*background: #FFFFFF;*/
+    /*left: 0px;*/
+    /*#width: 1130px;*/
+    /*border: 1px solid #ccc;*/
+    /*position: absolute;*/
+    /*z-index: 2;*/
+    /*top: 0px;*/
+/*}*/
+
+/*.cell-menu ul li a {*/
+    /*text-decoration: none;*/
+    /*padding: 5px;*/
+    /*border-bottom: 0;*/
+/*}*/
+
+/*.cell-menu  li:hover ul, li.over ul {*/
+    /*display: block;*/
+/*}*/
+
+/*div.alphabetic-filter span{*/
+    /*width: 50px;*/
+    /*height: 50px;*/
+    /*line-height: 20pt;*/
+    /*margin: 0px;*/
+    /*padding: 2px;*/
+    /*text-align: center;*/
     /*border: 1px solid red;*/
-    position: relative;
-}
+    /*position: relative;*/
+/*}*/
 
-#changelist-filter div.alphabetic-filter span.selected a{
-    color: #5B80B2;
-    font-weight: bold;
-}
+/*#changelist-filter div.alphabetic-filter span.selected a{*/
+    /*color: #5B80B2;*/
+    /*font-weight: bold;*/
+/*}*/
 
-.itools{
-    border: 1px solid black;
-    align:right;
-}
+/*.itools{*/
+    /*border: 1px solid black;*/
+    /*align:right;*/
+/*}*/

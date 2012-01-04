@@ -17,7 +17,6 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin import helpers
 from django.utils import formats
 from django.utils import dateformat
-from iadmin.plugins.csv.utils import graph_form_factory
 
 
 delimiters = ",;|:"

@@ -1,4 +1,4 @@
-import django
+from datetime import datetime
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.options import IncorrectLookupParameters, csrf_protect_m
@@ -6,29 +6,29 @@ from django.contrib.admin.util import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models.fields import AutoField
-from . import widgets
-from . import actions as ac
+from django.db.models.related import RelatedObject
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse, SimpleTemplateResponse
+from django.utils import dateformat
 from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
-from django.db import models, transaction
-from . import ajax
-from django.utils.html import escape
+from django.utils.html import escape, escapejs
 from django.utils.safestring import mark_safe
-import logging
 from .views import IChangeList
-import django.utils.simplejson as json
-from iadmin.widgets import RelatedFieldWidgetWrapperLinkTo
 from django.utils.translation import ugettext as _, ungettext
-import django.core.serializers
-
+import iadmin.actions as ac
 __all__ = ['IModelAdmin', 'ITabularInline']
 
 AUTOCOMPLETE = 'a'
 JSON = 'j'
 PJSON = 'p'
+
+
+from django.db.models import options
+def get_view_permission(self):
+    return 'view_%s' % self.object_name.lower()
+options.Options.get_view_permission = get_view_permission
 
 class IModelAdmin(DjangoModelAdmin):
     """
@@ -37,9 +37,9 @@ class IModelAdmin(DjangoModelAdmin):
     add_undefined_fields = False
     list_display_rel_links = ()
     cell_filter = ()
-    cell_menu_on_click = False # if true need to click on icon else mouseover is enough
-    ajax_search_fields = None
-    ajax_list_display = None # always use searchable fields. Never __str__ ol similar
+    cell_menu_on_click = True # if true need to click on icon else mouseover is enough
+#    ajax_search_fields = None
+#    ajax_list_display = None # always use searchable fields. Never __str__ ol similar
     autocomplete_ajax = False
     #    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
@@ -47,10 +47,12 @@ class IModelAdmin(DjangoModelAdmin):
     columns_attributes = {}
     cell_filter_operators = {}
 
+    class Media:
+        js = ("iadmin/js/iwidgets.js",)
 
     def __init__(self, model, admin_site):
-        self.ajax_search_fields = self.ajax_search_fields or self.search_fields
-        self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
+#        self.ajax_search_fields = self.ajax_search_fields or self.search_fields
+#        self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
@@ -61,23 +63,48 @@ class IModelAdmin(DjangoModelAdmin):
             acts.pop('delete_selected')
         return acts
 
-    def has_change_permission(self, request, obj=None):
-        return super(IModelAdmin, self).has_change_permission(request, obj)
+    def get_model_perms(self, request):
+        """
+        Returns a dict of all perms for this model. This dict has the keys
+        ``add``, ``change``, and ``delete`` mapping to the True/False for each
+        of those actions.
+        """
+        return {
+            'add': self.has_add_permission(request),
+            'change': self.has_change_permission(request),
+            'delete': self.has_delete_permission(request),
+            'view': self.has_view_permission(request),
+        }
 
     def has_view_permission(self, request, obj=None):
+        """
+        Returns True if the given request has permission to change or view
+        the given Django model instance.
+
+        If `obj` is None, this should return True if the given request has
+        permission to change *any* object of the given type.
+        """
         opts = self.opts
         return self.has_change_permission(request, obj) or\
-               request.user.has_perm(opts.app_label + '.' + 'view_%s' % self.model.__name__.lower())
+           request.user.has_perm(opts.app_label + '.' + opts.get_view_permission() )
 
-#    def response_add(self, request, obj, post_url_continue='../%s/'):
+    def response_add(self, request, obj, post_url_continue='../%s/'):
+        opts = obj._meta
+        if self.has_view_permission(request, None) and not self.has_change_permission(request, None):
+            post_url = reverse('admin:%s_%s_changelist' %
+                               (opts.app_label, opts.module_name),
+                               current_app=self.admin_site.name)
+            return HttpResponseRedirect(post_url)
+        else:
+            return super(IModelAdmin, self).response_add(request, obj, post_url_continue='../%s/')
+
 #        """
 #        Determines the HttpResponse for the add_view stage.
 #        """
 #        opts = obj._meta
 #        pk_value = obj._get_pk_val()
 #
-#        msg = _('The %(name)s "%(obj)s" was added successfully.') % {'name': force_unicode(opts.verbose_name),
-#                                                                     'obj': force_unicode(obj)}
+#        msg = _('The %(name)s "%(obj)s" was added successfully.') % {'name': force_unicode(opts.verbose_name), 'obj': force_unicode(obj)}
 #        # Here, we distinguish between different save types by checking for
 #        # the presence of keys in request.POST.
 #        if "_continue" in request.POST:
@@ -88,12 +115,12 @@ class IModelAdmin(DjangoModelAdmin):
 #
 #        if "_popup" in request.POST:
 #            return HttpResponse(
-#                '<script type="text/javascript">opener.dismissAddAnotherPopup(window, "%s", "%s");</script>' %\
+#                '<!DOCTYPE html><html><head><title></title></head><body>'
+#                '<script type="text/javascript">opener.dismissAddAnotherPopup(window, "%s", "%s");</script></body></html>' % \
 #                # escape() calls force_unicode.
 #                (escape(pk_value), escapejs(obj)))
 #        elif "_addanother" in request.POST:
-#            self.message_user(request,
-#                              msg + ' ' + (_("You may add another %s below.") % force_unicode(opts.verbose_name)))
+#            self.message_user(request, msg + ' ' + (_("You may add another %s below.") % force_unicode(opts.verbose_name)))
 #            return HttpResponseRedirect(request.path)
 #        else:
 #            self.message_user(request, msg)
@@ -102,9 +129,12 @@ class IModelAdmin(DjangoModelAdmin):
 #            # redirect to the change-list page for this object. Otherwise,
 #            # redirect to the admin index.
 #            if self.has_change_permission(request, None) or self.has_view_permission(request, None):
-#                post_url = '../'
+#                post_url = reverse('admin:%s_%s_changelist' %
+#                                   (opts.app_label, opts.module_name),
+#                                   current_app=self.admin_site.name)
 #            else:
-#                post_url = '../../../'
+#                post_url = reverse('admin:index',
+#                                   current_app=self.admin_site.name)
 #            return HttpResponseRedirect(post_url)
 
     def get_model_perms(self, request):
@@ -151,14 +181,34 @@ class IModelAdmin(DjangoModelAdmin):
         original = super(IModelAdmin, self).lookup_allowed(lookup, value)
         if original:
             return True
+        model = self.model
         parts = lookup.split(LOOKUP_SEP)
         if len(parts) > 1 and parts[-1] in QUERY_TERMS:
             parts.pop()
+
+        pk_attr_name = None
+        for part in parts[:-1]:
+            field, _, _, _ = model._meta.get_field_by_name(part)
+            if hasattr(field, 'rel'):
+                model = field.rel.to
+                pk_attr_name = model._meta.pk.name
+            elif isinstance(field, RelatedObject):
+                model = field.model
+                pk_attr_name = model._meta.pk.name
+            else:
+                pk_attr_name = None
+        if pk_attr_name and len(parts) > 1 and parts[-1] == pk_attr_name:
+            parts.pop()
         clean_lookup = LOOKUP_SEP.join(parts)
-        return clean_lookup in self.extra_allowed_filter
+
+        flat_filter = [lambda v: isinstance(v, tuple) and v[0] or v for v in self.list_filter ]
+
+        return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
     def changelist_view(self, request, extra_context=None):
-        "The 'change list' admin view for this model."
+        """
+        The 'change list' admin view for this model.
+        """
         from django.contrib.admin.views.main import ERROR_FLAG
 
         opts = self.model._meta
@@ -166,20 +216,22 @@ class IModelAdmin(DjangoModelAdmin):
         if not (self.has_change_permission(request, None) or self.has_view_permission(request, None)):
             raise PermissionDenied
 
+        list_display = self.get_list_display(request)
+        list_display_links = self.get_list_display_links(request, list_display)
+
         # Check actions to see if any are available on this changelist
         actions = self.get_actions(request)
-        # Remove action checkboxes if there aren't any actions available.
-        list_display = list(self.get_list_display(request))
         if actions:
             # Add the action checkboxes if there are any actions available.
-            list_display = ['action_checkbox'] +  list(list_display)
+            list_display = ['action_checkbox'] + list(list_display)
 
         ChangeList = self.get_changelist(request)
         try:
-            cl = ChangeList(request, self.model, list_display, self.list_display_links,
-                self.list_filter, self.date_hierarchy, self.search_fields,
-                self.list_select_related, self.list_per_page, self.list_max_show_all, self.list_editable, self)
-
+            cl = ChangeList(request, self.model, list_display,
+                list_display_links, self.list_filter, self.date_hierarchy,
+                self.search_fields, self.list_select_related,
+                self.list_per_page, self.list_max_show_all, self.list_editable,
+                self)
             cl.readonly = not self.has_change_permission(request, None)
         except IncorrectLookupParameters:
             # Wacky lookup parameters were given, so redirect to the main
@@ -200,7 +252,6 @@ class IModelAdmin(DjangoModelAdmin):
         # below.
         action_failed = False
         selected = request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)
-
 
         # Actions with no confirmation
         if (actions and request.method == 'POST' and
@@ -244,7 +295,7 @@ class IModelAdmin(DjangoModelAdmin):
                     if form.has_changed():
                         obj = self.save_form(request, form, change=True)
                         self.save_model(request, obj, form, change=True)
-                        form.save_m2m()
+                        self.save_related(request, form, formsets=[], change=True)
                         change_msg = self.construct_change_message(request, form, None)
                         self.log_change(request, obj, change_msg)
                         changecount += 1
@@ -255,10 +306,10 @@ class IModelAdmin(DjangoModelAdmin):
                     else:
                         name = force_unicode(opts.verbose_name_plural)
                     msg = ungettext("%(count)s %(name)s was changed successfully.",
-                                    "%(count)s %(name)s were changed successfully.",
-                                    changecount) % {'count': changecount,
-                                                    'name': name,
-                                                    'obj': force_unicode(obj)}
+                        "%(count)s %(name)s were changed successfully.",
+                        changecount) % {'count': changecount,
+                                        'name': name,
+                                        'obj': force_unicode(obj)}
                     self.message_user(request, msg)
 
                 return HttpResponseRedirect(request.get_full_path())
@@ -282,7 +333,7 @@ class IModelAdmin(DjangoModelAdmin):
             action_form = None
 
         selection_note_all = ungettext('%(total_count)s selected',
-                                       'All %(total_count)s selected', cl.result_count)
+            'All %(total_count)s selected', cl.result_count)
 
         context = {
             'module_name': force_unicode(opts.verbose_name_plural),
@@ -293,12 +344,12 @@ class IModelAdmin(DjangoModelAdmin):
             'cl': cl,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
-            'has_view_permission': self.has_view_permission(request),
             'app_label': app_label,
             'action_form': action_form,
             'actions_on_top': self.actions_on_top,
             'actions_on_bottom': self.actions_on_bottom,
             'actions_selection_counter': self.actions_selection_counter,
+            'has_view_permission': self.has_view_permission(request),
             'cell_menu_on_click': self.cell_menu_on_click,
             }
         context.update(extra_context or {})
@@ -309,109 +360,104 @@ class IModelAdmin(DjangoModelAdmin):
             'iadmin/change_list.html'
         ], context, current_app=self.admin_site.name)
 
-    #    def changelist_view(self, request, extra_context=None):
-    #        opts = self.model._meta
-    #        app_label = opts.app_label
-    #        self.change_list_template = self.change_list_template or [
-    #            'iadmin/change_list.html',
-    #            'admin/change_list.html'
-    #        ]
-    #        extra_context = {'cell_menu_on_click': self.cell_menu_on_click}
-    #        return super(IModelAdmin, self).changelist_view(request, extra_context)
-
     def get_changelist(self, request, **kwargs):
         return IChangeList
 
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        request = kwargs.pop("request", None)
-        if isinstance(db_field, models.ForeignKey):
-            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            related_modeladmin = self.admin_site._registry.get(db_field.rel.to, None)
-            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
-                service = reverse('admin:%s_%s_ajax' % (
-                    related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name))
-                if service:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
-                                                                   service=service)
-                return formfield
-            elif formfield:
-                formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
-                return formfield
+#    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+#        ret =  super(IModelAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+#        if db_field.name in (list(self.filter_vertical) + list(self.filter_horizontal)):
+#            kwargs['widget'] = widgets.FilteredSelectMultiple(db_field.verbose_name, (db_field.name in self.filter_vertical))
+#        return ret
 
-        return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
-
-
-
-    def ajax_query(self, request):
-        """
-            ajax service to perform autocomplete widget queries
-        """
-
-        def construct_search(field_name):
-            if field_name.startswith('^'):
-                return "%s__istartswith" % field_name[1:]
-            elif field_name.startswith('='):
-                return "%s__iexact" % field_name[1:]
-            elif field_name.startswith('@'):
-                return "%s__search" % field_name[1:]
-            else:
-                return "%s__icontains" % field_name
+#    def formfield_for_dbfield(self, db_field, **kwargs):
+#        request = kwargs.pop("request", None)
+#        if isinstance(db_field, models.ForeignKey):
+#            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+#            related_modeladmin = self.admin_site._registry.get(db_field.rel.to, None)
+#            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
+#                service = reverse('admin:%s_%s_ajax' % (
+#                    related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name))
+#                if service:
+#                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
+#                        service=service)
+#                return formfield
+#            elif formfield:
+#                formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
+#                return formfield
+#
+#        return super(IModelAdmin, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
 
-        bit = request.GET.get('q', '')
-        fmt = request.GET.get('fmt', AUTOCOMPLETE)
+#    def ajax_query(self, request):
+#        """
+#            ajax service to perform autocomplete widget queries
+#        """
+#
+#        def construct_search(field_name):
+#            if field_name.startswith('^'):
+#                return "%s__istartswith" % field_name[1:]
+#            elif field_name.startswith('='):
+#                return "%s__iexact" % field_name[1:]
+#            elif field_name.startswith('@'):
+#                return "%s__search" % field_name[1:]
+#            else:
+#                return "%s__icontains" % field_name
+#
+#
+#        bit = request.GET.get('q', '')
+#        fmt = request.GET.get('fmt', AUTOCOMPLETE)
+#
+#        logging.info(self.ajax_search_fields)
+#        logging.info(self.search_fields)
+#
+#        logging.info([{construct_search(str(field_name)): bit} for field_name in self.ajax_search_fields])
+#
+#        if bit == '?': # show all if user inputs `?`
+#            or_queries = {}
+#        else:
+#            or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in
+#                          self.ajax_search_fields]
+#
+#        flds = list(self.ajax_list_display)
+#        field_names = [f.name for f in self.model._meta.fields]
+#        qs = self.model.objects.filter(*or_queries)
+#        logging.info(qs)
+#        data = []
+#        for record in qs:
+#            row = [force_unicode(record.pk)]
+#            for fname in flds:
+#                if hasattr(record, fname):
+#                    attr = getattr(record, fname)
+#                    if callable(attr):
+#                        val = attr()
+#                    elif hasattr(self, fname):
+#                        val = attr
+#                    elif fname in field_names:
+#                        val = attr
+#                elif hasattr(self, fname):
+#                    attr = getattr(self, fname)
+#                    val = attr(record)
+#
+#                row.append(force_unicode(val))
+#            data.append(row)
+#
+#        if fmt == JSON:
+#            ret = json.dumps(list(data))
+#        elif fmt == PJSON:
+#            ser = django.core.serializers.get_serializer('json')
+#            ret = ser().serialize(qs)
+#        else: #AUTOCOMPLETE
+#            ret = '\n'.join(map("|".join, data))
+#        #        raise Exception( qs )
+#        return HttpResponse(ret, content_type='text/plain')
 
-        logging.info(self.ajax_search_fields )
-        logging.info(self.search_fields )
 
-        logging.info([{construct_search(str(field_name)): bit} for field_name in self.ajax_search_fields] )
-
-        if bit == '?': # show all if user inputs `?`
-            or_queries = {}
-        else:
-            or_queries = [models.Q(**{construct_search(str(field_name)): bit}) for field_name in
-                          self.ajax_search_fields]
-
-        flds = list(self.ajax_list_display)
-        field_names = [f.name for f in self.model._meta.fields]
-        qs = self.model.objects.filter(*or_queries)
-        logging.info( qs )
-        data = []
-        for record in qs:
-            row = [force_unicode(record.pk)]
-            for fname in flds:
-                if hasattr(record, fname):
-                    attr = getattr(record, fname)
-                    if callable(attr):
-                        val = attr()
-                    elif hasattr(self, fname):
-                        val = attr
-                    elif fname in field_names:
-                        val = attr
-                elif hasattr(self, fname):
-                    attr = getattr(self, fname)
-                    val = attr(record)
-
-                row.append(force_unicode(val))
-            data.append(row)
-
-        if fmt == JSON:
-            ret = json.dumps(list(data))
-        elif fmt == PJSON:
-            ser = django.core.serializers.get_serializer('json')
-            ret = ser().serialize(qs)
-        else: #AUTOCOMPLETE
-            ret = '\n'.join(map("|".join, data))
-#        raise Exception( qs )
-        return HttpResponse(ret, content_type='text/plain')
-
-
-    @csrf_protect_m
-    @transaction.commit_on_success
-    def change_view(self, request, object_id, extra_context=None):
-        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
-
+#    @csrf_protect_m
 #    @transaction.commit_on_success
+#    def change_view(self, request, object_id, extra_context=None):
+#        return super(IModelAdmin, self).change_view(request, object_id, extra_context)
+
+    #    @transaction.commit_on_success
     def display_view(self, request, object_id, extra_context=None):
         "The 'display' admin view for this model."
         model = self.model
@@ -424,8 +470,8 @@ class IModelAdmin(DjangoModelAdmin):
             raise PermissionDenied
 
         if obj is None:
-            raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {'name': force_unicode(opts.verbose_name), 'key': escape(object_id)})
-
+            raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
+                'name': force_unicode(opts.verbose_name), 'key': escape(object_id)})
 
         ModelForm = self.get_form(request, obj)
         formsets = []
@@ -437,7 +483,7 @@ class IModelAdmin(DjangoModelAdmin):
             if prefixes[prefix] != 1:
                 prefix = "%s-%s" % (prefix, prefixes[prefix])
             formset = FormSet(instance=obj, prefix=prefix,
-                              queryset=inline.queryset(request))
+                queryset=inline.queryset(request))
             formsets.append(formset)
 
         adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
@@ -467,7 +513,7 @@ class IModelAdmin(DjangoModelAdmin):
             'inline_admin_formsets': inline_admin_formsets,
             'errors': helpers.AdminErrorList(form, formsets),
             'app_label': opts.app_label,
-        }
+            }
         context.update(extra_context or {})
         return self.render_change_form(request, context, change=True, obj=obj)
 
@@ -477,6 +523,9 @@ class IModelAdmin(DjangoModelAdmin):
 
         return super(IModelAdmin, self).get_readonly_fields(request, obj)
 
+    def format_date(self, request):
+        d = datetime.datetime.now()
+        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
     def get_urls(self):
         def wrap(view, cacheable=False):
@@ -488,28 +537,28 @@ class IModelAdmin(DjangoModelAdmin):
         info = self.model._meta.app_label, self.model._meta.module_name
         #        urlpatterns = super(IModelAdmin, self).get_urls()
         urlpatterns = patterns('',
-                               url(r'^$',
-                                   wrap(self.changelist_view),
-                                   name='%s_%s_changelist' % info),
-                               url(r'^add/$',
-                                   wrap(self.add_view),
-                                   name='%s_%s_add' % info),
-                               url(r'^(.+)/history/$',
-                                   wrap(self.history_view),
-                                   name='%s_%s_history' % info),
-                               url(r'^(.+)/delete/$',
-                                   wrap(self.delete_view),
-                                   name='%s_%s_delete' % info),
-                               url(r'^(.+)/view/$',
-                                   wrap(self.display_view),
-                                   name='%s_%s_display' % info),
-                               url(r'^ajax/search$',
-                                   wrap(self.ajax_query),
-                                   name='%s_%s_ajax' % info),
-                               url(r'^(.+)/$',
-                                   wrap(self.change_view),
-                                   name='%s_%s_change' % info),
-                               )
+            url(r'^$',
+                wrap(self.changelist_view),
+                name='%s_%s_changelist' % info),
+            url(r'^add/$',
+                wrap(self.add_view),
+                name='%s_%s_add' % info),
+            url(r'^(.+)/history/$',
+                wrap(self.history_view),
+                name='%s_%s_history' % info),
+            url(r'^(.+)/delete/$',
+                wrap(self.delete_view),
+                name='%s_%s_delete' % info),
+            url(r'^(.+)/view/$',
+                wrap(self.display_view),
+                name='%s_%s_display' % info),
+#            url(r'^ajax/search$',
+#                wrap(self.ajax_query),
+#                name='%s_%s_ajax' % info),
+            url(r'^(.+)/$',
+                wrap(self.change_view),
+                name='%s_%s_change' % info),
+        )
         return urlpatterns
 
     def _declared_fieldsets(self):
@@ -538,7 +587,7 @@ class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
     autocomplete_ajax = False
-    
+
     #if True enable link to change view from inlines. Must be False if the related Model is not registered in the admin
     edit_link = False
 
@@ -547,41 +596,41 @@ class ITabularInline(DjangoTabularInline):
         formset.edit_link = self.edit_link
         return formset
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        formfield = super(ITabularInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
-        if formfield and db_field.name not in self.raw_id_fields:
-            formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
-        return formfield
+#    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+#        formfield = super(ITabularInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+#        if formfield and db_field.name not in self.raw_id_fields:
+#            formfield.widget = widgets.RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
+#        return formfield
 
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        request = kwargs.pop("request", None)
-        if isinstance(db_field, models.ForeignKey):
-            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            modeladmin = self.admin_site._registry.get(db_field.rel.to, False)
-            if isinstance(modeladmin, IModelAdmin):
-                service = reverse(
-                    'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name))
-                if (service is not None) and db_field.name not in self.raw_id_fields:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
-                                                                   service=service)
-            return formfield
+#    def formfield_for_dbfield(self, db_field, **kwargs):
+#        request = kwargs.pop("request", None)
+#        if isinstance(db_field, models.ForeignKey):
+#            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+#            modeladmin = self.admin_site._registry.get(db_field.rel.to, False)
+#            if isinstance(modeladmin, IModelAdmin):
+#                service = reverse(
+#                    'admin:%s_%s_ajax' % (modeladmin.model._meta.app_label, modeladmin.model._meta.module_name))
+#                if (service is not None) and db_field.name not in self.raw_id_fields:
+#                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
+#                        service=service)
+#            return formfield
+#
+#        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
 
-        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
-
-    def dformfield_for_dbfield(self, db_field, **kwargs):
-        request = kwargs.pop("request", None)
-        if isinstance(db_field, models.ForeignKey):
-            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
-            related_modeladmin = self.admin_site._registry.get(db_field.rel.to, None)
-            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
-                service = reverse('admin:%s_%s_ajax' % (
-                    related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name))
-                if service:
-                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
-                                                                   service=service)
-                return formfield
-            elif formfield:
-                formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
-                return formfield
-
-        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)
+#    def dformfield_for_dbfield(self, db_field, **kwargs):
+#        request = kwargs.pop("request", None)
+#        if isinstance(db_field, models.ForeignKey):
+#            formfield = self.formfield_for_foreignkey(db_field, request, **kwargs)
+#            related_modeladmin = self.admin_site._registry.get(db_field.rel.to, None)
+#            if self.autocomplete_ajax and  hasattr(related_modeladmin, 'ajax_query'):
+#                service = reverse('admin:%s_%s_ajax' % (
+#                    related_modeladmin.model._meta.app_label, related_modeladmin.model._meta.module_name))
+#                if service:
+#                    formfield.widget = ajax.AjaxFieldWidgetWrapper(formfield.widget, db_field.rel, self.admin_site,
+#                        service=service)
+#                return formfield
+#            elif formfield:
+#                formfield.widget = RelatedFieldWidgetWrapperLinkTo(formfield.widget, db_field.rel, self.admin_site)
+#                return formfield
+#
+#        return super(ITabularInline, self).formfield_for_dbfield(db_field, request=request, **kwargs)

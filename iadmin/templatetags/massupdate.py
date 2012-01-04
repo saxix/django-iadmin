@@ -16,13 +16,15 @@ fields_values = register.simple_tag(fields_values)
 
 def link_fields_values(d, k):
     """
-    Returns the string contained in the setting ADMIN_MEDIA_PREFIX.
+    >>> data = {'name1': ['value1.1', 'value1.2'], 'name2': ['value2.1', 'value2.2'], }
+    >>> link_fields_values(data, 'name1')
+    u'<a href="#" class="fastfieldvalue name1">value1.1</a>, <a href="#" class="fastfieldvalue name1">value1.2</a>'
     """
     ret = []
     for v in d.get(k,[]):
         if v == '': # ignore empty
             continue
-        ret.append('<a href="#" class="fastfieldvalue %s">%s</a>' % (k, force_unicode(v)))
+        ret.append('<a href="#" class="fastfieldvalue %s value">%s</a>' % (k, force_unicode(v)))
         
     return mark_safe(", ".join(ret))
 

@@ -6,7 +6,7 @@ DATADIR = os.path.join(os.path.dirname(__file__), 'data')
 
 class CSVImporterTest(TestCase):
 
-    def import_csv_without_headers(self):
+    def test_import_csv_without_headers(self):
         f = open(os.path.join(DATADIR, 'user_with_headers.csv'), 'rb')
         url = reverse('admin:model_import_csv', kwargs=dict(app='auth', model='user', page=1))
         self.client.login()
