@@ -1,3 +1,4 @@
+from iadmin.filters import FieldComboFilter, FieldCheckBoxFilter, FieldRadioFilter
 from django.contrib.admin.options import TabularInline
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import User, Group, Permission
@@ -14,7 +15,7 @@ class IUserAdmin(UserAdmin, IModelAdmin):
     cell_filter_operators = {'last_login': ('exact', 'not', 'lt', 'gt')}
 
 
-    list_filter = ('groups',)
+    list_filter = ( ('groups',FieldCheckBoxFilter), )
     search_fields = ('username', )
     actions = [mass_update]
 

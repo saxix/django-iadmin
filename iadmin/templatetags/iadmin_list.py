@@ -331,12 +331,11 @@ def iresult_list(context, cl):
 #    context['tool_index'] = context.get('tool_index', -1) + 1
 #    return context
 
-#@register.inclusion_tag('admin/filter.html')
 @register.simple_tag()
-def iadmin_list_filter(cl, spec):
-    if hasattr(spec, 'template'):
-        t = select_template([spec.template, 'admin/filter.html'])
+def admin_list_filter(cl, spec):
+    if hasattr(spec, 'template') and spec.template:
+        t = get_template(spec.template)
     else:
         t = get_template('admin/filter.html')
-    ctx = Context({'title': spec.title, 'choices' : list(spec.choices(cl))})
+    ctx = Context({'title': spec.title, 'choices' : list(spec.choices(cl)), 'spec': spec})
     return t.render(ctx)
