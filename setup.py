@@ -62,13 +62,13 @@ setup(
     include_package_data=True,
     platforms=['any'],
     zip_safe=False,
-    install_requires=['mock', 'django-extra-fields', 'django-admin-tools'],
+    install_requires=[],
     command_options={
         'build_sphinx': {
             'version': ('setup.py', VERSION),
             'release': ('setup.py', RELEASE)}
     },
-    classifiers=['Development Status :: 4 - Beta',
+    classifiers=['Development Status :: 3 - Alpha',
                  'Environment :: Web Environment',
                  'Framework :: Django',
                  'Operating System :: OS Independent',
