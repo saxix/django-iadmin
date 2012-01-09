@@ -332,7 +332,7 @@ def iresult_list(context, cl):
 #    return context
 
 @register.simple_tag()
-def admin_list_filter(cl, spec):
+def iadmin_list_filter(cl, spec):
     if hasattr(spec, 'template') and spec.template:
         t = get_template(spec.template)
     else:
