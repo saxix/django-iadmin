@@ -64,3 +64,24 @@ span.success{
     background-size: auto auto;
     padding-left: 12px;
 }
+
+#tabs{
+    float: left;
+    width: 800px;
+    /*font-size: 48px;*/
+    /*position: absolute;*/
+}
+
+#tabs.info{
+    float: left;
+    width: 800px;
+    /*font-size: 48px;*/
+    /*position: absolute;*/
+}
+
+#tabs.info TD{
+    /*float: left;*/
+    width: 800px;
+    font-size: 14px;
+    line-height: 16px;
+}

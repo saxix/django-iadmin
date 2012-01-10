@@ -1,9 +1,9 @@
-#import django.contrib.admin
-from django.contrib.admin import *
-#from iadmin.sites import IAdminSite, IPublicSite, site
-#django.contrib.admin.site = django.contrib.admin.sites.site = site
-#
-from iadmin.options import IModelAdmin as ModelAdmin, ITabularInline as TabularInline
+import django.contrib.admin
+import iadmin
 from iadmin.options import IModelAdmin, ITabularInline
-##from admin import iautodiscover as autodiscover
 
+def patch():
+    django.contrib.admin.site = iadmin.sites.site
+    django.contrib.admin.ModelAdmin = IModelAdmin
+    django.contrib.admin.TabularInline = ITabularInline
+    django.contrib.admin.autodiscover = iadmin.sites.site.autodiscover

@@ -1,4 +1,4 @@
-{% extends "iadmin/base.html" %}
+{% extends "admin/base.html" %}
 {% load url from future %}
 {% load iadmin i18n %}
 {% block extrahead %}
@@ -11,7 +11,7 @@
 
     {% block userlinks %}
         {{ block.super }}
-         / <a href='{% url 'admin:iadmin.info' %}'>Info</a>&nbsp;&nbsp;&nbsp;
+         / <a href='{% url 'iadmin:info' %}'>Info</a>&nbsp;&nbsp;&nbsp;
     {% endblock userlinks %}
 
 

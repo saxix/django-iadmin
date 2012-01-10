@@ -5,14 +5,14 @@
         (function($) {
             $(document).ready(function($) {
                 $('#id_datetime_format, #id_date_format, #id_time_format,').after('&nbsp;&nbsp;<span class="sample"></span>');
-
-{#                var get_format = function ( sender ) {#}
-{#                    $.get('{% url admin:format_date %}', {'fmt': $(sender).val()},#}
-{#                            function(data) {#}
-{#                                $(sender).next('.sample').html(data);#}
-{#                            }#}
-{#                    );#}
-{#                };#}
+                var _url = "{% url iadmin:format_date %}";
+                var get_format = function ( sender ) {
+                    $.get(_url, {'fmt': $(sender).val()},
+                            function(data) {
+                                $(sender).next('.sample').html(data);
+                            }
+                    );
+                };
 
                 $('#id_datetime_format, #id_date_format, #id_time_format,').keyup(function() {
                     clearTimeout($(this).data('timer'));

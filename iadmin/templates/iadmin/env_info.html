@@ -1,17 +1,17 @@
 {% extends "admin/index.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 {% block extrahead %}{{ block.super }}
-{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>#}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>
-    
+
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/iadmin.js"></script>
     <script>
-        (function($) {
-            $(document).ready(function() {
-                var $tabs = $('#tabs').tabs({ cookie: { expires: 30 }});
+        (function ($) {
+            $(document).ready(function () {
+                var $tabs = $('#tabs').tabs({ cookie:{ expires:30 }});
             });
         })(jQuery);
     </script>
@@ -20,7 +20,7 @@
 {% block breadcrumbs %}
     {% if not is_popup %}
         <div class="breadcrumbs">
-            <a href="../../">{% trans "Home" %}</a> &rsaquo;
+            <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
             Info
         </div>
     {% endif %}
@@ -28,7 +28,7 @@
 
 
 {% block content %}
-    <div id="tabs">
+    <div id="tabs" class="info">
         <ul>
             <li><a href="#tabs-apps" class="">&nbsp;&nbsp;Applications&nbsp;&nbsp;</a></li>
             <li><a href="#tabs-sys" class="">&nbsp;&nbsp;System&nbsp;&nbsp;</a></li>
@@ -47,13 +47,34 @@
         </div>
         <div id="tabs-sys">
             <table>
-                <tr><td>Platform:</td><td>{{ sys.os.0 }}</td></tr>
-                <tr><td>Kernel</td><td>{{ sys.os.2 }}</td></tr>
-                <tr><td>OS</td><td>{{ sys.os.3 }}</td></tr>
-                <tr><td>Architecture</td><td>{{ sys.os.4 }}</td></tr>
-                <tr><td>Python:</td><td>{{ sys.version|join:"." }}</td></tr>
-                <tr><td>Django:</td><td>{{ sys.django }}</td></tr>
-                <tr><td>User</td><td>{{ os_user }}</td></tr>
+                <tr>
+                    <td>Platform:</td>
+                    <td>{{ sys.os.0 }}</td>
+                </tr>
+                <tr>
+                    <td>Kernel</td>
+                    <td>{{ sys.os.2 }}</td>
+                </tr>
+                <tr>
+                    <td>OS</td>
+                    <td>{{ sys.os.3 }}</td>
+                </tr>
+                <tr>
+                    <td>Architecture</td>
+                    <td>{{ sys.os.4 }}</td>
+                </tr>
+                <tr>
+                    <td>Python:</td>
+                    <td>{{ sys.version|join:"." }}</td>
+                </tr>
+                <tr>
+                    <td>Django:</td>
+                    <td>{{ sys.django }}</td>
+                </tr>
+                <tr>
+                    <td>User</td>
+                    <td>{{ os_user }}</td>
+                </tr>
             </table>
         </div>
 
@@ -68,14 +89,17 @@
 
         <div id="tabs-path">
             <table>
-            <tr><th>current dir: {{ curdir }}</th></tr>
+                <tr>
+                    <th>current dir: {{ curdir }}</th>
+                </tr>
                 {% for line in path %}
                     <tr>
                         <td>{{ line }}</td>
                     </tr>{% endfor %}
             </table>
         </div>
-
+    </div>
 
 
 {% endblock %}
+{% block sidebar %}{% endblock %}

@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.core import urlresolvers
 import re
-from .future import register
+from django.template.base import Library
+
+register = Library()
 
 @register.filter("range")
 def to_range( value ):

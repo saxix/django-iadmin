@@ -12,3 +12,6 @@ def get_version(release=True):
         if __version__[3] != 'final':
             version = '%s-%s' % (version, __version__[3])
     return version
+
+from .options import IModelAdmin, ITabularInline
+from .sites import IAdminSite, site
