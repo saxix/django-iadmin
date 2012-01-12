@@ -46,7 +46,7 @@ class IModelAdmin(DjangoModelAdmin):
     columns_classes = {}
     columns_attributes = {}
     cell_filter_operators = {}
-
+    tools = []
     class Media:
         js = ("iadmin/js/iwidgets.js",)
 
@@ -201,8 +201,7 @@ class IModelAdmin(DjangoModelAdmin):
             parts.pop()
         clean_lookup = LOOKUP_SEP.join(parts)
 
-        flat_filter = [lambda v: isinstance(v, tuple) and v[0] or v for v in self.list_filter ]
-
+        flat_filter = [isinstance(v, tuple) and v[0] or v for v in self.list_filter  ]
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
     def changelist_view(self, request, extra_context=None):
