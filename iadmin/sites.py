@@ -76,7 +76,7 @@ class IAdminService(object):
             for app_name in settings.INSTALLED_APPS:
                 mod = __import__(app_name)
                 ver = 'unknown'
-                for attr in ('__version__', '__VERSION__', 'VERSION', 'VERSION', 'get_version'):
+                for attr in ('__version__', '__VERSION__', 'VERSION', 'version', 'get_version'):
                     try:
                         ver = getattr(mod, attr)
                         if callable(ver):

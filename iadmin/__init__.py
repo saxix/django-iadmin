@@ -13,5 +13,4 @@ def get_version(release=True):
             version = '%s-%s' % (version, __version__[3])
     return version
 
-from .options import IModelAdmin, ITabularInline
-from .sites import IAdminSite, site
+

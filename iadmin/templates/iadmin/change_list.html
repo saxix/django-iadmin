@@ -39,9 +39,12 @@
     {% endif %}
 {% endblock %}
 
-{#{% block object-tools %}#}
-{#{{ block.super }}#}
-{#{% endblock %}#}
+{% block object-tools-items %}
+    {% for tool in  cl.model_admin.tools %}
+        <li></li><a class="addlink" href="{{ tool.url }}">{{ tool.label }} </a></li>
+    {% endfor %}
+{{ block.super }}
+{% endblock %}
 
 {% block result_list %}
     {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
