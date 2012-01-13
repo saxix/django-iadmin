@@ -1,16 +1,17 @@
 #from iadmin.utils import iter_get_attr
 
 
-from django.conf import settings
-from django.db.models.base import Model
+#from django.conf import settings
+#from django.db.models.base import Model
 #from django.contrib.admin.templatetags.admin_list import _boolean_icon
 
-from django.contrib.admin.util import lookup_field, display_for_field
-from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE, ORDER_VAR
-from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
+from django.contrib.admin.util import lookup_field, display_for_field, quote
+from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.context import Context
-from django.template.loader import get_template, select_template
+from django.template.loader import get_template
 from django.utils.html import escape, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -19,146 +20,59 @@ from django.utils.encoding import smart_unicode, force_unicode
 
 from django.contrib.admin.templatetags.admin_list import register, result_hidden_fields, _boolean_icon
 import django.contrib.admin.templatetags.admin_list as al
-
-
-#register = Library()
-
-#
-# Really do not understant why can't use  iadmin.utils.iter_get_attr
-def iter_get_attr(obj, attr, default=None):
-    """Recursive get object's attribute. May use dot notation.
-
-    >>> class C(object): pass
-    >>> a = C()
-    >>> a.b = C()
-    >>> a.b.c = 4
-    >>> iter_get_attr(a, 'b.c')
-    4
-    """
-    if '.' not in attr:
-        return getattr(obj, attr, default)
-    else:
-        L = attr.split('.')
-        return iter_get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
-    
-#def iadmin_list_filter(cl, spec):
-#    if hasattr(spec, "USE_OUTPUT_FUNC"):
-#        return spec.output(cl)
-#    else:
-#        ctx = {'title': spec.title,
-#               'choices': list(spec.choices(cl))
-#        }
-#        t = get_template('admin/filter.html')
-#        return t.render(Context(ctx))
-#
-#
-#iadmin_list_filter = register.simple_tag(iadmin_list_filter)
-
+from iadmin.utils import Null, iter_get_attr
 
 
 al__result_headers = al.result_headers
 def iresult_headers(cl):
-    # this allow us to be ready for django 1.4
     original = list(al__result_headers(cl))
-    active_filters = cl.get_filtered_field_columns()
-    list_display = cl.model_admin.list_display
+#    cell_filters = cl.get_cell_filters(cl.request)
+
     for i, field_name in enumerate(cl.list_display):
-#        print field_name, "model_admin.%s.admin_order_field" % field_name, iter_get_attr(cl, "model_admin.%s.admin_order_field" % field_name)
-
-        if iter_get_attr(cl, "model_admin.%s.admin_filter_field" % field_name):
-            lookup = iter_get_attr(cl, "model_admin.%s.admin_filter_field" % field_name)
-        else:
-            lookup = field_name
+#        filter = cl.cell_filters.get(field_name, Null())
+        filter = cl.cell_filters.get(field_name, Null())
         original_data = original[i]
-        if lookup in active_filters:
+        if filter.is_active(cl):
             original_data['filtered'] = True
-            original_data['clear_filter_url'] = cl.get_query_string({}, [lookup])
-
+            original_data['clear_filter_url'] = cl.get_query_string({}, filter.expected_parameters())
         yield original_data
 
-def process_cell_filter(cl, field, attr, value, obj):
-    labels = {'lt': _('Less than'),
-              'gt': _('Greater than'),
-              'lte': _('Less or equals than'),
-              'gte': _('Greater or equals than'),
-              'exact': _('Equals to'),
-              'not': _('Not equals to'),
-              'rem': _('Remove filter')}
+def get_items_cell_filter(cl, column, obj):
 
-    default_operators = ('exact', 'not')
-
-    def process_field():
-        target = attr or field.name
-        col_operators = cl.model_admin.cell_filter_operators.get(target, default_operators)
-        if hasattr(attr, 'admin_filter_field'):
-            target_field_name = getattr(attr, 'admin_filter_field')
-            parts = target_field_name.split('__')
-            t = ".".join(parts)
-            linked_object = iter_get_attr(obj, t )
-            return target_field_name, linked_object, col_operators
-
-        elif field:
-            target = getattr(obj, field.name)
-            if isinstance(field.rel, models.ManyToOneRel):
-                rel_name = field.rel.get_related_field().name
-                return '%s__%s' % (field.name, rel_name), target.pk, col_operators
-            else:
-                return field.name, target, col_operators
-        else:
-            raise ImproperlyConfigured('Cannot filter on `%s`. Remove it from `cell_filter` attribute of %s' %
-                                       ((attr or field.name), cl.model_admin.__class__.__name__))
-
-    lookup_kwarg, lookup_value, operators = process_field()
-    if lookup_kwarg is None:
-        return ''
-
+    filter = cl.cell_filters[column]
     menu_items = []
-    active_filters = ",".join ( cl.params.keys() )
-    if lookup_kwarg in active_filters:
-        menu_items.append((cl.get_query_string({}, [lookup_kwarg]),labels['rem']))
+    filter_params = filter.expected_parameters()
+    if filter.is_active(cl):
+        menu_items.append((cl.get_query_string({},filter_params ), _('Remove filter')))
 
-    if isinstance(field, models.BooleanField):
-        if lookup_value:
-            url = cl.get_query_string({mark_safe(u"%s__exact" % lookup_kwarg): True}, [lookup_kwarg])
-            menu_items.append((url, _('Equals to')))
-            url = cl.get_query_string({mark_safe(u"%s__not" % lookup_kwarg): True}, [lookup_kwarg])
-            menu_items.append((url, _('Not equals to')))
-        else:
+    for op in filter.col_operators:
+        label, param= filter.get_menu_item_for_op(op)
+        value = iter_get_attr(obj, filter.seed.replace('__', '.'))
+        url = cl.get_query_string({param: value}, filter_params )
+        menu_items.append((url, label))
+    return menu_items
 
-            url = cl.get_query_string({mark_safe(u"%s__not" % lookup_kwarg): True}, [lookup_kwarg])
-            menu_items.append((url, _('Equals to')))
 
-            url = cl.get_query_string({mark_safe(u"%s__exact" % lookup_kwarg): True}, [lookup_kwarg])
-            menu_items.append((url, _('Not equals to')))
-    else:
-        for op in operators:
-            fld = mark_safe(u"%s__%s" % (lookup_kwarg, op))
-            url = cl.get_query_string({fld: lookup_value}, [lookup_kwarg])
-            menu_items.append((url, labels[op]))
+def get_popup_menu(items):
+    menu_items = "".join(
+        ['<li class="iadmin-cell-menu-item" ><a href="%s">%s</a></li>' % (url, lbl) for url, lbl in items if url])
 
-    items = "".join(
-        ['<li class="iadmin-cell-menu-item" ><a href="%s">%s</a></li>' % (url, lbl) for url, lbl in menu_items])
-
-#    items = "".join(
-#        ['<li class="iadmin-cell-menu-item" ><span>"%s">%s</span></li>' % (url, lbl) for url, lbl in menu_items])
-
-    if items:
-        return '''<div class="iadmin-cell-menu-container"><span class="iadmin-cell-menu-button">&nbsp;</span><ul class="iadmin-cell-menu">%s</ul></div>''' % items
+    if menu_items:
+        return '''<div class="iadmin-cell-menu-container"><span class="iadmin-cell-menu-button">&nbsp;</span><ul class="iadmin-cell-menu">%s</ul></div>''' % menu_items
     else:
         return ''
-#
-#
+
 def iitems_for_result(cl, result, form, context=None):
     """
     Generates the actual list of data.
     """
     def handle_link():
-#        if field_name in model_admin.list_display_rel_links:
-#            if admin_order_field:
-#                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
-#            else:
-#                linked_object = getattr(result, field_name) #f.rel.to
-#            return mark_safe( cl.url_for_obj(context['request'], linked_object) )
+        if field_name in model_admin.list_display_rel_links:
+            if admin_order_field:
+                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
+            else:
+                linked_object = getattr(result, field_name) #f.rel.to
+            return mark_safe( cl.url_for_obj(context['request'], linked_object) )
         return mark_safe('')
 
 
@@ -169,6 +83,7 @@ def iitems_for_result(cl, result, form, context=None):
         row_class = ''
         result_repr = ''
         cell_filter_menu = ''
+        cell_menu_items = []
         try:
             f, attr, value = lookup_field(field_name, result, cl.model_admin)
         except (AttributeError, ObjectDoesNotExist):
@@ -181,8 +96,6 @@ def iitems_for_result(cl, result, form, context=None):
 
                 allow_tags = getattr(attr, 'allow_tags', False)
                 boolean = getattr(attr, 'boolean', False)
-
-#                custom_filter = getattr(attr, 'cell_filter_func', False)
 
                 if boolean:
                     allow_tags = True
@@ -209,13 +122,28 @@ def iitems_for_result(cl, result, form, context=None):
                 or isinstance(f, models.ForeignKey):
                     row_class = ' nowrap'
 
-        link = handle_link()
+#        link = handle_link()
+        cell_menu_items = []
 
-        if hasattr(model_admin, 'cell_filter') and (field_name not in  cl._filtered_on) \
-                                                and field_name in model_admin.cell_filter:
-            a = process_cell_filter(cl, f, attr, value, result)
-            cell_filter_menu = smart_unicode(mark_safe(a))
-            row_class += ' iadmin-cell-filter'
+        if field_name in model_admin.list_display_rel_links:
+            if admin_order_field:
+                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
+            else:
+                linked_object = getattr(result, field_name) #f.rel.to
+            if model_admin.has_change_permission(context['request'], linked_object):
+                view = "%s:%s_%s_change" % (model_admin.admin_site.app_name, linked_object._meta.app_label, linked_object.__class__.__name__.lower())
+                url = reverse(view, args=[int(linked_object.pk)])
+            elif model_admin.has_view_permission(context['request'], linked_object):
+                url = "view/%s/" % quote(getattr(linked_object, linked_object._meta.pk_attname))
+
+            cell_menu_items.append( [url, _("Jump to detail")] )
+
+        if hasattr(model_admin, 'cell_filter') and field_name in model_admin.cell_filter:
+            cell_menu_items.extend( get_items_cell_filter(cl, field_name, result) )
+
+
+        cell_filter_menu = smart_unicode(mark_safe(get_popup_menu(cell_menu_items)))
+
 
         if row_class:
             row_class=' class="%s"' % row_class
@@ -223,7 +151,8 @@ def iitems_for_result(cl, result, form, context=None):
         if force_unicode(result_repr) == '':
             result_repr = mark_safe('&nbsp;')
 
-        menu = '%s%s' % (link, conditional_escape( cell_filter_menu ))
+#        menu = mark_safe('%s%s' % (link, conditional_escape( cell_filter_menu )))
+        menu = conditional_escape( cell_filter_menu )
         # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True: 'th', False: 'td'}[first]

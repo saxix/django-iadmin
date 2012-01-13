@@ -38,21 +38,16 @@ class IModelAdmin(DjangoModelAdmin):
     list_display_rel_links = ()
     cell_filter = ()
     cell_menu_on_click = True # if true need to click on icon else mouseover is enough
-#    ajax_search_fields = None
-#    ajax_list_display = None # always use searchable fields. Never __str__ ol similar
-    autocomplete_ajax = False
-    #    change_form_template = 'iadmin/change_form_tab.html'
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
-    columns_classes = {}
-    columns_attributes = {}
+#    columns_classes = {}
+#    columns_attributes = {}
     cell_filter_operators = {}
     tools = []
+
     class Media:
         js = ("iadmin/js/iwidgets.js",)
 
     def __init__(self, model, admin_site):
-#        self.ajax_search_fields = self.ajax_search_fields or self.search_fields
-#        self.ajax_list_display = self.ajax_list_display or self.ajax_search_fields
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
@@ -202,6 +197,7 @@ class IModelAdmin(DjangoModelAdmin):
         clean_lookup = LOOKUP_SEP.join(parts)
 
         flat_filter = [isinstance(v, tuple) and v[0] or v for v in self.list_filter  ]
+        flat_filter.extend( [isinstance(v, tuple) and v[0] or v for v in self.cell_filter  ])
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
     def changelist_view(self, request, extra_context=None):

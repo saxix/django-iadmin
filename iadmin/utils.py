@@ -15,6 +15,36 @@ def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     Tab = type(name, (Inline,), attrs)
     return Tab
 
+class Null(object):
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+    def __repr__(self):
+        return "Null()"
+
+    def __nonzero__(self):
+        return 0
+
+    def __getattr__(self, name):
+        return self
+
+    def __setattr__(self, name, value):
+        return self
+
+    def __delattr__(self, name):
+        return self
+
+    def __getitem__(self, item):
+        return self
+
+    def __setitem__(self, item, value):
+        return self
+
+
 #class K:
 #
 #    def __init__(self, label = None, **kwargs):
@@ -82,6 +112,22 @@ def iter_get_attr(obj, attr, default=None):
     else:
         L = attr.split('.')
         return iter_get_attr(getattr(obj, L[0], default), '.'.join(L[1:]), default)
+
+class cached_property(object):
+    '''A read-only @property that is only evaluated once. The value is cached
+    on the object itself rather than the function or class; this should prevent
+    memory leakage.'''
+    def __init__(self, fget, doc=None):
+        self.fget = fget
+        self.__doc__ = doc or fget.__doc__
+        self.__name__ = fget.__name__
+        self.__module__ = fget.__module__
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        obj.__dict__[self.__name__] = result = self.fget(obj)
+        return result
 
 def force_unregister(model, adminsite=None):
     import django.contrib.admin

@@ -1,11 +1,19 @@
 #
 import re
-from django.contrib.admin.util import lookup_field, quote
+from django.conf import settings
+from django.contrib.admin.filters import FieldListFilter
+from django.contrib.admin.util import lookup_field, quote, lookup_needs_distinct, get_fields_from_path
 from django.core.urlresolvers import reverse
+from django.db import models
 from django.db.models import Q
+from django.db.models.fields import FieldDoesNotExist, BooleanField
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from django.utils.functional import cached_property
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from iadmin.filters import CellFilter, FieldCellFilter, RelatedFieldCellFilter, ChoicesCellFilter, BooleanCellFilter
+from iadmin.utils import iter_get_attr
 
 __author__ = 'sax'
 
@@ -18,30 +26,56 @@ class IChangeList(ChangeList):
     def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
                  list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
 
-        self._filtered_on = []
-        self.ordering = None
         self.readonly = False
+        self.request = request
+
         super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
                                           search_fields, list_select_related, list_per_page, list_max_show_all,
                                           list_editable, model_admin)
 
-#    def get_filters(self, request):
-#        (self.filter_specs, self.has_filters, remaining_lookup_params,
-#                     use_distinct) = super(IChangeList, self).get_filters(request)
-#        self.has_filters = self.has_filters or self.model_admin.cell_filter
-#        return self.filter_specs, self.has_filters, remaining_lookup_params, use_distinct
-#
-#    def active_filters(self):
-#        pass
-    def get_filtered_field_columns(self):
+    @cached_property
+    def cell_filters(self):
+        lookup_params = self.params.copy() # a dictionary of the query string
+        cell_filter_specs = {}
+        use_distinct = False
 
-        filtered_fields = []
-        for p in self.params:
-            if p not in IGNORED_PARAMS:
-                target = rex_sub.sub("", p)
-#                field, _operator = target.rsplit('__', 1)
-                filtered_fields.append(target)
-        return filtered_fields
+        if self.model_admin.cell_filter:
+            for cell_filter in self.model_admin.cell_filter:
+                path = field_path = None
+                field, field_list_filter_class = cell_filter, FieldCellFilter
+
+                if hasattr(self.model_admin, cell_filter):
+                    # if it's a ModelAdmin method get the `admin_filter_field`
+                    attr = getattr(self.model_admin, cell_filter)
+                    field_path = getattr(attr, 'admin_filter_field')
+                    path = get_fields_from_path(self.model, field_path)
+                    field = path[-1]
+
+                if not isinstance(field, models.Field):
+                    try:
+                        field_path = field
+                        field = get_fields_from_path(self.model, field_path)[-1]
+
+                    except FieldDoesNotExist:
+                        raise Exception( "Cannot use field `%s` in cell_filter. Only valid Field objects are allowed" % cell_filter)
+
+                if isinstance(field, BooleanField):
+                    field_list_filter_class = BooleanCellFilter
+                elif hasattr(field, 'rel') and bool(field.rel):
+                    field_list_filter_class = RelatedFieldCellFilter
+                elif hasattr(field, 'choices'):
+                    field_list_filter_class = ChoicesCellFilter
+                spec = field_list_filter_class(field, self.request, lookup_params,
+                    self.model, self.model_admin, field_path=field_path)
+
+                # Check if we need to use distinct()
+                use_distinct = (use_distinct or
+                                lookup_needs_distinct(self.lookup_opts,
+                                                      field_path))
+                if spec and spec.has_output():
+                    cell_filter_specs[cell_filter] = spec
+
+        return cell_filter_specs
 
     def get_query_set(self, request):
         backup_params = self.params.copy() # a dictionary of the query string
@@ -57,10 +91,10 @@ class IChangeList(ChangeList):
         self.params = backup_params
         return ret.filter(*negate_filters)
 
-    def url_for_result(self, result):
-        if self.readonly:
-            return "%s/view/" % quote(getattr(result, self.pk_attname))
-        return "%s/" % quote(getattr(result, self.pk_attname))
+#    def url_for_result(self, result):
+#        if self.readonly:
+#            return "%s/view/" % quote(getattr(result, self.pk_attname))
+#        return "%s/" % quote(getattr(result, self.pk_attname))
 
 #    def url_for_obj(self, request, obj):
 #        if not obj:
