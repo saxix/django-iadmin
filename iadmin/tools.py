@@ -1,26 +1,11 @@
 from _csv import Error
-from collections import defaultdict
-import datetime
 import re
-from django.db.models.aggregates import Count
-from django.db.models.fields.related import ForeignKey
 from django.forms.fields import ChoiceField, CharField
-from django.utils import simplejson as json
 from django import forms
-from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.forms import FileField, ModelForm
-from django.forms.models import modelform_factory
-from django.http import HttpResponse, HttpResponseRedirect
+from django.forms import FileField
 import csv
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
 from django.utils.encoding import force_unicode, smart_str
-from django.utils.safestring import mark_safe
-from django.contrib.admin import helpers
 from django.utils import formats
-from django.utils import dateformat
-from iadmin.plugins.csv.utils import graph_form_factory
 from functools import update_wrapper
 from django import template
 from django.conf import settings
@@ -36,8 +21,6 @@ from django.db.utils import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 import os
-from iadmin.plugins import IAdminPlugin
-from iadmin.plugins.csv.utils import update_model, open_csv
 from .utils import  ImportForm, csv_processor_factory
 
 delimiters = ",;|:"

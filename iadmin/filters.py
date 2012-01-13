@@ -126,6 +126,12 @@ class FieldCheckBoxFilter(RelatedFieldListFilter):
                 [self.lookup_kwarg, self.lookup_kwarg_isnull]),
             'display': _('All'),
         }
+        yield {
+            'selected': self.lookup_val_isnull,
+            'query_string': cl.get_query_string({self.lookup_kwarg_isnull:1},
+                [self.lookup_kwarg, self.lookup_kwarg_isnull]),
+            'display': _('None'),
+        }
         for pk_val, val in self.lookup_choices:
             yield {
                 'selected': smart_unicode(pk_val) in self.lookup_val,

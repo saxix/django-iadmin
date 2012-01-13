@@ -11,7 +11,7 @@ class IUserAdmin(UserAdmin, IModelAdmin):
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', '_groups', 'last_login')
     list_display_links = ('username', 'first_name', 'last_name')
 
-    cell_filter = ('email', 'is_staff', 'last_name', 'group', 'last_login')
+    cell_filter = ('email', 'is_staff', 'last_name', 'last_login')
     cell_filter_operators = {'last_login': ('exact', 'not', 'lt', 'gt')}
 
 

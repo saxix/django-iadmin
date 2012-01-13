@@ -93,5 +93,5 @@ class MassUpdateFireFox(FireFoxLiveTest):
         self.assertAlmostEqual(len(queryset), 1)
 
 
-#class MassUpdateChrome(ChromeDriverMixin, MassUpdateFireFox):
-#    pass
+class MassUpdateChrome(ChromeDriverMixin, MassUpdateFireFox):
+    pass

@@ -1,10 +1,5 @@
 import copy
 import datetime
-#from django.contrib.admin.options import ModelAdmin
-#from django.contrib.admin.util import quote
-from django.utils.safestring import mark_safe
-from django.utils.text import capfirst
-from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 import os
 import django
@@ -13,21 +8,12 @@ from django.conf.urls.defaults import url, patterns
 from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
-from django.core.urlresolvers import reverse, NoReverseMatch
-from django.db.models.base import ModelBase
+from django.core.urlresolvers import reverse
 from django.db.models.signals import post_save, post_delete
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.functional import update_wrapper
-#from django.utils.safestring import mark_safe
-#from django.utils.text import capfirst
-from django.utils.translation import ugettext as _
 from django.shortcuts import render_to_response
-from django.conf.urls.defaults import include
 from django.utils import dateformat
-from .options import IModelAdmin
-#from .wizard import ImportForm, csv_processor_factory, set_model_attribute
-#from iadmin.plugins import FileManager, CSVImporter
-#from iadmin.conf import config
 
 try:
     from getpass import getuser
@@ -132,16 +118,8 @@ class IAdminService(object):
 
                                url(r'^i/info/$',
                                    wrap(self.env_info),
-                                   name='info'),
-
-#                               url(r'^i/reverse/(.*)/$',
-#                                   wrap(self.reverse_url),
-#                                   name='reverse_url'),
-#
-#                               url(r'^i/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
-#                                   wrap(self.admin_shortcut),
-#                                   name='admin_shortcut'),
                                )
+        )
 
         return urlpatterns
 

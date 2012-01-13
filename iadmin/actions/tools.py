@@ -2,7 +2,7 @@
 from django.contrib.admin.actions import delete_selected
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from django.utils.translation import ugettext as _, ungettext
+from django.utils.translation import ugettext as _
 
 
 __author__ = 'sax'

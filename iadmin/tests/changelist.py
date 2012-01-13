@@ -76,7 +76,7 @@ class CellFilterFireFox(FireFoxLiveTest):
         # click the button...
         container.find_elements_by_class_name('iadmin-cell-menu-button')[0].click()
         # and click the 'Equals to' menu item
-        container.find_element_by_link_text('Equals to').click()
+        container.find_element_by_link_text('Yes').click()
 
         # collects all the rows
         tbody = self.driver.find_element_by_css_selector('#result_list tbody')
@@ -92,12 +92,12 @@ class CellFilterFireFox(FireFoxLiveTest):
         # click the button...
         container.find_elements_by_class_name('iadmin-cell-menu-button')[0].click()
         # and click the 'Equals to' menu item
-        container.find_element_by_link_text('Not equals to').click()
+        container.find_element_by_link_text('No').click()
 
         # collects all the rows
         tbody = self.driver.find_element_by_css_selector('#result_list tbody')
         rows = tbody.find_elements_by_class_name('action-checkbox')
         self.assertEquals(len(rows), 11)
 
-#class CellFilterChrome(ChromeDriverMixin, CellFilterFireFox):
-#    pass
+class CellFilterChrome(ChromeDriverMixin, CellFilterFireFox):
+    pass
