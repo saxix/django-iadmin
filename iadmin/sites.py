@@ -54,6 +54,7 @@ class IAdminService(object):
 
     def format_date(self, request):
         d = datetime.datetime.now()
+#        return HttpResponse(d.strftime(request.GET.get('fmt', '')))
         return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
     def env_info(self, request, export=False):

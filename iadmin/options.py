@@ -56,6 +56,17 @@ class IModelAdmin(DjangoModelAdmin):
             acts.pop('delete_selected')
         return acts
 
+    def get_tools(self):
+        opts = self.model._meta
+        info = opts.app_label, opts.module_name
+
+        _url= reverse('admin:%s_%s_add' % info)
+        tools = [(_url, mark_safe("Add %s" % unicode(opts.verbose_name)))]
+        for url, label in self.tools:
+            tools.append( (url, label) )
+        return tools
+
+
     def get_model_perms(self, request):
         """
         Returns a dict of all perms for this model. This dict has the keys
@@ -454,3 +465,4 @@ class ITabularInline(DjangoTabularInline):
         formset = super(ITabularInline, self).get_formset(request, obj, **kwargs)
         formset.edit_link = self.edit_link
         return formset
+

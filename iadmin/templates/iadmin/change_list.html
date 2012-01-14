@@ -14,8 +14,6 @@
             (function($) {
                 $(document).ready(function($) {
                     $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
-//                    $('ul.iadmin-cell-menu').css('display', 'none');
-
                     $('.iadmin-cell-menu-button').click(function() {
                         $(this).next().css('display', 'block');
                     });
@@ -29,7 +27,6 @@
 {% endblock %}
 
 {% block filters %}
-
     {% if cl.has_filters %}
         <div id="changelist-filter">
             <h2>{% trans 'Filter' %}</h2>
@@ -40,10 +37,10 @@
 {% endblock %}
 
 {% block object-tools-items %}
-    {% for tool in  cl.model_admin.tools %}
-        <li></li><a class="addlink" href="{{ tool.url }}">{{ tool.label }} </a></li>
+    {% for url, label in  cl.model_admin.get_tools %}
+        <li><a class="addlink" href="{{ url }}">{{ label }} </a></li>
     {% endfor %}
-{{ block.super }}
+{#{{ block.super }}#}
 {% endblock %}
 
 {% block result_list %}

@@ -1,18 +1,12 @@
-from collections import defaultdict
 import datetime
-from django.db.models.aggregates import Count
-from django.db.models.fields.related import ForeignKey
-from django.utils import simplejson as json
+from django.utils.translation import gettext as _
 from django import forms
 from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.forms import FileField, ModelForm
-from django.forms.models import modelform_factory
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 import csv
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from django.utils.encoding import force_unicode, smart_str
+from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe
 from django.contrib.admin import helpers
 from django.utils import formats
@@ -93,6 +87,7 @@ def export_to_csv(modeladmin, request, queryset):
                               RequestContext(request, {'adminform': adminForm,
                                                        'form': form,
                                                        'change': True,
+                                                       'title': _('Export to CSV'),
                                                        'is_popup': False,
                                                        'save_as': False,
                                                        'has_delete_permission': False,

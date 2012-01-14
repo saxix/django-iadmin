@@ -1,11 +1,9 @@
-from iadmin.filters import FieldComboFilter, FieldCheckBoxFilter, FieldRadioFilter
-from django.contrib.admin.options import TabularInline
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from iadmin.actions import mass_update
-from iadmin.options import IModelAdmin
-from iadmin.utils import force_register, force_unregister, tabular_factory
+from iadmin.api import *
+from iadmin.filters import FieldComboFilter, FieldCheckBoxFilter, FieldRadioFilter
 
 class IUserAdmin(UserAdmin, IModelAdmin):
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', '_groups', 'last_login')
@@ -24,10 +22,10 @@ class IUserAdmin(UserAdmin, IModelAdmin):
     _groups.short_description = 'Groups'
 
 
-class IUserInline(TabularInline):
+class IUserInline(ITabularInline):
 #    model = User
     model = User.groups.through
-    readonly_fields = ('user', )
+#    readonly_fields = ('user', )
     extra = 0
 
 class IGroupAdmin(GroupAdmin, IModelAdmin):
