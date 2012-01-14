@@ -1,1 +1,1 @@
-import iadmin.tests.admin
+from iadmin.tests.admin import *
