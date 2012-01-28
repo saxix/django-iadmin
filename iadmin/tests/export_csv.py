@@ -23,12 +23,12 @@ class ExportCSVFireFox(FireFoxLiveTest):
         self.login()
         driver = self.driver
         driver.get(self.base_url + "/admin/auth/user/")
-        self.assertEqual("Select user to change | Django site admin", driver.title)
+        self.assertTrue("Select user to change" in  driver.title)
         driver.find_element_by_xpath("//input[@id='action-toggle']").click() # select all
         driver.find_element_by_xpath("//input[@name='_selected_action' and @value='1']").click() # unselect sax
         Select(driver.find_element_by_name("action")).select_by_visible_text("Export to csv")
         driver.find_element_by_name("index").click() # execute
-        self.assertEqual("Export to CSV | Django site admin", driver.title)
+        self.assertTrue("Export to CSV" in driver.title)
 
     def _test(self, target, format, sample_num):
         self._go_to_page()

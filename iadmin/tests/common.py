@@ -2,7 +2,15 @@ from django.conf import settings
 from django.test import LiveServerTestCase
 import selenium.webdriver.firefox.webdriver
 import selenium.webdriver.chrome.webdriver
+from django.test.testcases import TestCase
 
+class BaseTestCase(TestCase):
+    urls = 'iadmin.tests.urls'
+    fixtures = ['test.json',]
+
+    def setUp(self):
+        super(BaseTestCase, self).setUp()
+        assert self.client.login(username='sax', password='123')
 
 class SeleniumTestCase(LiveServerTestCase):
     urls = 'iadmin.tests.urls'
@@ -39,8 +47,8 @@ class SeleniumTestCase(LiveServerTestCase):
         password_input = self.driver.find_element_by_name("password")
         password_input.send_keys('123')
         self.driver.find_element_by_xpath('//input[@type="submit"]').click()
-        self.assertEqual("Site administration | Django site admin", self.driver.title)
-
+        self.assertTrue("Site administration" in self.driver.title)
+        self.assertTrue( "Welcome, sax" in self.driver.find_element_by_id('user-tools').text )
 
 class FirefoxDriverMixin(object):
     driverClass = selenium.webdriver.firefox.webdriver.WebDriver

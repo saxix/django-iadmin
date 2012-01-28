@@ -1,20 +1,18 @@
-{% extends "admin/base_site.html" %}
-{% load i18n iadmin %}
+{% extends "iadmin/change_list.html" %}
+{% load i18n %}{% load url from future %}
 {% block breadcrumbs %}
-    <div class="breadcrumbs">
-        <a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
-        {% if app_label %}
-            <a href="{% url admin:index %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
-            {% if model_name %}<a
-                    href="{% url admin:index %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;{% endif %}
-        {% endif %}
-        Import
-    </div>
-
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; <a href="../..">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; Import
+</div>
 {% endblock %}
 
+
 {% block content %}
-    <form enctype="multipart/form-data" method="post" action="{{ page }}">{% csrf_token %}
+    <form enctype="multipart/form-data" method="post" action="{% url "iadmin:import" app_label model_name 1 %}">
+        {% csrf_token %}
         <div class="clear">
             <input type="submit" value="{{ lbl_next }}"> &nbsp;&nbsp;&nbsp;<input type="button" id="reset"
                                                                                   value="Reset">&nbsp;&nbsp;&nbsp;</div>

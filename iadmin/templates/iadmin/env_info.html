@@ -1,5 +1,5 @@
 {% extends "admin/index.html" %}
-{% load i18n %}{% load url from future %}
+{% load i18n iadmin_tags %}{% load url from future %}
 {% block extrahead %}{{ block.super }}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>
@@ -11,7 +11,8 @@
     <script>
         (function ($) {
             $(document).ready(function () {
-                var $tabs = $('#tabs').tabs({ cookie:{ expires:30 }});
+                $('#tabs').tabs({ cookie:{ expires:30 }});
+                $('#db').tabs({ cookie:{ expires:30 }});
             });
         })(jQuery);
     </script>
@@ -34,6 +35,7 @@
             <li><a href="#tabs-sys" class="">&nbsp;&nbsp;System&nbsp;&nbsp;</a></li>
             <li><a href="#tabs-lib" class="">&nbsp;&nbsp;Packages&nbsp;&nbsp;</a></li>
             <li><a href="#tabs-path" class="">&nbsp;&nbsp;Pythonpath&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-database" class="">&nbsp;&nbsp;Database&nbsp;&nbsp;</a></li>
 
         </ul>
         <div id="tabs-apps">
@@ -97,6 +99,23 @@
                         <td>{{ line }}</td>
                     </tr>{% endfor %}
             </table>
+        </div>
+        <div id="tabs-database">
+            <div id="db" class="info"><ul>
+                {% for db,info in database.items %}<li><a href="#db-{{db}}" class="">&nbsp;&nbsp;{{db|upper}}&nbsp;&nbsp;</a></li>{% endfor %}</ul>
+
+            {% for db,info in database.items %}
+                <div id="db-{{db}}">
+                    <table>{% for k,v in info.items %}
+                        <tr><th>{{ k|lower }}</th><td>{{ v|hide:k }}</td></tr>
+                    {% endfor %}</table>
+                </div>
+            {% endfor %}
+            </div>
+
+{#                <tr><th colspan="2"></th></tr>#}
+{#                {% endfor %}#}
+{#            </table>#}
         </div>
     </div>
 

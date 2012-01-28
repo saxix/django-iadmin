@@ -6,7 +6,6 @@
 {% block extrahead %}{{ block.super }}
 {% url 'admin:jsi18n' as jsi18nurl %}
     <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
-    {{ media }}
 
     <style type="text/css">
         .taberror {
@@ -19,6 +18,8 @@
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
+    {{ media }}
+
     {% if inline_admin_formsets %}
         <script>
             (function($) {

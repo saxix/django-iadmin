@@ -5,18 +5,17 @@ from django.contrib.messages.storage.cookie import CookieStorage
 from django.test.client import RequestFactory
 from django.test.testcases import TestCase
 from iadmin.actions.mass_update import mass_update
-from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin
+from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin, BaseTestCase
 from selenium.webdriver.support.ui import Select
 import iadmin.tests.admin
 import django.contrib.messages.storage
 
 __all__=['MassUpdateTest', 'MassUpdateFireFox']
 
-class MassUpdateTest(TestCase):
-    urls = 'iadmin.tests.urls'
-    fixtures = ['test.json', ]
+class MassUpdateTest(BaseTestCase):
 
     def setUp(self):
+        super(MassUpdateTest, self).setUp()
         self.factory = RequestFactory()
 
     def test_action_get(self):
@@ -85,10 +84,10 @@ class MassUpdateFireFox(FireFoxLiveTest):
         driver.find_element_by_xpath("//input[@name='_selected_action' and @value='1']").click() # unselect sax
         Select(driver.find_element_by_name("action")).select_by_visible_text("Mass update")
         driver.find_element_by_name("index").click() # execute
-        self.assertEqual("Mass update users | Django site admin", driver.title)
+        self.assertEqual("Mass update users | iAdmin console", driver.title)
         driver.find_element_by_xpath("//div[@id='col1']/form/table/tbody/tr[10]/td[4]/a[2]").click() # False
         driver.find_element_by_name("apply").click()
-        self.assertEqual("Select user to change | Django site admin", driver.title)
+        self.assertEqual("Select user to change | iAdmin console", driver.title)
         queryset = User.objects.filter(is_active=True)
         self.assertAlmostEqual(len(queryset), 1)
 

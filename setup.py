@@ -54,6 +54,7 @@ setup(
     name=NAME,
     version=RELEASE,
     url='https://github.com/saxix/django-iadmin',
+    download_url = 'https://github.com/saxix/django-iadmin/zipball/master',
     author='sax',
     author_email='sax@os4d.org',
     license='BSD',

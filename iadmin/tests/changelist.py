@@ -1,14 +1,8 @@
 from django.contrib.auth.models import User
 from django.test.testcases import TestCase
-from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin
+from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin, BaseTestCase
 
-class ChangeListTest(TestCase):
-    urls = 'iadmin.tests.urls'
-    fixtures = ['test.json',]
-
-    def setUp(self):
-        super(ChangeListTest, self).setUp()
-        assert self.client.login(username='sax', password='123')
+class ChangeListTest(BaseTestCase):
 
     def test_not_equals_to(self):
         url = "/admin/auth/user/"

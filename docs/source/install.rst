@@ -24,27 +24,10 @@ Configuration
 Add :mod:`iadmin` to your :setting:`INSTALLED_APPS`::
 
     INSTALLED_APPS = (
-        'iadmin',
+        'iadmin', # must be before django.contrib.admin to select right templates
         'django.contrib.admin',
         'django.contrib.messages',
     )
-    IADMIN_FILE_UPLOAD_MAX_SIZE = 2000000 #
-    IADMIN_FM_ROOT = # file manager home
-    IADMIN_FM_CONFIG = {}
-
-
-
-
-.. admonition:: Users of Diango <1.3
-
-    iAdmin use STATIC_URL. You have to create this entry in your settings. Use this lines ONLY if you don't use staticfiles app,
-    leave your STATIC_* configuration otherwise
-
-::
-
-    STATIC_URL = '/s/static/'
-    STATIC_ROOT = MEDIA_ROOT
-
 
 
 
@@ -57,9 +40,9 @@ Add an entry into your urls.conf::
     admin.autodiscover()
 
     urlpatterns = patterns('',
-                url(r'', include('iadmin.media_urls')),
-                (r'^admin/', include(admin.site.urls)),
-    )
+        (r'^admin/', include(iservice.urls)), # same prefix before include admin urls
+        (r'^admin/', include(admin.site.urls)),
+)
 
 
 In your admin.py file::

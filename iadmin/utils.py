@@ -1,3 +1,4 @@
+#from django.db.models.base import ModelBase
 
 def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     """ factory for ITabularInline
@@ -14,6 +15,7 @@ def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     attrs.update(kwargs)
     Tab = type(name, (Inline,), attrs)
     return Tab
+
 
 class Null(object):
 
@@ -117,6 +119,7 @@ class cached_property(object):
     '''A read-only @property that is only evaluated once. The value is cached
     on the object itself rather than the function or class; this should prevent
     memory leakage.'''
+
     def __init__(self, fget, doc=None):
         self.fget = fget
         self.__doc__ = doc or fget.__doc__
@@ -129,19 +132,29 @@ class cached_property(object):
         obj.__dict__[self.__name__] = result = self.fget(obj)
         return result
 
-def force_unregister(model, adminsite=None):
+def force_unregister(model_or_iterable, adminsite=None):
     import django.contrib.admin
     from iadmin.options import IModelAdmin
     site = adminsite or django.contrib.admin.site
-    if model in site._registry:
-        site.unregister(model)
+    if isinstance(model_or_iterable, ModelBase):
+        model_or_iterable = [model_or_iterable]
 
-def force_register(model, modeladmin=None, adminsite=None):
+    for model in model_or_iterable:
+        if model in site._registry:
+            site.unregister(model)
+
+def force_register(model_or_iterable, model_admin=None, **options):
     import django.contrib.admin
     from iadmin.options import IModelAdmin
-    site = adminsite or django.contrib.admin.site
-    modelAdmin = modeladmin or IModelAdmin
-    if model in site._registry:
-        site.unregister(model)
+    from django.db.models.base import ModelBase
 
-    site.register(model, modelAdmin)
+    adminsite = options.pop('adminsite', None)
+    site = adminsite or django.contrib.admin.site
+    modelAdmin = model_admin or IModelAdmin
+    if isinstance(model_or_iterable, ModelBase):
+        model_or_iterable = [model_or_iterable]
+
+    for model in model_or_iterable:
+        if model in site._registry:
+            site.unregister(model)
+        site.register(model, modelAdmin)

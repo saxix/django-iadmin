@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
-{% load i18n iadmin %}
+{% load i18n static iadmin_tags %}{% load url from future %}
 {% block extrahead %}{{ block.super }}
-    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{% static "iadmin/js/jquery.min.js" %}"></script>
     <script type="text/javascript">
         (function($) {
             $(document).ready(function($) {
@@ -19,9 +19,9 @@
 {% endblock %}
 {% block breadcrumbs %}
     <div class="breadcrumbs">
-        <a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
-        <a href="{% url admin:index %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
-        <a href="{% url admin:index %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;
+        <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
+        <a href="{% url "admin:index" %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
+        <a href="{% url "admin:index" %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;
         <a href="../import/1">Import</a> &rsaquo; <a href="{{ back }}">Mapping</a> &rsaquo; Apply
     </div>
 

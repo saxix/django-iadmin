@@ -11,6 +11,13 @@ def to_range( value ):
 
 numeric_test = re.compile("^\d+$")
 
+@register.filter(name='hide')
+def getattribute(value, arg):
+    if arg in ('PASSWORD', ):
+        return '*******'
+    else:
+        return value
+
 @register.filter(name='getattr')
 def getattribute(value, arg):
     """Gets an attribute of an object dynamically from a string name"""

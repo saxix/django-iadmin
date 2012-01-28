@@ -10,7 +10,7 @@
     {{ block.super }}
     {{ media.js }}
     <script type="text/javascript">
-{#        {% if cell_menu_on_click %}#}
+        {% if cl %}
             (function($) {
                 $(document).ready(function($) {
                     $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
@@ -22,7 +22,7 @@
                     });
                 });
             })(django.jQuery);
-{#        {% endif %}#}
+        {% endif %}
     </script>
 {% endblock %}
 

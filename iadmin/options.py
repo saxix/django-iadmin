@@ -1,13 +1,16 @@
 from datetime import datetime
+from functools import partial
+import logging
 from django.conf.urls.defaults import patterns, url
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.util import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy, NoReverseMatch
 from django.db.models.fields import AutoField
 from django.db.models.related import RelatedObject
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
+from django.forms.models import modelform_factory, inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse, SimpleTemplateResponse
 from django.utils import dateformat
@@ -40,7 +43,7 @@ class IModelAdmin(DjangoModelAdmin):
     cell_menu_on_click = True # if true need to click on icon else mouseover is enough
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     cell_filter_operators = {}
-    tools = []
+    tools = [("import/1/", "import"), ]
 
     class Media:
         js = ("iadmin/js/iwidgets.js",)
@@ -63,7 +66,11 @@ class IModelAdmin(DjangoModelAdmin):
         _url= reverse('admin:%s_%s_add' % info)
         tools = [(_url, mark_safe("Add %s" % unicode(opts.verbose_name)))]
         for url, label in self.tools:
-            tools.append( (url, label) )
+            try:
+                tools.append( (reverse(url), label) )
+            except NoReverseMatch, e:
+                logging.error(e)
+                tools.append( ( url, label) )
         return tools
 
 
@@ -456,9 +463,6 @@ class IModelAdmin(DjangoModelAdmin):
 class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
-    autocomplete_ajax = False
-
-    #if True enable link to change view from inlines. Must be False if the related Model is not registered in the admin
     edit_link = False
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -466,3 +470,16 @@ class ITabularInline(DjangoTabularInline):
         formset.edit_link = self.edit_link
         return formset
 
+class ITabularList(ITabularInline):
+    template = 'iadmin/edit_inline/tabular_tab.html'
+    add_undefined_fields = False
+
+    def get_readonly_fields(self, request, obj=None):
+        for f in  [ f for f in self.model._meta.fields if f.name != 'id' ]:
+            yield f.name
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

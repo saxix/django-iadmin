@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
-{% load i18n iadmin %}
+{% load i18n iadmin_tags static %}{% load url from future %}
 {% block extrahead %}{{ block.super }}
-    <script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{% static "iadmin/js/jquery.min.js" %}"></script>
     <script type="text/javascript">
         (function($) {
             $(document).ready(function($) {
@@ -42,15 +42,17 @@
         }
 
         #settings {
+            float: left;
             width: 45%;
             /*border: 1px solid #000000;*/
         }
 
         #sample {
+            float: right;
             width: 50%;
             padding: 0px;
             margin: 0px;
-            /*border: 1px solid #000000;*/
+            border: 1px solid #000000;
             overflow: scroll;
         }
 
@@ -61,16 +63,16 @@
 {% endblock %}
 {% block breadcrumbs %}
     <div class="breadcrumbs">
-        <a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
-        <a href="{% url admin:index %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
-        <a href="{% url admin:index %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;
+        <a href="{% url "admin:index" %}">{% trans "Home" %}</a> &rsaquo;
+        <a href="{% url "admin:index" %}{{ app_label}}">{{ app_label|capfirst }}</a> &rsaquo;
+        <a href="{% url "admin:index" %}{{ app_label}}/{{ model_name }}">{{ model_name|capfirst }}</a> &rsaquo;
         <a href="../import/1">Import</a> &rsaquo; Mapping
     </div>
 
 {% endblock %}
 
 {% block content %}
-    <form enctype="multipart/form-data" method="post" action="{{ page }}">
+    <form enctype="multipart/form-data" method="post" action="{% url "iadmin:import" app_label model_name 2 %}">
         <div id="form_content">
             {% csrf_token %}
             {% block buttons %}
