@@ -37,6 +37,7 @@ from django.utils.translation import gettext as _
 delimiters = ",;|:"
 quotes = "'\"`"
 escapechars = " \\"
+
 def _get_all_models(filter_app_name=None):
     all_models = []
     if filter_app_name:
@@ -50,6 +51,7 @@ def _get_all_models(filter_app_name=None):
             if mod in site._registry:
                 all_models.append("%s:%s" % (mod._meta.app_label, force_unicode(mod._meta.verbose_name)))
     return zip(all_models, all_models)
+
 
 @contextmanager
 def open_csv(filename):
@@ -77,9 +79,11 @@ class CsvFileField(FileField):
                 raise ValidationError("Unable to load csv file (%s)" % e)
         return ret
 
+
 class ImportForm(Form):
     model = ChoiceField()
     csv = CsvFileField()
+
     def __init__(self, app, model, data=None, files=None, auto_id='id_%s', prefix=None, initial=None):
         super(ImportForm, self).__init__(data, files, auto_id, prefix, initial)
         if self.data:
@@ -95,11 +99,12 @@ class ImportForm(Form):
         else:
             self.fields['model'].choices = _get_all_models()
 
+
 class CSVPRocessorForm(Form):
-    header =  BooleanField(label='Header', initial=False, required=False)
-    validate =  BooleanField(label='Form validation', initial=False, required=False)
-    preview_all =  BooleanField(label='Preview all records', initial=False, required=False)
-    create_missing =  BooleanField(label='Create missing rows', initial=False, required=False)
+    header = BooleanField(label='Header', initial=False, required=False)
+    validate = BooleanField(label='Form validation', initial=False, required=False)
+    preview_all = BooleanField(label='Preview all records', initial=False, required=False)
+    create_missing = BooleanField(label='Create missing rows', initial=False, required=False)
 
     def _head(self, rows=10):
         with open_csv(self._filename) as csv:
@@ -118,12 +123,12 @@ class CSVPRocessorForm(Form):
             column = self.cleaned_data[col]
             field_name = self.cleaned_data[fld]
             lookup_name = self.cleaned_data[lkf]
-            if column>=0 or field_name:
+            if column >= 0 or field_name:
                 found = True
-                if not ( column>=0 and field_name):
+                if not ( column >= 0 and field_name):
                     self._errors[fld] = self.error_class([_("Please set both 'column' and 'field'")])
                     raise ValidationError("Please fix errors below")
-                Field,_u,_u,_u = self._model._meta.get_field_by_name(field_name)
+                Field, _u, _u, _u = self._model._meta.get_field_by_name(field_name)
                 if isinstance(Field, ForeignKey):
                     if not lookup_name:
                         self._errors[fld] = self.error_class([_('Please set lookup field name for "%s"') % field_name])
@@ -132,7 +137,6 @@ class CSVPRocessorForm(Form):
                             Field.rel.to._meta.get_field_by_name(lookup_name)
                         except Exception, e:
                             self._errors[fld] = self.error_class([e])
-
 
             if not found:
                 raise ValidationError("Please set columns mapping")
@@ -150,8 +154,9 @@ class CSVPRocessorForm(Form):
                 top_errors.extend([u'(Hidden field %s) %s' % (name, force_unicode(e)) for e in bf_errors])
             output.append('<tr><td class="label" colspan="4">%s</td><td>%s</td></tr>' % (bf.label, unicode(bf)))
 
-        output.append(u'<tr><th>%s</th><th>%s</th><th class="rex">%s</th><th class="lkf">%s</th><th class="key">%s</th></tr>' % (
-            _('Column'), _('Field'), _('Regex'), _('Lookup Field'), _('pk')))
+        output.append(
+            u'<tr><th>%s</th><th>%s</th><th class="rex">%s</th><th class="lkf">%s</th><th class="key">%s</th></tr>' % (
+                _('Column'), _('Field'), _('Regex'), _('Lookup Field'), _('pk')))
 
         for i, f  in enumerate(self._fields):
             line = []
@@ -194,7 +199,6 @@ class CSVPRocessorForm(Form):
             errors_on_separate_row=False)
 
 
-
 def csv_processor_factory(app_name, model_name, csv_filename):
     """
       factory for Model specific CSVPRocessorForm
@@ -216,10 +220,10 @@ def csv_processor_factory(app_name, model_name, csv_filename):
 
     class_name = "%s%sImportForm" % (app_name, model_name)
     attrs = {
-#        'header': BooleanField(label='Header', initial=False, required=False),
-#        'validate': BooleanField(label='Form validation', initial=False, required=False),
-#        'preview_all': BooleanField(label='Preview all records', initial=False, required=False),
-#        'create_missing': BooleanField(label='Create missing rows', initial=False, required=False),
+        #        'header': BooleanField(label='Header', initial=False, required=False),
+        #        'validate': BooleanField(label='Form validation', initial=False, required=False),
+        #        'preview_all': BooleanField(label='Preview all records', initial=False, required=False),
+        #        'create_missing': BooleanField(label='Create missing rows', initial=False, required=False),
         'columns_count': columns_count,
         'sample': rows,
         '_model': model,
@@ -239,7 +243,6 @@ def csv_processor_factory(app_name, model_name, csv_filename):
     return DeclarativeFieldsMetaclass(str(class_name), (CSVPRocessorForm,), attrs)
 
 
-
 class CSVOptions(forms.Form):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
     header = forms.BooleanField(required=False)
@@ -247,13 +250,14 @@ class CSVOptions(forms.Form):
     quotechar = forms.ChoiceField(choices=zip(quotes, quotes))
     quoting = forms.ChoiceField(
         choices=((csv.QUOTE_ALL, 'All'), (csv.QUOTE_MINIMAL, 'Minimal'), (csv.QUOTE_NONE, 'None'),
-                     (csv.QUOTE_NONNUMERIC, 'Non Numeric')))
+                 (csv.QUOTE_NONNUMERIC, 'Non Numeric')))
 
     escapechar = forms.ChoiceField(choices=(('', ''), ('\\', '\\')), required=False)
     datetime_format = forms.CharField(initial=formats.get_format('DATETIME_FORMAT'))
     date_format = forms.CharField(initial=formats.get_format('DATE_FORMAT'))
     time_format = forms.CharField(initial=formats.get_format('TIME_FORMAT'))
     columns = forms.MultipleChoiceField()
+
 
 class CsvFileField(FileField):
     def clean(self, data, initial=None):
@@ -341,7 +345,7 @@ def update_model(request, original, updater, mapping):
         if isinstance(Field, ForeignKey):
             if lookup_name:
                 try:
-                    v = Field.rel.to.objects.get(**{lookup_name:v} )
+                    v = Field.rel.to.objects.get(**{lookup_name: v})
                 except ObjectDoesNotExist, e:
                     raise ObjectDoesNotExist('%s %s' % (e, v))
         setattr(original, fname, v)
@@ -361,7 +365,6 @@ def set_model_attribute(instance, name, value, rex=None):
         if value in choices.values():
             value = choices.get_key(value)
     setattr(instance, name, value)
-
 
 
 #class IAdminPlugin(object):
@@ -387,35 +390,33 @@ class CSVImporter(View):
     template_step2 = None
     template_step3 = None
 
-    def __init__(self, app_label, model_name, page, **initkwargs):
+    def __init__(self, admin_site, app_label, model_name, page, **initkwargs):
+        self.admin_site = admin_site
         self.app_label = app_label
         self.model_name = model_name
         self.page = page
-        self.app = get_app( self.app_label)
-        self.model = get_model(self.app_label, self.model_name )
+        self.app = get_app(self.app_label)
+        self.model = get_model(self.app_label, self.model_name)
         return super(CSVImporter, self).__init__(**initkwargs)
 
 
     def done(self, form_list, **kwargs):
-         return render_to_response('done.html', {
-             'form_data': [form.cleaned_data for form in form_list],
-         })
+        return render_to_response('done.html', {
+            'form_data': [form.cleaned_data for form in form_list],
+            })
 
     def get_context_data(self, **kwargs):
-
-#        app = get_app( self.app_label)
-#        model = get_model(self.app_label, self.model_name )
         kwargs.update({'app_label': self.app_label.lower(),
                        'app': self.app,
-                       'model' : self.model,
+                       'model': self.model,
                        'opts': self.model._meta,
-                         'model_name': self.model_name.lower(),
-    #                                     'root_path': self.admin_site.root_path or '',
-                         'lbl_next': 'Next >>',
-                         'lbl_back': '<< Back',
-                         'back': self.request.META.get('HTTP_REFERER','') ,
-                                    })
-        kwargs.setdefault('title', 'Import CSV File %s/3' % kwargs['page'],)
+                       'model_name': self.model_name.lower(),
+                       #                                     'root_path': self.admin_site.root_path or '',
+                       'lbl_next': 'Next >>',
+                       'lbl_back': '<< Back',
+                       'back': self.request.META.get('HTTP_REFERER', ''),
+                       })
+        kwargs.setdefault('title', 'Import CSV File %s/3' % kwargs['page'], )
         return kwargs
 
     def __get_mapping(self, form):
@@ -455,134 +456,133 @@ class CSVImporter(View):
                 raise e.__class__('Error processing "%s"' % field_name, e)
         return record, key
 
-#    def _step_1(self, request):
-#        context = self.get_context_data()
-#        if request.method == 'POST':
-#            form = ImportForm(self.app_label, self.model_name, request.POST, request.FILES)
-#            if form.is_valid():
-#                f = request.FILES['csv']
-#                fd = open(self.temp_file_name, 'wb')
-#                for chunk in f.chunks():
-#                    fd.write(chunk)
-#                fd.close()
-#                if settings.DEBUG:
-#                    messages.info(request, self.temp_file_name)
-#                app_name, model_name = form.cleaned_data['model'].split(':')
-#                goto_url = reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2})
-#                return HttpResponseRedirect(goto_url)
-#        else:
-#            form = ImportForm(self.app_label, self.model_name, initial={'page': 1})
-#
-#        context.update({'page': 1, 'form': form, })
-#
-#        return render_to_response(self.template_step1 or [
-#            "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
-#            "iadmin/%s/import_csv_1.html" % self.app_label,
-#            "iadmin/import_csv_1.html"
-#        ], RequestContext(self.request, context))
-#
-#    def post_2(self):
-#        records = []
-#        context = self.get_context_data()
-#        try:
-#            Form = csv_processor_factory(self.app_label, self.model_name, self.temp_file_name)
-#            form = Form(self.request.POST, self.request.FILES)
-#            if form.is_valid():
-#                mapping = self.__get_mapping(form)
-#                Model = get_model(self.app_label, self.model_name)
-#                with open_csv(self.temp_file_name) as csv:
-#                    if form.cleaned_data['header']:
-#                        csv.next()
-#                    for i, row in enumerate(csv):
-#                        if i > 20 and not form.cleaned_data['preview_all']:
-#                            break
-#                        try:
-#                            sample = Model()
-#                            record, key = self._process_row(row, mapping)
-#                            exists = key and Model.objects.filter(**key).exists() or False
-#                            if key and exists:
-#                                sample = Model.objects.get(**key)
-#                            else:
-#                                sample = Model()
-#                            sample = update_model(self.request, sample, record, mapping)
-#
-#                            records.append([sample, None, row])
-#                        except (ValidationError, AttributeError), e:
-#                            records.append([sample, str(e), row])
-#                        except (ValueError, ObjectDoesNotExist, ValidationError), e:
-#                            messages.error(self.request, '%s' % e)
-#                            records.append([sample, str(e)])
-#                    return self._step_3(self.request, {'records': records, 'form': form})
-#
-#
-#            context.update({'page': 2,
-#                            'form': form,
-#                            'back': reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 1}),
-#                            'fields': form._fields,
-#                            'sample': form._head(),
-#                            })
-#            return render_to_response(self.template_step2 or [
-#                                                    "iadmin/%s/%s/import_csv_2.html" % (self.app_label, self.model_name.lower()),
-#                                                    "iadmin/%s/import_csv_2.html" % self.app_label,
-#                                                    "iadmin/import_csv_2.html"
-#                                                ], RequestContext(self.request, context))
-#
-#        except IOError, e:
-#            messages.error(self.request, str(e))
-#            return redirect('iadmin:import', app_label=self.app_label, model_name=self.model_name, page=1)
-#
-#    def _step_3(self, request, extra_context ):
-#        context = self.get_context_data()
-#        Model = get_model(self.app_label, self.model_name)
-#        extra_context = extra_context or {}
-#        if 'apply' in request.POST:
-#            Form = csv_processor_factory(self.app_label, self.model_name, self.temp_file_name)
-#            form = Form(request.POST, request.FILES)
-#            if form.is_valid():
-#                mapping = self.__get_mapping(form)
-#                Model = get_model(self.app_label, self.model_name)
-#                with open_csv(self.temp_file_name) as csv:
-#                    if form.cleaned_data['header']:
-#                        csv.next()
-#                    for i, row in enumerate(csv):
-#                        record, key = self._process_row(row, mapping)
-#                        try:
-#                            if key:
-#                                if form.cleaned_data['create_missing']:
-#                                    sample, _ = Model.objects.get_or_create(**key)
-#                                else:
-#                                    sample = Model.objects.get(**key)
-#                            else:
-#                                sample = Model()
-#                            sample = update_model(request, sample, record, mapping)
-#                            sample.save()
-#                        except (IntegrityError, ObjectDoesNotExist), e:
-#                            messages.error(request, '%s: %s' % (str(e), row) )
-#                return redirect('%s:%s_%s_changelist' % (self.name, self.app_label, self.model_name.lower()))
-#        else:
-#            pass
-#        context.update({'page': 3,
-#                        'fields': Model._meta.fields,
-#                        'back': reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2}),
-#                        'lbl_next': 'Apply',
-#                        })
-#        context.update(extra_context)
-#        return render_to_response(self.template_step3 or [
-#                                                "iadmin/%s/%s/import_csv_3.html" % (self.app_label, self.model_name.lower()),
-#                                                "iadmin/%s/import_csv_3.html" % self.app_label,
-#                                                "iadmin/import_csv_3.html"
-#                                            ], RequestContext(request, context))
-#
+    #    def _step_1(self, request):
+    #        context = self.get_context_data()
+    #        if request.method == 'POST':
+    #            form = ImportForm(self.app_label, self.model_name, request.POST, request.FILES)
+    #            if form.is_valid():
+    #                f = request.FILES['csv']
+    #                fd = open(self.temp_file_name, 'wb')
+    #                for chunk in f.chunks():
+    #                    fd.write(chunk)
+    #                fd.close()
+    #                if settings.DEBUG:
+    #                    messages.info(request, self.temp_file_name)
+    #                app_name, model_name = form.cleaned_data['model'].split(':')
+    #                goto_url = reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2})
+    #                return HttpResponseRedirect(goto_url)
+    #        else:
+    #            form = ImportForm(self.app_label, self.model_name, initial={'page': 1})
+    #
+    #        context.update({'page': 1, 'form': form, })
+    #
+    #        return render_to_response(self.template_step1 or [
+    #            "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
+    #            "iadmin/%s/import_csv_1.html" % self.app_label,
+    #            "iadmin/import_csv_1.html"
+    #        ], RequestContext(self.request, context))
+    #
+    #    def post_2(self):
+    #        records = []
+    #        context = self.get_context_data()
+    #        try:
+    #            Form = csv_processor_factory(self.app_label, self.model_name, self.temp_file_name)
+    #            form = Form(self.request.POST, self.request.FILES)
+    #            if form.is_valid():
+    #                mapping = self.__get_mapping(form)
+    #                Model = get_model(self.app_label, self.model_name)
+    #                with open_csv(self.temp_file_name) as csv:
+    #                    if form.cleaned_data['header']:
+    #                        csv.next()
+    #                    for i, row in enumerate(csv):
+    #                        if i > 20 and not form.cleaned_data['preview_all']:
+    #                            break
+    #                        try:
+    #                            sample = Model()
+    #                            record, key = self._process_row(row, mapping)
+    #                            exists = key and Model.objects.filter(**key).exists() or False
+    #                            if key and exists:
+    #                                sample = Model.objects.get(**key)
+    #                            else:
+    #                                sample = Model()
+    #                            sample = update_model(self.request, sample, record, mapping)
+    #
+    #                            records.append([sample, None, row])
+    #                        except (ValidationError, AttributeError), e:
+    #                            records.append([sample, str(e), row])
+    #                        except (ValueError, ObjectDoesNotExist, ValidationError), e:
+    #                            messages.error(self.request, '%s' % e)
+    #                            records.append([sample, str(e)])
+    #                    return self._step_3(self.request, {'records': records, 'form': form})
+    #
+    #
+    #            context.update({'page': 2,
+    #                            'form': form,
+    #                            'back': reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 1}),
+    #                            'fields': form._fields,
+    #                            'sample': form._head(),
+    #                            })
+    #            return render_to_response(self.template_step2 or [
+    #                                                    "iadmin/%s/%s/import_csv_2.html" % (self.app_label, self.model_name.lower()),
+    #                                                    "iadmin/%s/import_csv_2.html" % self.app_label,
+    #                                                    "iadmin/import_csv_2.html"
+    #                                                ], RequestContext(self.request, context))
+    #
+    #        except IOError, e:
+    #            messages.error(self.request, str(e))
+    #            return redirect('iadmin:import', app_label=self.app_label, model_name=self.model_name, page=1)
+    #
+    #    def _step_3(self, request, extra_context ):
+    #        context = self.get_context_data()
+    #        Model = get_model(self.app_label, self.model_name)
+    #        extra_context = extra_context or {}
+    #        if 'apply' in request.POST:
+    #            Form = csv_processor_factory(self.app_label, self.model_name, self.temp_file_name)
+    #            form = Form(request.POST, request.FILES)
+    #            if form.is_valid():
+    #                mapping = self.__get_mapping(form)
+    #                Model = get_model(self.app_label, self.model_name)
+    #                with open_csv(self.temp_file_name) as csv:
+    #                    if form.cleaned_data['header']:
+    #                        csv.next()
+    #                    for i, row in enumerate(csv):
+    #                        record, key = self._process_row(row, mapping)
+    #                        try:
+    #                            if key:
+    #                                if form.cleaned_data['create_missing']:
+    #                                    sample, _ = Model.objects.get_or_create(**key)
+    #                                else:
+    #                                    sample = Model.objects.get(**key)
+    #                            else:
+    #                                sample = Model()
+    #                            sample = update_model(request, sample, record, mapping)
+    #                            sample.save()
+    #                        except (IntegrityError, ObjectDoesNotExist), e:
+    #                            messages.error(request, '%s: %s' % (str(e), row) )
+    #                return redirect('%s:%s_%s_changelist' % (self.name, self.app_label, self.model_name.lower()))
+    #        else:
+    #            pass
+    #        context.update({'page': 3,
+    #                        'fields': Model._meta.fields,
+    #                        'back': reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2}),
+    #                        'lbl_next': 'Apply',
+    #                        })
+    #        context.update(extra_context)
+    #        return render_to_response(self.template_step3 or [
+    #                                                "iadmin/%s/%s/import_csv_3.html" % (self.app_label, self.model_name.lower()),
+    #                                                "iadmin/%s/import_csv_3.html" % self.app_label,
+    #                                                "iadmin/import_csv_3.html"
+    #                                            ], RequestContext(request, context))
+    #
     def start(self):
-
         form = ImportForm(self.app_label, self.model_name, initial={'page': 1})
         context = self.get_context_data(page=1, form=form)
 
         return render_to_response(self.template_step1 or [
-                    "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
-                    "iadmin/%s/import_csv_1.html" % self.app_label,
-                    "iadmin/import_csv_1.html"
-                ], RequestContext(self.request, context))
+            "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
+            "iadmin/%s/import_csv_1.html" % self.app_label,
+            "iadmin/import_csv_1.html"
+        ], RequestContext(self.request, context))
 
     def load_csv(self):
         form = ImportForm(self.app_label, self.model_name, self.request.POST, self.request.FILES)
@@ -598,10 +598,10 @@ class CSVImporter(View):
         else:
             context = self.get_context_data(page=1, form=form)
             return render_to_response(self.template_step1 or [
-                        "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
-                        "iadmin/%s/import_csv_1.html" % self.app_label,
-                        "iadmin/import_csv_1.html"
-                    ], RequestContext(self.request, context))
+                "iadmin/%s/%s/import_csv_1.html" % (self.app_label, self.model_name),
+                "iadmin/%s/import_csv_1.html" % self.app_label,
+                "iadmin/import_csv_1.html"
+            ], RequestContext(self.request, context))
 
     def display_mapping(self):
         Form = csv_processor_factory(self.app_label, self.model_name, self.temp_file_name)
@@ -609,14 +609,14 @@ class CSVImporter(View):
         context = self.get_context_data(page=2, form=form)
 
         #        if self.page == '2':
-#        if form.is_valid():
-#            self.process_mapping(form)
+        #        if form.is_valid():
+        #            self.process_mapping(form)
 
         return render_to_response(self.template_step1 or [
-                    "iadmin/%s/%s/import_csv_2.html" % (self.app_label, self.model_name),
-                    "iadmin/%s/import_csv_2.html" % self.app_label,
-                    "iadmin/import_csv_2.html"
-                ], RequestContext(self.request, context))
+            "iadmin/%s/%s/import_csv_2.html" % (self.app_label, self.model_name),
+            "iadmin/%s/import_csv_2.html" % self.app_label,
+            "iadmin/import_csv_2.html"
+        ], RequestContext(self.request, context))
 
     def process_mapping(self, form):
         records = []
@@ -652,20 +652,22 @@ class CSVImporter(View):
         extra_context = extra_context or {}
         context.update({'page': 3,
                         'fields': Model._meta.fields,
-                        'back': reverse('iadmin:import', kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2}),
+                        'back': reverse('iadmin:import',
+                            kwargs={'app_label': self.app_label, 'model_name': self.model_name, 'page': 2}),
                         'lbl_next': 'Apply',
                         })
         context.update(extra_context)
         return render_to_response(self.template_step3 or [
-                                                "iadmin/%s/%s/import_csv_3.html" % (self.app_label, self.model_name.lower()),
-                                                "iadmin/%s/import_csv_3.html" % self.app_label,
-                                                "iadmin/import_csv_3.html"
-                                            ], RequestContext(self.request, context))
+            "iadmin/%s/%s/import_csv_3.html" % (self.app_label, self.model_name.lower()),
+            "iadmin/%s/import_csv_3.html" % self.app_label,
+            "iadmin/import_csv_3.html"
+        ], RequestContext(self.request, context))
 
 
     @property
     def temp_file_name(self):
-        filename = "%s_%s_%s_%s" % (self.request.user.username, self.app_label, self.model_name, hash(self.request.user.password) )
+        filename = "%s_%s_%s_%s" % (
+        self.request.user.username, self.app_label, self.model_name, hash(self.request.user.password) )
         return os.path.join(tempfile.gettempdir(), 'iadmin_import_%s.temp~' % filename)
 
     def get(self, request, *args, **kwargs):

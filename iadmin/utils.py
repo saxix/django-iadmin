@@ -16,6 +16,10 @@ def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     Tab = type(name, (Inline,), attrs)
     return Tab
 
+def imodeladmin_transformer(model_admin):
+
+    class IModelAdmin(model_admin.__class__):
+        pass
 
 class Null(object):
 
@@ -47,57 +51,57 @@ class Null(object):
         return self
 
 
-#class K:
-#
-#    def __init__(self, label = None, **kwargs):
-#        assert(len(kwargs) == 1)
-#        for k, v in kwargs.items():
-#            self.id = k
-#            self.v = v
-#        self.label = label or self.id
-#
-#    def __str__(self):
-#        return self.label
+class K:
+
+    def __init__(self, label = None, **kwargs):
+        assert(len(kwargs) == 1)
+        for k, v in kwargs.items():
+            self.id = k
+            self.v = v
+        self.label = label or self.id
+
+    def __str__(self):
+        return self.label
 
 
-#class Choices(object):
-#    """
-#    >>> options = Choices(
-#    ... K(pending=1, label='Pending'),
-#    ... K(accepted=2, label='Accepted'),
-#    ... K(rejected=3)
-#    ... )
-#    >>> options.pending
-#    1
-#    >>> options.choices()
-#    [(1, 'Pending'), (2, 'Accepted'), (3, 'rejected')]
-#    """
-#
-#    def __iter__(self):
-#        for x in [(k.v, k.label) for k in self.klist ]:
-#            yield x
-#
-#    def __init__(self, *args):
-#        self.klist = args
-#        for k in self.klist:
-#            setattr(self, k.id, k.v)
-#
-#    def labels(self, excludes=None):
-#        _excludes = excludes or []
-#        return [k.label for k in self.klist if k.id not in _excludes]
-#
-#    def choices(self, excludes=None):
-#        _excludes = excludes or []
-#        return [(k.v, k.label) for k in self.klist if k.id not in _excludes]
-#
-#    def subset(self, includes=None):
-#        _includes = includes or []
-#        return [(k.v, k.label) for k in self.klist if k.id in _includes]
-#
-#    def get_by_value(self, value):
-#        for x in self.klist:
-#            if x.v == value:
-#                return x
+class Choices(object):
+    """
+    >>> options = Choices(
+    ... K(pending=1, label='Pending'),
+    ... K(accepted=2, label='Accepted'),
+    ... K(rejected=3)
+    ... )
+    >>> options.pending
+    1
+    >>> options.choices()
+    [(1, 'Pending'), (2, 'Accepted'), (3, 'rejected')]
+    """
+
+    def __iter__(self):
+        for x in [(k.v, k.label) for k in self.klist ]:
+            yield x
+
+    def __init__(self, *args):
+        self.klist = args
+        for k in self.klist:
+            setattr(self, k.id, k.v)
+
+    def labels(self, excludes=None):
+        _excludes = excludes or []
+        return [k.label for k in self.klist if k.id not in _excludes]
+
+    def choices(self, excludes=None):
+        _excludes = excludes or []
+        return [(k.v, k.label) for k in self.klist if k.id not in _excludes]
+
+    def subset(self, includes=None):
+        _includes = includes or []
+        return [(k.v, k.label) for k in self.klist if k.id in _includes]
+
+    def get_by_value(self, value):
+        for x in self.klist:
+            if x.v == value:
+                return x
 
 def iter_get_attr(obj, attr, default=None):
     """Recursive get object's attribute. May use dot notation.
