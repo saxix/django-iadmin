@@ -1,10 +1,11 @@
 #
+from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.util import lookup_field, quote, lookup_needs_distinct, get_fields_from_path
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist, BooleanField
 from django.utils.functional import cached_property
-from iadmin.filters import FieldCellFilter, RelatedFieldCellFilter, ChoicesCellFilter, BooleanCellFilter
+from iadmin.filters import FieldCellFilter, RelatedFieldCellFilter, ChoicesCellFilter, BooleanCellFilter, FieldComboFilter
 
 __author__ = 'sax'
 
@@ -12,6 +13,21 @@ from django.contrib.admin.views.main import ChangeList, IS_POPUP_VAR, SEARCH_VAR
 
 
 class IChangeList(ChangeList):
+
+    def get_filters(self, request):
+        print 3333, self.list_filter
+        if self.list_filter:
+            new_list = []
+            for i, list_filter in enumerate(self.list_filter):
+                new_list.append(list_filter)
+                if isinstance(list_filter, basestring):
+                    field = get_fields_from_path(self.model, list_filter)[-1]
+                    if hasattr(field, 'choices'):
+                        print 2222
+                        new_list[i] = list_filter
+
+            self.list_filter = new_list
+        return super(IChangeList, self).get_filters(request)
 
     def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
                  list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
@@ -22,6 +38,14 @@ class IChangeList(ChangeList):
         super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
                                           search_fields, list_select_related, list_per_page, list_max_show_all,
                                           list_editable, model_admin)
+    def is_filtered(self):
+        lookup_params = self.params.copy() # a dictionary of the query string
+        for i in (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, IS_POPUP_VAR):
+            if i in lookup_params:
+                del lookup_params[i]
+        if not lookup_params.items() and not self.query:
+            return False
+        return True
 
     @cached_property
     def cell_filters(self):
@@ -37,7 +61,9 @@ class IChangeList(ChangeList):
                 if hasattr(self.model_admin, cell_filter):
                     # if it's a ModelAdmin method get the `admin_filter_field`
                     attr = getattr(self.model_admin, cell_filter)
-                    field_path = getattr(attr, 'admin_filter_field')
+                    field_path = getattr(attr, 'admin_filter_field', None)
+                    if not field_path:
+                        continue
                     path = get_fields_from_path(self.model, field_path)
                     field = path[-1]
 

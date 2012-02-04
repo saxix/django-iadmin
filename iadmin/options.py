@@ -18,6 +18,7 @@ from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+
 from .views import IChangeList
 from django.utils.translation import ugettext as _, ungettext
 import iadmin.actions as ac

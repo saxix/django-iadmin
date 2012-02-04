@@ -11,25 +11,79 @@
     {{ media.js }}
     <script type="text/javascript">
         {% if cl %}
-            (function($) {
-                $(document).ready(function($) {
+            (function ($) {
+                $(document).ready(function ($) {
                     $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
-                    $('.iadmin-cell-menu-button').click(function() {
+                    $('.iadmin-cell-menu-button').click(function () {
                         $(this).next().css('display', 'block');
                     });
-                    $('ul.iadmin-cell-menu').mouseleave(function() {
+                    $('ul.iadmin-cell-menu').mouseleave(function () {
                         $(this).css('display', 'none');
                     });
                 });
             })(django.jQuery);
         {% endif %}
-    </script>
-{% endblock %}
 
+        (function ($) {
+            showchangelistfilter = function () {
+                $("#changelist-filter").toggle();
+            }
+        })(django.jQuery);
+    </script>
+    <style type="text/css">
+        #changelist-filter-button {
+            background: url("{{ STATIC_URL }}iadmin/img/changelist-filter-button-bg.jpg") no-repeat scroll 0 0 transparent;
+            border-left: 1px solid #DDDDDD;
+            display: block;
+            height: auto;
+            line-height: 30px;
+            margin: 0;
+            padding-left: 10px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 150px;
+            z-index: 1000;
+        }
+
+        #changelist-filter {
+            top: 30px;
+            min-height: 500px;
+        }
+
+        div#sitemap {
+            margin: 0;
+            padding: 0 0 5px;
+        }
+
+        .change-list .filtered .results, .change-list .filtered .paginator, .filtered #toolbar, .filtered div.xfull {
+            margin-right: 0px !important;
+            width: auto !important;
+        }
+
+        .change-list .filtered {
+            background: white !important;
+        }
+
+        .filtered .actions {
+            border-right: 1px solid #DDDDDD;
+            margin-right: 0px !important;
+        }
+        .toplinks{
+            height: 30px;
+        }
+    </style>
+{% endblock %}
+{% block search %}{% search_form cl %}
+
+{% endblock %}
 {% block filters %}
     {% if cl.has_filters %}
-        <div id="changelist-filter">
+        <a href="javascript:showchangelistfilter();" id="changelist-filter-button">{% trans "Filter:" %}
+            {% if cl.is_filtered %}{% trans "on" %}{% else %}{% trans "off" %}{% endif %}</a>
+        <div id="changelist-filter" style="display:none;">
             <h2>{% trans 'Filter' %}</h2>
+
             <h3><a href="?">Clear all</a></h3>
             {% for spec in cl.filter_specs %}{% iadmin_list_filter cl spec %}{% endfor %}
         </div>
@@ -40,7 +94,7 @@
     {% for url, label in  cl.model_admin.get_tools %}
         <li><a class="addlink" href="{{ url }}">{{ label }} </a></li>
     {% endfor %}
-{#{{ block.super }}#}
+    {#{{ block.super }}#}
 {% endblock %}
 
 {% block result_list %}

@@ -39,17 +39,18 @@ def iresult_headers(cl):
 
 def get_items_cell_filter(cl, column, obj):
 
-    filter = cl.cell_filters[column]
     menu_items = []
-    filter_params = filter.expected_parameters()
-    if filter.is_active(cl):
-        menu_items.append((cl.get_query_string({},filter_params ), _('Remove filter')))
+    filter = cl.cell_filters.get(column, None)
+    if filter:
+        filter_params = filter.expected_parameters()
+        if filter.is_active(cl):
+            menu_items.append((cl.get_query_string({},filter_params ), _('Remove filter')))
 
-    for op in filter.col_operators:
-        label, param= filter.get_menu_item_for_op(op)
-        value = iter_get_attr(obj, filter.seed.replace('__', '.'))
-        url = cl.get_query_string({param: value}, filter_params )
-        menu_items.append((url, label))
+        for op in filter.col_operators:
+            label, param= filter.get_menu_item_for_op(op)
+            value = iter_get_attr(obj, filter.seed.replace('__', '.'))
+            url = cl.get_query_string({param: value}, filter_params )
+            menu_items.append((url, label))
     return menu_items
 
 

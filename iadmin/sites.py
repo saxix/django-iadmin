@@ -1,11 +1,7 @@
 import copy
 import datetime
-from importlib import import_module
-from django.core.exceptions import PermissionDenied
 from django.db.models.base import ModelBase
 from django.db.models.loading import get_apps, get_models
-from django.utils.safestring import mark_safe
-from django.utils.text import capfirst
 from django.views.decorators.csrf import csrf_protect
 import os
 import django
@@ -182,6 +178,16 @@ class IAdminSite(AdminSite):
             for model in get_models(app):
                 self.register(model, IModelAdmin)
 
+    def iautodiscover(self):
+        self.autodiscover()
+        for model, admin_class in self._registry.items():
+            try:
+                if not issubclass(admin_class.__class__, IModelAdmin):
+                    attrs={'cell_filter' : [f for f in admin_class.list_display if f not in ('__unicode__','__str__')]}
+                    self.register(model, type("I%sModelAdmin" % model._meta.module_name, (IModelAdmin, type(admin_class)), attrs), override=True)
+            except TypeError, e:
+                pass
+
     def autodiscover(self):
         """
         same as django.admin.autodiscover.
@@ -205,110 +211,110 @@ class IAdminSite(AdminSite):
     def get_templates_for(self, ):
         pass
 
-    def index(self, request, extra_context=None):
-        """
-        Displays the main admin index page, which lists all of the installed
-        apps that have been registered in this site.
-        """
-        app_dict = {}
-        user = request.user
+#    def index(self, request, extra_context=None):
+#        """
+#        Displays the main admin index page, which lists all of the installed
+#        apps that have been registered in this site.
+#        """
+#        app_dict = {}
+#        user = request.user
+#
+#        if getattr(settings, 'IADMIN_COUNT_ROWS', True):
+#            count_models = lambda model: model.objects.all().count()
+#        else:
+#            count_models = lambda model: ''
+#        for model, model_admin in self._registry.items():
+#            app_label = model._meta.app_label
+#            has_module_perms = user.has_module_perms(app_label)
+#
+#            if has_module_perms:
+#                perms = model_admin.get_model_perms(request)
+#
+#                # Check whether user has any perm for this module.
+#                # If so, add the module to the model_list.
+#                if True in perms.values():
+#                    model_dict = {
+#                        'name': capfirst(model._meta.verbose_name_plural),
+#                        'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
+#                        'perms': perms,
+#                        'count': count_models(model)
+#                    }
+#                    if app_label in app_dict:
+#                        app_dict[app_label]['models'].append(model_dict)
+#                    else:
+#                        app_dict[app_label] = {
+#                            'name': app_label.title(),
+#                            'app_url': app_label + '/',
+#                            'has_module_perms': has_module_perms,
+#                            'models': [model_dict],
+#                            }
+#
+#        # Sort the apps alphabetically.
+#        app_list = app_dict.values()
+#        app_list.sort(lambda x, y: cmp(x['name'], y['name']))
+#
+#        # Sort the models alphabetically within each app.
+#        for app in app_list:
+#            app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
+#
+#        context = {
+#            'title': _('Site administration'),
+#            'app_list': app_list,
+#            }
+#        context.update(extra_context or {})
+#        context_instance = template.RequestContext(request, current_app=self.name)
+#        return render_to_response(self.index_template or '%s/index.html' % self.template_base_dir,
+#            context, context_instance=context_instance)
 
-        if getattr(settings, 'IADMIN_COUNT_ROWS', True):
-            count_models = lambda model: model.objects.all().count()
-        else:
-            count_models = lambda model: ''
-        for model, model_admin in self._registry.items():
-            app_label = model._meta.app_label
-            has_module_perms = user.has_module_perms(app_label)
-
-            if has_module_perms:
-                perms = model_admin.get_model_perms(request)
-
-                # Check whether user has any perm for this module.
-                # If so, add the module to the model_list.
-                if True in perms.values():
-                    model_dict = {
-                        'name': capfirst(model._meta.verbose_name_plural),
-                        'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
-                        'perms': perms,
-                        'count': count_models(model)
-                    }
-                    if app_label in app_dict:
-                        app_dict[app_label]['models'].append(model_dict)
-                    else:
-                        app_dict[app_label] = {
-                            'name': app_label.title(),
-                            'app_url': app_label + '/',
-                            'has_module_perms': has_module_perms,
-                            'models': [model_dict],
-                            }
-
-        # Sort the apps alphabetically.
-        app_list = app_dict.values()
-        app_list.sort(lambda x, y: cmp(x['name'], y['name']))
-
-        # Sort the models alphabetically within each app.
-        for app in app_list:
-            app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
-
-        context = {
-            'title': _('Site administration'),
-            'app_list': app_list,
-            }
-        context.update(extra_context or {})
-        context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response(self.index_template or '%s/index.html' % self.template_base_dir,
-            context, context_instance=context_instance)
-
-    @cache_app_index
-    def app_index(self, request, app_label, extra_context=None):
-        user = request.user
-        has_module_perms = user.has_module_perms(app_label)
-        app_dict = {}
-        if getattr(settings, 'IADMIN_COUNT_ROWS', True):
-            count_models = lambda model: model.objects.all().count()
-        else:
-            count_models = lambda model: ''
-
-        for model, model_admin in self._registry.items():
-            if app_label == model._meta.app_label:
-                if has_module_perms:
-                    perms = model_admin.get_model_perms(request)
-
-                    # Check whether user has any perm for this module.
-                    # If so, add the module to the model_list.
-                    if True in perms.values():
-                        model_dict = {
-                            'name': capfirst(model._meta.verbose_name_plural),
-                            'admin_url': '%s/' % model.__name__.lower(),
-                            'perms': perms,
-                            'count': count_models(model)
-                        }
-                        if app_dict:
-                            app_dict['models'].append(model_dict),
-                        else:
-                            # First time around, now that we know there's
-                            # something to display, add in the necessary meta
-                            # information.
-                            app_dict = {
-                                'name': app_label.title(),
-                                'app_url': '',
-                                'has_module_perms': has_module_perms,
-                                'models': [model_dict],
-                                }
-        if not app_dict:
-            raise http.Http404('The requested admin page does not exist.')
-            # Sort the models alphabetically within each app.
-        app_dict['models'].sort(lambda x, y: cmp(x['name'], y['name']))
-        context = {
-            'title': _('%s administration') % capfirst(app_label),
-            'app_list': [app_dict],
-            'app_label': app_label,
-            }
-        context.update(extra_context or {})
-        context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response(self.app_index_template or '%s/app_index.html' % self.template_base_dir, context,
-            context_instance=context_instance)
+#    @cache_app_index
+#    def app_index(self, request, app_label, extra_context=None):
+#        user = request.user
+#        has_module_perms = user.has_module_perms(app_label)
+#        app_dict = {}
+#        if getattr(settings, 'IADMIN_COUNT_ROWS', True):
+#            count_models = lambda model: model.objects.all().count()
+#        else:
+#            count_models = lambda model: ''
+#
+#        for model, model_admin in self._registry.items():
+#            if app_label == model._meta.app_label:
+#                if has_module_perms:
+#                    perms = model_admin.get_model_perms(request)
+#
+#                    # Check whether user has any perm for this module.
+#                    # If so, add the module to the model_list.
+#                    if True in perms.values():
+#                        model_dict = {
+#                            'name': capfirst(model._meta.verbose_name_plural),
+#                            'admin_url': '%s/' % model.__name__.lower(),
+#                            'perms': perms,
+#                            'count': count_models(model)
+#                        }
+#                        if app_dict:
+#                            app_dict['models'].append(model_dict),
+#                        else:
+#                            # First time around, now that we know there's
+#                            # something to display, add in the necessary meta
+#                            # information.
+#                            app_dict = {
+#                                'name': app_label.title(),
+#                                'app_url': '',
+#                                'has_module_perms': has_module_perms,
+#                                'models': [model_dict],
+#                                }
+#        if not app_dict:
+#            raise http.Http404('The requested admin page does not exist.')
+#            # Sort the models alphabetically within each app.
+#        app_dict['models'].sort(lambda x, y: cmp(x['name'], y['name']))
+#        context = {
+#            'title': _('%s administration') % capfirst(app_label),
+#            'app_list': [app_dict],
+#            'app_label': app_label,
+#            }
+#        context.update(extra_context or {})
+#        context_instance = template.RequestContext(request, current_app=self.name)
+#        return render_to_response(self.app_index_template or '%s/app_index.html' % self.template_base_dir, context,
+#            context_instance=context_instance)
 
 
     def get_urls(self):
@@ -319,10 +325,12 @@ class IAdminSite(AdminSite):
             return update_wrapper(wrapper, view)
 
         urlpatterns = []
-        urlpatterns.extend(iservice.get_urls())
         urlpatterns.extend(super(IAdminSite, self).get_urls())
         return urlpatterns
 
+    @property
+    def urls(self):
+        return self.get_urls(), self.app_name, self.name
 
     def register(self, model_or_iterable, admin_class=None, override=False, **options):
         """
@@ -412,7 +420,7 @@ class IAdminSite(AdminSite):
 #post_save.connect(invalidate_index)
 #post_delete.connect(invalidate_index)
 #
-#site = IAdminSite()
+site = IAdminSite()
 
 
   
