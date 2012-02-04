@@ -1,7 +1,6 @@
 from _csv import Error
 from contextlib import contextmanager
 import re
-from django.contrib.formtools.wizard.views import SessionWizardView
 from django.forms.fields import ChoiceField, CharField
 from django import forms
 from django.forms import FileField
@@ -11,26 +10,18 @@ from django.forms.widgets import Input, HiddenInput
 from django.template.context import RequestContext
 from django.utils.encoding import force_unicode, smart_str
 from django.utils import formats
-from functools import update_wrapper
-from django import template
 from django.conf import settings
-from django.conf.urls.defaults import url, patterns
 import tempfile
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.core.urlresolvers import reverse
 from django.db.models.fields.related import ForeignKey
 from django.db.models.loading import get_model, get_models, get_apps, get_app
-from django.db.utils import IntegrityError
-from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 import os
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
-from django.views.generic.edit import ProcessFormView, FormView
-from iadmin.actions.csv2.utils import CSVPRocessorForm
 from django.forms.fields import  CharField, BooleanField
 from django.utils.translation import gettext as _
 
