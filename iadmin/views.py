@@ -15,7 +15,6 @@ from django.contrib.admin.views.main import ChangeList, IS_POPUP_VAR, SEARCH_VAR
 class IChangeList(ChangeList):
 
     def get_filters(self, request):
-        print 3333, self.list_filter
         if self.list_filter:
             new_list = []
             for i, list_filter in enumerate(self.list_filter):
@@ -23,7 +22,6 @@ class IChangeList(ChangeList):
                 if isinstance(list_filter, basestring):
                     field = get_fields_from_path(self.model, list_filter)[-1]
                     if hasattr(field, 'choices'):
-                        print 2222
                         new_list[i] = list_filter
 
             self.list_filter = new_list
