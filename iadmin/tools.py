@@ -665,7 +665,6 @@ class CSVImporter(View):
         return self.start()
 
     def post(self, request, *args, **kwargs):
-        print 111111111111, self.request.POST['page']
         if self.page == '1':
             return self.load_csv()
         elif self.page == '2':
