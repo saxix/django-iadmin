@@ -2,6 +2,7 @@ import copy
 import datetime
 from django.db.models.base import ModelBase
 from django.db.models.loading import get_apps, get_models
+from django.template.defaultfilters import capfirst
 from django.views.decorators.csrf import csrf_protect
 import os
 import django
@@ -61,6 +62,44 @@ class IAdminService(object):
         d = datetime.datetime.now()
         #        return HttpResponse(d.strftime(request.GET.get('fmt', '')))
         return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
+
+
+    def env_info_counters(self, request, export=False):
+        app_dict = {}
+        for model, model_admin in self.admin_site._registry.items():
+            app_label = model._meta.app_label
+            info = (app_label, model._meta.module_name)
+            model_dict = {
+                'name': capfirst(model._meta.verbose_name_plural),
+                'perms': model_admin.get_model_perms(request),
+                'admin_url':reverse('admin:%s_%s_changelist' % info, current_app=self.admin_site.name),
+                'row_count' : model.objects.count(),
+            }
+            if app_label in app_dict:
+                app_dict[app_label]['models'].append(model_dict)
+            else:
+                app_dict[app_label] = {
+                    'name': app_label.title(),
+#                    'app_url': reverse('admin:app_list', kwargs={'app_label': app_label}, current_app=self.name),
+#                    'has_module_perms': has_module_perms,
+                    'models': [model_dict],
+                }
+
+        # Sort the apps alphabetically.
+        app_list = app_dict.values()
+        app_list.sort(key=lambda x: x['name'])
+
+        # Sort the models alphabetically within each app.
+        for app in app_list:
+            app['models'].sort(key=lambda x: x['name'])
+
+        context = {
+            'title': _('Site administration'),
+            'app_list': app_list,
+            'STATIC_URL' : settings.STATIC_URL,
+        }
+        return render_to_response(('%s/env_info_counters.html' % self.admin_site.name,
+                                   'iadmin/env_info_counters.html'), context)
 
     def env_info(self, request, export=False):
         def _apps():
@@ -124,6 +163,10 @@ class IAdminService(object):
                                     wrap(self.format_date),
                                     name='format_date'),
 
+                                url(r'^s/info/counters/$',
+                                    wrap(self.env_info_counters, True),
+                                    name="info_counters"
+                                ),
                                 url(r'^s/info/$',
                                     wrap(self.env_info, True),
                                     name="info"
@@ -141,7 +184,7 @@ class IAdminService(object):
         return self.get_urls(), 'iadmin', 'iadmin'
 
 
-iservice = IAdminService(django.contrib.admin.site)
+
 
 class IAdminSite(AdminSite):
     def __init__(self, name='admin', app_name='admin', template_base_dir='admin'):
@@ -183,7 +226,9 @@ class IAdminSite(AdminSite):
         for model, admin_class in self._registry.items():
             try:
                 if not issubclass(admin_class.__class__, IModelAdmin):
-                    attrs={'cell_filter' : [f for f in admin_class.list_display if f not in ('__unicode__','__str__')]}
+                    attrs = {}
+                    if not hasattr(admin_class, 'cell_filter'):
+                        attrs={'cell_filter' : [f for f in admin_class.list_display if f not in ('__unicode__','__str__')]}
                     self.register(model, type("I%sModelAdmin" % model._meta.module_name, (IModelAdmin, type(admin_class)), attrs), override=True)
             except TypeError, e:
                 pass
@@ -236,7 +281,7 @@ class IAdminSite(AdminSite):
 #post_save.connect(invalidate_index)
 #post_delete.connect(invalidate_index)
 #
-site = IAdminSite()
-
+isite = site = IAdminSite()
+iservice = IAdminService(site)
 
   

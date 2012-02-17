@@ -44,7 +44,7 @@ class IModelAdmin(DjangoModelAdmin):
     cell_menu_on_click = True # if true need to click on icon else mouseover is enough
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     cell_filter_operators = {}
-    tools = [("import/1/", "import"), ]
+    tools = [("import/", "import"), ]
 
     class Media:
         js = ("iadmin/js/iwidgets.js",)

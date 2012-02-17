@@ -1,5 +1,6 @@
 from django.contrib.admin import site, ModelAdmin, TabularInline
 from iadmin.api import *
+
 def patch():
     import django.contrib.admin
     import iadmin.api

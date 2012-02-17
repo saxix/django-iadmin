@@ -1,4 +1,5 @@
 import datetime
+from django.forms.widgets import SelectMultiple
 from django.utils.translation import gettext as _
 from django import forms
 from django.contrib import messages
@@ -31,7 +32,7 @@ class CSVOptions(forms.Form):
     datetime_format = forms.CharField(initial=formats.get_format('DATETIME_FORMAT'))
     date_format = forms.CharField(initial=formats.get_format('DATE_FORMAT'))
     time_format = forms.CharField(initial=formats.get_format('TIME_FORMAT'))
-    columns = forms.MultipleChoiceField()
+    columns = forms.MultipleChoiceField(widget=SelectMultiple(attrs={'size': 20}))
 
 
 def export_to_csv(modeladmin, request, queryset):

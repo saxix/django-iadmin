@@ -26,10 +26,8 @@ from iadmin.utils import Null, iter_get_attr
 al__result_headers = al.result_headers
 def iresult_headers(cl):
     original = list(al__result_headers(cl))
-#    cell_filters = cl.get_cell_filters(cl.request)
 
     for i, field_name in enumerate(cl.list_display):
-#        filter = cl.cell_filters.get(field_name, Null())
         filter = cl.cell_filters.get(field_name, Null())
         original_data = original[i]
         if filter.is_active(cl):
@@ -144,7 +142,6 @@ def iitems_for_result(cl, result, form, context=None):
 
 
         cell_filter_menu = smart_unicode(mark_safe(get_popup_menu(cell_menu_items)))
-
 
         if row_class:
             row_class=' class="%s"' % row_class
