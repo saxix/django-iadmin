@@ -1,22 +1,13 @@
-#from iadmin.utils import iter_get_attr
-
-
-#from django.conf import settings
-#from django.db.models.base import Model
-#from django.contrib.admin.templatetags.admin_list import _boolean_icon
-
 from django.contrib.admin.util import lookup_field, display_for_field, quote
 from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.template.context import Context
-from django.template.loader import get_template
+from django.db.models.base import Model
 from django.utils.html import escape, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.encoding import smart_unicode, force_unicode
-
 
 from django.contrib.admin.templatetags.admin_list import register, result_hidden_fields, _boolean_icon
 import django.contrib.admin.templatetags.admin_list as al
@@ -24,6 +15,7 @@ from iadmin.utils import Null, iter_get_attr
 
 
 al__result_headers = al.result_headers
+
 def iresult_headers(cl):
     original = list(al__result_headers(cl))
 
@@ -35,19 +27,19 @@ def iresult_headers(cl):
             original_data['clear_filter_url'] = cl.get_query_string({}, filter.expected_parameters())
         yield original_data
 
-def get_items_cell_filter(cl, column, obj):
 
+def get_items_cell_filter(cl, column, obj):
     menu_items = []
     filter = cl.cell_filters.get(column, None)
     if filter:
         filter_params = filter.expected_parameters()
         if filter.is_active(cl):
-            menu_items.append((cl.get_query_string({},filter_params ), _('Remove filter')))
+            menu_items.append((cl.get_query_string({}, filter_params), _('Remove filter')))
 
         for op in filter.col_operators:
-            label, param= filter.get_menu_item_for_op(op)
+            label, param = filter.get_menu_item_for_op(op)
             value = iter_get_attr(obj, filter.seed.replace('__', '.'))
-            url = cl.get_query_string({param: value}, filter_params )
+            url = cl.get_query_string({param: value}, filter_params)
             menu_items.append((url, label))
     return menu_items
 
@@ -61,17 +53,19 @@ def get_popup_menu(items):
     else:
         return ''
 
+
 def iitems_for_result(cl, result, form, context=None):
     """
     Generates the actual list of data.
     """
+
     def handle_link():
         if field_name in model_admin.list_display_rel_links:
             if admin_order_field:
-                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
+                linked_object = iter_get_attr(result, admin_order_field.replace('__', '.'))
             else:
                 linked_object = getattr(result, field_name) #f.rel.to
-            return mark_safe( cl.url_for_obj(context['request'], linked_object) )
+            return mark_safe(cl.url_for_obj(context['request'], linked_object))
         return mark_safe('')
 
 
@@ -117,45 +111,46 @@ def iitems_for_result(cl, result, form, context=None):
                 else:
                     result_repr = display_for_field(value, f)
                 if isinstance(f, models.DateField)\
-                or isinstance(f, models.TimeField)\
+                   or isinstance(f, models.TimeField)\
                 or isinstance(f, models.ForeignKey):
                     row_class = ' nowrap'
 
-#        link = handle_link()
+                #        link = handle_link()
         cell_menu_items = []
 
         if field_name in model_admin.list_display_rel_links:
             if admin_order_field:
-                linked_object = iter_get_attr(result, admin_order_field.replace('__','.'))
+                linked_object = iter_get_attr(result, admin_order_field.replace('__', '.'))
             else:
                 linked_object = getattr(result, field_name) #f.rel.to
-            if model_admin.has_change_permission(context['request'], linked_object):
-                view = "%s:%s_%s_change" % (model_admin.admin_site.app_name, linked_object._meta.app_label, linked_object.__class__.__name__.lower())
-                url = reverse(view, args=[int(linked_object.pk)])
-            elif model_admin.has_view_permission(context['request'], linked_object):
-                url = "view/%s/" % quote(getattr(linked_object, linked_object._meta.pk_attname))
+            if linked_object and isinstance(linked_object, Model):
+                if model_admin.has_change_permission(context['request'], linked_object):
+                    view = "%s:%s_%s_change" % (
+                    model_admin.admin_site.app_name, linked_object._meta.app_label, linked_object.__class__.__name__.lower())
+                    url = reverse(view, args=[int(linked_object.pk)])
+                elif model_admin.has_view_permission(context['request'], linked_object):
+                    url = "view/%s/" % quote(getattr(linked_object, linked_object._meta.pk_attname))
 
-            cell_menu_items.append( [url, _("Jump to detail")] )
+                cell_menu_items.append([url, _("Jump to detail")])
 
         if hasattr(model_admin, 'cell_filter') and field_name in model_admin.cell_filter:
-            cell_menu_items.extend( get_items_cell_filter(cl, field_name, result) )
-
+            cell_menu_items.extend(get_items_cell_filter(cl, field_name, result))
 
         cell_filter_menu = smart_unicode(mark_safe(get_popup_menu(cell_menu_items)))
 
         if row_class:
-            row_class=' class="%s"' % row_class
+            row_class = ' class="%s"' % row_class
 
         if force_unicode(result_repr) == '':
             result_repr = mark_safe('&nbsp;')
 
-#        menu = mark_safe('%s%s' % (link, conditional_escape( cell_filter_menu )))
-        menu = conditional_escape( cell_filter_menu )
+        #        menu = mark_safe('%s%s' % (link, conditional_escape( cell_filter_menu )))
+        menu = conditional_escape(cell_filter_menu)
         # If list_display_links not defined, add the link tag to the first field
         if (first and not cl.list_display_links) or field_name in cl.list_display_links:
             table_tag = {True: 'th', False: 'td'}[first]
             first = False
-            url = cl.url_for_result( result )
+            url = cl.url_for_result(result)
             # Convert the pk to something that can be used in Javascript.
             # Problem cases are long ints (23L) and non-ASCII strings.
             if cl.to_field:
@@ -177,20 +172,11 @@ def iitems_for_result(cl, result, form, context=None):
                 result_repr = mark_safe(force_unicode(bf.errors) + force_unicode(bf))
                 yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
             else:
-
                 yield mark_safe(u'<td>%s<span%s>%s</span></td>' % (menu, row_class, result_repr))
 
     if form and not form[cl.model._meta.pk.name].is_hidden:
         yield mark_safe(u'<td>%s</td>' % force_unicode(form[cl.model._meta.pk.name]))
 
-
-#def iitems_for_result(cl, result, form):
-#    for x in bk_items_for_result(cl, result, form):
-#        print 1111, x
-#        yield x
-#
-#bk_items_for_result = al.items_for_result
-#al.items_for_result = items_for_result
 
 def iresults(cl, context):
     if cl.formset:
@@ -200,29 +186,7 @@ def iresults(cl, context):
         for res in cl.result_list:
             yield al.ResultList(None, iitems_for_result(cl, res, None, context=context))
 
-#@register.inclusion_tag("admin/change_list_results.html", takes_context=True)
-#def result_list(context, cl):
-#    """
-#    Displays the headers and data list together
-#    """
-#    headers = list(result_headers(cl))
-#    for h in headers:
-#        # Sorting in templates depends on sort_pos attributeue
-#        h.setdefault('sort_pos', 0)
-#    return {'cl': cl,
-#            'result_hidden_fields': list(result_hidden_fields(cl)),
-#            'result_headers': headers,
-#            'reset_sorting_url': cl.get_query_string(remove=[ORDER_VAR]),
-#            'results': list(results(cl, context))}
-#
-#
-#def result_hidden_fields(cl):
-#    if cl.formset:
-#        for res, form in zip(cl.result_list, cl.formset.forms):
-#            if form[cl.model._meta.pk.name].is_hidden:
-#                yield mark_safe(force_unicode(form[cl.model._meta.pk.name]))
-#
-#
+
 @register.inclusion_tag("iadmin/change_list_results.html", takes_context=True)
 def iresult_list(context, cl):
     """
@@ -238,31 +202,3 @@ def iresult_list(context, cl):
             'result_headers': headers,
             'num_sorted_fields': num_sorted_fields,
             'results': list(iresults(cl, context))}
-
-#    """
-#    Displays the headers and data list together
-#    """
-#    return {'cl': cl,
-#            'result_hidden_fields': list(result_hidden_fields(cl)),
-#            'result_headers': list(result_headers(cl)),
-#            'results': list(results(cl))}
-
-#iresult_list = register.inclusion_tag("iadmin/change_list_results.html")(al.result_list)
-
-#@register.inclusion_tag('iadmin/tools.html', takes_context=True)
-#def admin_tools(context):
-#    """
-#    Track the number of times the action field has been rendered on the page,
-#    so we know which value to use.
-#    """
-#    context['tool_index'] = context.get('tool_index', -1) + 1
-#    return context
-
-@register.simple_tag()
-def iadmin_list_filter(cl, spec):
-    if hasattr(spec, 'template') and spec.template:
-        t = get_template(spec.template)
-    else:
-        t = get_template('admin/filter.html')
-    ctx = Context({'title': spec.title, 'choices' : list(spec.choices(cl)), 'spec': spec})
-    return t.render(ctx)

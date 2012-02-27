@@ -85,7 +85,7 @@
             <h2>{% trans 'Filter' %}</h2>
 
             <h3><a href="?">Clear all</a></h3>
-            {% for spec in cl.filter_specs %}{% iadmin_list_filter cl spec %}{% endfor %}
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
         </div>
     {% endif %}
 {% endblock %}
