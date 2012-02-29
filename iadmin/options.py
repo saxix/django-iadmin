@@ -464,7 +464,7 @@ class IModelAdmin(DjangoModelAdmin):
 class ITabularInline(DjangoTabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
-    edit_link = False
+    edit_link = True
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super(ITabularInline, self).get_formset(request, obj, **kwargs)

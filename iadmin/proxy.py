@@ -1,9 +1,9 @@
+import django.contrib.admin
 from django.contrib.admin import site, ModelAdmin, TabularInline
 from iadmin.api import *
+ModelAdmin = IModelAdmin
+TabularInline = ITabularInline
+django.contrib.admin.ModelAdmin = IModelAdmin
+django.contrib.admin.TabularInline = ITabularInline
 
-def patch():
-    import django.contrib.admin
-    import iadmin.api
 
-    django.contrib.admin.ModelAdmin = iadmin.api.IModelAdmin
-    django.contrib.admin.TabularInline = iadmin.api.ITabularInline

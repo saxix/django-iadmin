@@ -1,4 +1,4 @@
-{% load i18n adminmedia admin_modify %}
+{% load i18n adminmedia admin_modify %}{% load url from future %}
 <div class="inline-group" id="{{ inline_admin_formset.formset.prefix }}-group">
   <div class="tabular inline-related {% if forloop.last %}last-related{% endif %}">
 {{ inline_admin_formset.formset.management_form }}
@@ -25,7 +25,7 @@
           {% if inline_admin_form.original or inline_admin_form.show_url %}<p>
           {% if inline_admin_form.original %} {{ inline_admin_form.original }}{% endif %}
           {%  if inline_admin_formset.formset.edit_link  %}
-            <a href="../../../i/{{ inline_admin_form.original_content_type_id }}/{{ inline_admin_form.original.id }}/">
+            <a href="{% url 'admin:admin_shortcut' inline_admin_form.original_content_type_id inline_admin_form.original.id  %}">
               <img src="{{ STATIC_URL }}iadmin/img/edit.png" width="10" height="10" alt="%s"/></a>
             {% endif %}
               </p>

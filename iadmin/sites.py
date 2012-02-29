@@ -72,18 +72,18 @@ class IAdminService(object):
             model_dict = {
                 'name': capfirst(model._meta.verbose_name_plural),
                 'perms': model_admin.get_model_perms(request),
-                'admin_url':reverse('admin:%s_%s_changelist' % info, current_app=self.admin_site.name),
-                'row_count' : model.objects.count(),
-            }
+                'admin_url': reverse('admin:%s_%s_changelist' % info, current_app=self.admin_site.name),
+                'row_count': model.objects.count(),
+                }
             if app_label in app_dict:
                 app_dict[app_label]['models'].append(model_dict)
             else:
                 app_dict[app_label] = {
                     'name': app_label.title(),
-#                    'app_url': reverse('admin:app_list', kwargs={'app_label': app_label}, current_app=self.name),
-#                    'has_module_perms': has_module_perms,
+                    #                    'app_url': reverse('admin:app_list', kwargs={'app_label': app_label}, current_app=self.name),
+                    #                    'has_module_perms': has_module_perms,
                     'models': [model_dict],
-                }
+                    }
 
         # Sort the apps alphabetically.
         app_list = app_dict.values()
@@ -96,8 +96,8 @@ class IAdminService(object):
         context = {
             'title': _('Site administration'),
             'app_list': app_list,
-            'STATIC_URL' : settings.STATIC_URL,
-        }
+            'STATIC_URL': settings.STATIC_URL,
+            }
         return render_to_response(('%s/env_info_counters.html' % self.admin_site.name,
                                    'iadmin/env_info_counters.html'), context)
 
@@ -126,7 +126,7 @@ class IAdminService(object):
                    'curdir': os.path.abspath(os.path.curdir),
                    'os_user': getuser(),
                    'os': os,
-                   'title' : _("System information"),
+                   'title': _("System information"),
                    'sys': {'platform': sys.platform, 'version': sys.version_info, 'os': os.uname(),
                            'django': django.get_version()},
                    'database': settings.DATABASES,
@@ -151,6 +151,15 @@ class IAdminService(object):
     def import_csv(self, request, app_label, model_name, page, **kwargs):
         return CSVImporter(self, app_label, model_name, page, **kwargs).dispatch(request)
 
+    def admin_shortcut(self, request, content_type_id, object_id):
+        from django.contrib.contenttypes.models import ContentType
+
+        content_type = ContentType.objects.get(pk=content_type_id)
+        obj = content_type.get_object_for_this_type(pk=object_id)
+        view = "%s:%s_%s_change" % (self.admin_site.name, obj._meta.app_label, obj.__class__.__name__.lower())
+        url = reverse(view, args=[int(object_id)])
+        return HttpResponseRedirect(url)
+
     def get_urls(self):
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
@@ -159,22 +168,26 @@ class IAdminService(object):
             return update_wrapper(wrapper, view)
 
         urlpatterns = patterns('',
-                                url(r'^s/format/date/$',
-                                    wrap(self.format_date),
-                                    name='format_date'),
+            url(r'^s/format/date/$',
+                wrap(self.format_date),
+                name='format_date'),
 
-                                url(r'^s/info/counters/$',
-                                    wrap(self.env_info_counters, True),
-                                    name="info_counters"
-                                ),
-                                url(r'^s/info/$',
-                                    wrap(self.env_info, True),
-                                    name="info"
-                                ),
-                                url(r'(?P<app_label>.*)/(?P<model_name>.*)/import/(?P<page>\d+)/$',
-                                    wrap(self.import_csv),
-                                    name="import"
-                                ),
+            url(r'^s/info/counters/$',
+                wrap(self.env_info_counters, True),
+                name="info_counters"
+            ),
+            url(r'^s/info/$',
+                wrap(self.env_info, True),
+                name="info"
+            ),
+            url(r'(?P<app_label>.*)/(?P<model_name>.*)/import/(?P<page>\d+)/$',
+                wrap(self.import_csv),
+                name="import"
+            ),
+            url(r'^i/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
+                wrap(self.admin_shortcut),
+                name='admin_shortcut'),
+
         )
 
         return urlpatterns
@@ -182,8 +195,6 @@ class IAdminService(object):
     @property
     def urls(self):
         return self.get_urls(), 'iadmin', 'iadmin'
-
-
 
 
 class IAdminSite(AdminSite):
@@ -228,8 +239,9 @@ class IAdminSite(AdminSite):
                 if not issubclass(admin_class.__class__, IModelAdmin):
                     attrs = {}
                     if not hasattr(admin_class, 'cell_filter'):
-                        attrs={'cell_filter' : [f for f in admin_class.list_display if f not in ('__unicode__','__str__')]}
-                    self.register(model, type("I%sModelAdmin" % model._meta.module_name, (IModelAdmin, type(admin_class)), attrs), override=True)
+                        attrs = {'cell_filter': [f for f in admin_class.list_display if f not in ('__unicode__', '__str__')]}
+                    self.register(model, type("I%sModelAdmin" % model._meta.module_name, (IModelAdmin, type(admin_class)), attrs),
+                        override=True)
             except TypeError, e:
                 pass
 
