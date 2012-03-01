@@ -57,7 +57,7 @@ class IModelAdmin(DjangoModelAdmin):
     def get_actions(self, request):
         acts = super(IModelAdmin, self).get_actions(request)
         if not self.has_delete_permission(request, None):
-            acts.pop('delete_selected')
+            acts.pop('delete_selected', None)
         return acts
 
     def get_tools(self):
