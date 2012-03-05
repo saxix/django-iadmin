@@ -1,11 +1,11 @@
-
-__version__ = (0, 1, 8, 'alpha')
+VERSION = __version__ = (0, 1, 8, 'alpha', 0)
 __author__ = 'sax'
+import iadmin
 
 def get_version(version=None):
     """Derives a PEP386-compliant version number from VERSION."""
     if version is None:
-        version = __version__
+        version = VERSION
     assert len(version) == 5
     assert version[3] in ('alpha', 'beta', 'rc', 'final')
 
@@ -19,26 +19,17 @@ def get_version(version=None):
 
     sub = ''
     if version[3] == 'alpha' and version[4] == 0:
-        # At the toplevel, this would cause an import loop.
-        from django.utils.version import get_svn_revision
-        svn_revision = get_svn_revision()[4:]
-        if svn_revision != 'unknown':
-            sub = '.dev%s' % svn_revision
+        path =  iadmin.__path__[0]
+        head_path = '%s/../.git/logs/HEAD' % path
+        try:
+            for line in open(head_path):pass
+            revision = line.split()[0]
+        except IOError:
+            raise Exception('Aplha version is are only allowed as git clone')
+        sub = '.dev%s' % revision
 
     elif version[3] != 'final':
         mapping = {'alpha': 'a', 'beta': 'b', 'rc': 'c'}
         sub = mapping[version[3]] + str(version[4])
 
     return main + sub
-
-#def get_version(release=True):
-#    version = '%s.%s' % (__version__[0], __version__[1])
-#
-#    if release:
-#        if __version__[2]:
-#            version = '%s.%s' % (version, __version__[2])
-#        if __version__[3] != 'final':
-#            version = '%s-%s' % (version, __version__[3])
-#    return version
-
-
