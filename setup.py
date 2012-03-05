@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 import os
 import iadmin
@@ -54,7 +50,7 @@ setup(
     name=NAME,
     version=RELEASE,
     url='https://github.com/saxix/django-iadmin',
-    download_url = 'https://github.com/saxix/django-iadmin/zipball/master',
+    download_url = 'https://github.com/saxix/django-iadmin/tarball/master',
     author='sax',
     author_email='sax@os4d.org',
     license='BSD',
