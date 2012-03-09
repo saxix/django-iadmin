@@ -211,7 +211,7 @@ class IAdminSite(AdminSite):
         for model, class_admin in site._registry.items():
             self.register(model, type(class_admin))
 
-    def reverse_admin(self, model, view="changelist", args=None):
+    def reverse_admin(self, model, view="changelist", args=None, kwargs=None):
         """
             return an admin url from the passed model
         :param model: Model instance or class
@@ -220,7 +220,7 @@ class IAdminSite(AdminSite):
         :return: url as by reverse
         """
         view = "%s:%s_%s_%s" % (self.name, model._meta.app_label, model._meta.module_name, view)
-        url = reverse(view, args=args)
+        url = reverse(view, args=args, kwargs=kwargs)
         return url
 
     def register_all(self):
