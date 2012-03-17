@@ -1,4 +1,4 @@
-from django.contrib.admin.filters import SimpleListFilter, FieldListFilter, RelatedFieldListFilter, ListFilter, AllValuesFieldListFilter
+from django.contrib.admin.filters import SimpleListFilter, FieldListFilter, RelatedFieldListFilter, ListFilter, AllValuesFieldListFilter, ChoicesFieldListFilter
 from django.db import models
 from django.db.models.query_utils import Q
 from django.utils.translation import ugettext as _
@@ -8,18 +8,18 @@ from django.utils.encoding import smart_unicode
 class CellFilter(object):
     title = ""
     menu_labels = {'lt': _('Less than'),
-              'gt': _('Greater than'),
-              'lte': _('Less or equals than'),
-              'gte': _('Greater or equals than'),
-              'exact': _('Equals to'),
-              'not': _('Not equals to'),
-              'rem': _('Remove filter')}
+                   'gt': _('Greater than'),
+                   'lte': _('Less or equals than'),
+                   'gte': _('Greater or equals than'),
+                   'exact': _('Equals to'),
+                   'not': _('Not equals to'),
+                   'rem': _('Remove filter')}
 
     def __init__(self, field, request, params, model, model_admin, field_path, column=None):
         self.column = column or field_path or field.name
         self.col_operators = model_admin.cell_filter_operators.get(field.name, ('exact', 'not'))
         self.seed = field_path
-        super(CellFilter, self).__init__(field, request, params, model, model_admin, field_path)
+
 
     def __repr__(self):
         return "<%s for `%s` as %s>" % (self.__class__.__name__, self.column, id(self))
@@ -38,17 +38,18 @@ class CellFilter(object):
         return CellFilter.menu_labels.get(op), '%s__%s' % (self.seed, op)
 
     def expected_parameters(self):
-        expected_parameters  =[]
+        expected_parameters = []
         for op in self.col_operators:
             filter = '%s__%s' % (self.seed, op)
-            expected_parameters.append( filter )
+            expected_parameters.append(filter)
         return expected_parameters
+
 
 class ChoicesCellFilter(CellFilter, AllValuesFieldListFilter):
     pass
 
-class BooleanCellFilter(CellFilter, AllValuesFieldListFilter):
 
+class BooleanCellFilter(CellFilter, AllValuesFieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path, column=None):
         self.col_operators = model_admin.cell_filter_operators.get(field.name, ('exact', 'not'))
         super(BooleanCellFilter, self).__init__(field, request, params, model, model_admin, field_path, column)
@@ -60,13 +61,14 @@ class BooleanCellFilter(CellFilter, AllValuesFieldListFilter):
             return _('No'), '%s__not' % self.seed
 
     def expected_parameters(self):
-        expected_parameters  =[]
+        expected_parameters = []
         ops = [op for op in self.col_operators if op != 'exact']
-        expected_parameters.append( self.seed )
+        expected_parameters.append(self.seed)
         for op in ops:
             filter = '%s__%s' % (self.seed, op)
-            expected_parameters.append( filter )
+            expected_parameters.append(filter)
         return expected_parameters
+
 
 class FieldCellFilter(CellFilter, AllValuesFieldListFilter):
     def get_menu_item_for_op(self, op):
@@ -75,29 +77,34 @@ class FieldCellFilter(CellFilter, AllValuesFieldListFilter):
         return CellFilter.menu_labels.get(op), '%s__%s' % (self.seed, op)
 
     def expected_parameters(self):
-        expected_parameters  =[]
+        expected_parameters = []
         ops = [op for op in self.col_operators if op != 'exact']
-        expected_parameters.append( self.seed )
+        expected_parameters.append(self.seed)
         for op in ops:
             filter = '%s__%s' % (self.seed, op)
-            expected_parameters.append( filter )
+            expected_parameters.append(filter)
         return expected_parameters
 
-class RelatedFieldCellFilter(CellFilter, RelatedFieldListFilter):
 
+class RelatedFieldCellFilter(CellFilter, RelatedFieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path, column=None):
         super(RelatedFieldCellFilter, self).__init__(field, request, params, model, model_admin, field_path, column)
         self.seed = "__".join(self.lookup_kwarg.split('__')[:-1])
 
 
+class AllValuesComboFilter(AllValuesFieldListFilter):
+    template = 'iadmin/filters/combobox.html'
 
-class FieldComboFilter(RelatedFieldListFilter):
+
+class RelatedFieldComboFilter(RelatedFieldListFilter):
     template = 'iadmin/filters/fieldcombobox.html'
 
-class FieldRadioFilter(RelatedFieldListFilter):
+
+class RelatedFieldRadioFilter(RelatedFieldListFilter):
     template = 'iadmin/filters/fieldradio.html'
 
-class FieldCheckBoxFilter(RelatedFieldListFilter):
+
+class RelatedFieldCheckBoxFilter(RelatedFieldListFilter):
     template = 'iadmin/filters/fieldcheckbox.html'
 
     def __init__(self, field, request, params, model, model_admin, field_path):
@@ -110,7 +117,7 @@ class FieldCheckBoxFilter(RelatedFieldListFilter):
 
         filters = []
         for val in self.lookup_val:
-            filters.append( Q(**{self.lookup_kwarg:val}  ) )
+            filters.append(Q(**{self.lookup_kwarg: val}))
 
         query = filters.pop()
         for item in filters:
@@ -120,33 +127,34 @@ class FieldCheckBoxFilter(RelatedFieldListFilter):
 
     def choices(self, cl):
         from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
+
         yield {
             'selected': not len(self.lookup_val) and not self.lookup_val_isnull,
             'query_string': cl.get_query_string({},
                 [self.lookup_kwarg, self.lookup_kwarg_isnull]),
             'display': _('All'),
-        }
+            }
         yield {
             'selected': self.lookup_val_isnull,
-            'query_string': cl.get_query_string({self.lookup_kwarg_isnull:1},
+            'query_string': cl.get_query_string({self.lookup_kwarg_isnull: 1},
                 [self.lookup_kwarg, self.lookup_kwarg_isnull]),
             'display': _('None'),
-        }
+            }
         for pk_val, val in self.lookup_choices:
             yield {
                 'selected': smart_unicode(pk_val) in self.lookup_val,
                 'query_string': cl.get_query_string({
                     self.lookup_kwarg: pk_val,
-                }, [self.lookup_kwarg_isnull]),
+                    }, [self.lookup_kwarg_isnull]),
                 'display': val,
-            }
+                }
         if (isinstance(self.field, models.related.RelatedObject)
-                and self.field.field.null or hasattr(self.field, 'rel')
-                    and self.field.null):
+            and self.field.field.null or hasattr(self.field, 'rel')
+        and self.field.null):
             yield {
                 'selected': bool(self.lookup_val_isnull),
                 'query_string': cl.get_query_string({
                     self.lookup_kwarg_isnull: 'True',
-                }, [self.lookup_kwarg]),
+                    }, [self.lookup_kwarg]),
                 'display': EMPTY_CHANGELIST_VALUE,
-            }
+                }
