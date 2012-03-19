@@ -86,9 +86,11 @@ class FieldCellFilter(CellFilter, AllValuesFieldListFilter):
         return expected_parameters
 
 
-class RelatedFieldCellFilter(CellFilter, RelatedFieldListFilter):
+class RelatedFieldCellFilter(RelatedFieldListFilter, CellFilter):
     def __init__(self, field, request, params, model, model_admin, field_path, column=None):
-        super(RelatedFieldCellFilter, self).__init__(field, request, params, model, model_admin, field_path, column)
+        super(RelatedFieldCellFilter, self).__init__(field, request, params, model, model_admin, field_path)
+        self.column = column or field_path or field.name
+        self.col_operators = model_admin.cell_filter_operators.get(field.name, ('exact', 'not'))
         self.seed = "__".join(self.lookup_kwarg.split('__')[:-1])
 
 
