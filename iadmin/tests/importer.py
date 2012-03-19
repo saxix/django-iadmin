@@ -4,12 +4,11 @@ from django.test.testcases import TestCase
 import os
 from iadmin.tests.common import BaseTestCase, FireFoxLiveTest
 
-__all__=['CSVImportTest','CSVImportFireFox' ]
+__all__ = ['CSVImportTest', 'CSVImportFireFox']
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'data')
 
 class CSVImportTest(BaseTestCase):
-
     def test_step_1(self):
         url = reverse('iadmin:import', kwargs=dict(app_label='auth', model_name='user', page=1))
         response = self.client.get(url)
@@ -23,9 +22,9 @@ class CSVImportTest(BaseTestCase):
         url = reverse('iadmin:import', kwargs=dict(app_label='auth', model_name='user', page=2))
         self.client.get(url)
         data = {'model': 'auth:user',
-                'csv' : f,
+                'csv': f,
                 'page': 1,
-        }
+                }
         response = self.client.get(url, data)
         self.assertEqual(response.status_code, 200)
 
@@ -38,12 +37,11 @@ class CSVImportTest(BaseTestCase):
 #                'page': 1,
 #        }
 #        response = self.client.get(url, data)
-#        print 111, response
 #        self.assertEqual(response.status_code, 200)
 
 class CSVImportFireFox(FireFoxLiveTest):
     urls = 'iadmin.tests.urls'
-    fixtures = ['test.json',]
+    fixtures = ['test.json', ]
 
     def test_impoty(self):
         """
