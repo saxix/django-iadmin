@@ -1,11 +1,10 @@
 #
-from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.util import lookup_field, quote, lookup_needs_distinct, get_fields_from_path
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist, BooleanField
 from django.utils.functional import cached_property
-from iadmin.filters import FieldCellFilter, RelatedFieldCellFilter, ChoicesCellFilter, BooleanCellFilter, FieldComboFilter
+from iadmin.filters import FieldCellFilter, RelatedFieldCellFilter, ChoicesCellFilter, BooleanCellFilter
 
 __author__ = 'sax'
 
@@ -13,7 +12,6 @@ from django.contrib.admin.views.main import ChangeList, IS_POPUP_VAR, SEARCH_VAR
 
 
 class IChangeList(ChangeList):
-
     def get_filters(self, request):
         if self.list_filter:
             new_list = []
@@ -29,13 +27,13 @@ class IChangeList(ChangeList):
 
     def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
                  list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
-
         self.readonly = False
         self.request = request
 
         super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
-                                          search_fields, list_select_related, list_per_page, list_max_show_all,
-                                          list_editable, model_admin)
+            search_fields, list_select_related, list_per_page, list_max_show_all,
+            list_editable, model_admin)
+
     def is_filtered(self):
         lookup_params = self.params.copy() # a dictionary of the query string
         for i in (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, IS_POPUP_VAR):
@@ -71,7 +69,8 @@ class IChangeList(ChangeList):
                         field = get_fields_from_path(self.model, field_path)[-1]
 
                     except FieldDoesNotExist:
-                        raise Exception( "Cannot use field `%s` in cell_filter. Only valid Field objects are allowed" % cell_filter)
+                        raise Exception(
+                            "Cannot use field `%s` in cell_filter. Only valid Field objects are allowed" % cell_filter)
 
                 if isinstance(field, BooleanField):
                     field_list_filter_class = BooleanCellFilter
@@ -85,7 +84,7 @@ class IChangeList(ChangeList):
                 # Check if we need to use distinct()
                 use_distinct = (use_distinct or
                                 lookup_needs_distinct(self.lookup_opts,
-                                                      field_path))
+                                    field_path))
                 if spec and spec.has_output():
                     cell_filter_specs[cell_filter] = spec
 
@@ -99,8 +98,8 @@ class IChangeList(ChangeList):
                 field_name = key.replace('__not', '')
                 negate_filters.append(~Q(**{field_name: value}))
                 del self.params[key]
-                
+
         ret = super(IChangeList, self).get_query_set(request)
-        self.negate_filters = [ c.children[0].children[0][0] for c in negate_filters]
+        self.negate_filters = [c.children[0].children[0][0] for c in negate_filters]
         self.params = backup_params
         return ret.filter(*negate_filters)
