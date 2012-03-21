@@ -1,7 +1,7 @@
 from datetime import datetime
 from functools import partial
 import logging
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url, include
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.util import flatten_fieldsets, unquote
