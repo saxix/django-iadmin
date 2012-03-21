@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_protect
 import os
 import django
 from django.conf import settings
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import patterns, url, include
 from django import http, template
 from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
