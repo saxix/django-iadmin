@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from iadmin.actions import mass_update
 from iadmin.api import *
-from iadmin.filters import FieldComboFilter, FieldCheckBoxFilter, FieldRadioFilter
+from iadmin.filters import RelatedFieldComboFilter, RelatedFieldCheckBoxFilter, RelatedFieldRadioFilter
 
 class IUserAdmin(UserAdmin, IModelAdmin):
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', '_groups', 'last_login')
@@ -13,7 +13,7 @@ class IUserAdmin(UserAdmin, IModelAdmin):
     cell_filter_operators = {'last_login': ('exact', 'not', 'lt', 'gt')}
 
 
-    list_filter = ( ('groups',FieldCheckBoxFilter), )
+    list_filter = ( ('groups',RelatedFieldCheckBoxFilter), )
     search_fields = ('username', )
     actions = [mass_update]
 
