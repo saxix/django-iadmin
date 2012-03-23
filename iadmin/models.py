@@ -1,23 +1,23 @@
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.management import _get_permission_codename
 from django.db.models import signals
-from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 
 _requirements = ('django.contrib.auth', 'django.contrib.sessions')
 for req in _requirements:
     if req not in settings.INSTALLED_APPS:
-        raise ImproperlyConfigured("Put '%s' in your INSTALLED_APPS setting in order to use the iAdmin." % r)
+        raise ImproperlyConfigured("Put '%s' in your INSTALLED_APPS setting in order to use the iAdmin." % req)
 
-def create_readonly_permission(sender, **kwargs):
+def create_extra_permission(sender, **kwargs):
     from django.contrib.auth.models import Permission
     from django.db.models.loading import get_models
     from django.contrib.contenttypes.models import ContentType
     for model in get_models(sender):
-        for op, name in (("view_%s", "Can view %s"), ("export_%s", "can export %s")):
-            codename, label = (op % model.__name__.lower(), name % model._meta.verbose_name.title())
+        for action in ('view', 'export', 'massupdate', 'import'):
+            opts = model._meta
+            codename, label = _get_permission_codename(action, opts)
+            label =  u'Can %s %s' % (action, opts.verbose_name_raw)
             ct = ContentType.objects.get_for_model(model)
-            Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': name})
+            Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': label})
 
-signals.post_syncdb.connect(create_readonly_permission)
+signals.post_syncdb.connect(create_extra_permission)
