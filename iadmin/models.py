@@ -15,7 +15,7 @@ def create_extra_permission(sender, **kwargs):
     for model in get_models(sender):
         for action in ('view', 'export', 'massupdate', 'import'):
             opts = model._meta
-            codename, label = _get_permission_codename(action, opts)
+            codename = _get_permission_codename(action, opts)
             label =  u'Can %s %s' % (action, opts.verbose_name_raw)
             ct = ContentType.objects.get_for_model(model)
             Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': label})
