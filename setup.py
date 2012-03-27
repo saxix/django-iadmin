@@ -56,10 +56,7 @@ setup(
     license='BSD',
     packages=packages,
     data_files=data_files,
-    include_package_data=True,
     platforms=['any'],
-    zip_safe=False,
-    install_requires=[],
     command_options={
         'build_sphinx': {
             'version': ('setup.py', VERSION),
