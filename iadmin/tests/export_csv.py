@@ -41,7 +41,7 @@ class ExportCSVFireFox(FireFoxLiveTest):
         expected_value = service.format_date(request).content
         fmt.clear()
         fmt.send_keys(format)
-        sleep(0.5)
+        sleep(1)
         self.assertEquals(sample.text, expected_value)
 
     def test_datetime_format_ajax(self):

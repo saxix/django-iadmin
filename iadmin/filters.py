@@ -1,4 +1,4 @@
-from django.contrib.admin.filters import SimpleListFilter, FieldListFilter, RelatedFieldListFilter, ListFilter, AllValuesFieldListFilter, ChoicesFieldListFilter
+from django.contrib.admin.filters import RelatedFieldListFilter, AllValuesFieldListFilter
 from django.db import models
 from django.db.models.query_utils import Q
 from django.utils.translation import ugettext as _
@@ -110,7 +110,7 @@ class RelatedFieldCheckBoxFilter(RelatedFieldListFilter):
     template = 'iadmin/filters/fieldcheckbox.html'
 
     def __init__(self, field, request, params, model, model_admin, field_path):
-        super(FieldCheckBoxFilter, self).__init__(field, request, params, model, model_admin, field_path)
+        super(RelatedFieldCheckBoxFilter, self).__init__(field, request, params, model, model_admin, field_path)
         self.lookup_val = request.GET.getlist(self.lookup_kwarg, [])
 
     def queryset(self, request, queryset):

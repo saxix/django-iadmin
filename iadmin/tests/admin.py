@@ -39,7 +39,7 @@ class IPermission(IModelAdmin):
     search_fields = ('name'),
     list_filter = cell_filter = ('content_type', )
 
-force_register(User, IUserAdmin)
-force_register(Group, IGroupAdmin)
-force_register(Permission, IPermission)
-force_register(ContentType, IContentType)
+force_register(User, IUserAdmin, adminsite=isite)
+force_register(Group, IGroupAdmin, adminsite=isite)
+force_register(Permission, IPermission, adminsite=isite)
+force_register(ContentType, IContentType, adminsite=isite)

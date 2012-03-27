@@ -79,7 +79,7 @@ class MassUpdateFireFox(FireFoxLiveTest):
         self.login()
         driver = self.driver
         driver.get(self.base_url + "/admin/auth/user/")
-        self.assertEqual("Select user to change | Django site admin", driver.title)
+        self.assertEqual("Select user to change | iAdmin console", driver.title)
         driver.find_element_by_xpath("//input[@id='action-toggle']").click() # select all
         driver.find_element_by_xpath("//input[@name='_selected_action' and @value='1']").click() # unselect sax
         Select(driver.find_element_by_name("action")).select_by_visible_text("Mass update")
