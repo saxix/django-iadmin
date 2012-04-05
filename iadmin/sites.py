@@ -127,8 +127,9 @@ class IAdminService(object):
                    'os_user': getuser(),
                    'os': os,
                    'title': _("System information"),
-                   'sys': {'platform': sys.platform, 'version': sys.version_info, 'os': os.uname(),
+                   'sys': {'platform': sys.platform, 'version': sys.version_info, 'os': os.uname(), 'mail_server': settings.EMAIL_HOST,
                            'django': django.get_version()},
+
                    'database': settings.DATABASES,
                    'path': sys.path,
                    'apps': _apps()
@@ -296,4 +297,3 @@ class IAdminSite(AdminSite):
 isite = site = IAdminSite()
 iservice = IAdminService(site)
 
-  
