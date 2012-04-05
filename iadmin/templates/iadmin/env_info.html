@@ -79,7 +79,7 @@
                     <td>{{ os_user }}</td>
                 </tr>                <tr>
                     <td>SMTP server</td>
-                    <td>{{ sys.mail_server }}</td>
+                    <td>{{ sys.mail_server }} <a href='{% url "admin:test_mail" %}'>[click here to receive test email]</a> </td>
                 </tr>
             </table>
         </div>

@@ -138,6 +138,12 @@ class IAdminService(object):
 
         return render_to_response(('%s/env_info.html' % self.admin_site.name,
                                    'iadmin/env_info.html'), context, context_instance=context_instance)
+    def test_mail(self, request):
+        from django.core.mail import send_mail
+        email = request.user.email
+        send_mail('test email', 'This is a test message', email, [email], fail_silently=True)
+#        return self.env_info(request)
+        return HttpResponseRedirect(reverse("admin:info"))
 
     def admin_view(self, view, cacheable=False):
         def inner(request, *args, **kwargs):
@@ -173,6 +179,10 @@ class IAdminService(object):
                 wrap(self.format_date),
                 name='format_date'),
 
+            url(r'^s/info/test_mail/$',
+                wrap(self.test_mail, True),
+                name="test_mail"
+            ),
             url(r'^s/info/counters/$',
                 wrap(self.env_info_counters, True),
                 name="info_counters"
