@@ -42,8 +42,7 @@ class IModelAdmin(DjangoModelAdmin):
     cell_menu_on_click = True # if true need to click on icon else mouseover is enough
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     cell_filter_operators = {}
-    tools = []
-    template_prefix = None
+    buttons= []
     search_form_template = 'search_form.html'
     results_list_template = 'change_list_results.html'
     date_hierarchy_template = 'date_hierarchy.html'
@@ -56,7 +55,6 @@ class IModelAdmin(DjangoModelAdmin):
     def __init__(self, model, admin_site):
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
-#        self._template_prefix = self.admin_site.template_prefix
         self._process_cell_filter()
 
     def get_actions(self, request):
@@ -65,19 +63,19 @@ class IModelAdmin(DjangoModelAdmin):
             acts.pop('delete_selected', None)
         return acts
 
-    def get_tools(self):
+    def get_buttons(self):
         opts = self.model._meta
-        info = opts.app_label, opts.module_name
+        info = self.admin_site.app_name, opts.app_label, opts.module_name
 
-        _url= reverse('admin:%s_%s_add' % info)
-        tools = [(_url, mark_safe("Add %s" % unicode(opts.verbose_name)))]
-        for url, label in self.tools:
+        _url= reverse('%s:%s_%s_add' % info)
+        buttons = [(_url, mark_safe("Add %s" % unicode(opts.verbose_name)))]
+        for url, label in self.buttons:
             try:
-                tools.append( (reverse(url), label) )
+                buttons.append( (reverse(url), label) )
             except NoReverseMatch, e:
                 logging.error(e)
-                tools.append( ( url, label) )
-        return tools
+                buttons.append( ( url, label) )
+        return buttons
 
     def get_template(self, request, template):
         opts = self.model._meta
@@ -87,9 +85,9 @@ class IModelAdmin(DjangoModelAdmin):
             "%s/%s/%s/%s" % (prefix, app_label, template, opts.object_name.lower()),
             "%s/%s/%s" % (prefix, app_label, template ),
             "%s/%s" % (prefix, template),
-#            "iadmin/%s/%s/%s" % (app_label, template, opts.object_name.lower()),
-#            "iadmin/%s/%s" % (app_label, template ),
-#            "iadmin/%s" % template,
+            "iadmin/%s/%s/%s" % (app_label, template, opts.object_name.lower()),
+            "iadmin/%s/%s" % (app_label, template ),
+            "iadmin/%s" % template,
             template
             ]
 
@@ -100,7 +98,7 @@ class IModelAdmin(DjangoModelAdmin):
         ctx = {'module_name': force_unicode(opts.verbose_name_plural),
                'app_label': app_label,
                'template_prefix': self.admin_site.template_prefix,
-                'current_app':self.admin_site.name}
+                'current_app':self.admin_site.app_name}
         ctx.update(kwargs)
         return ctx
 
@@ -139,19 +137,6 @@ class IModelAdmin(DjangoModelAdmin):
         else:
             return super(IModelAdmin, self).response_add(request, obj, post_url_continue='../%s/')
 
-
-    def get_model_perms(self, request):
-        """
-        Returns a dict of all perms for this model. This dict has the keys
-        ``add``, ``change``, and ``delete`` and ``view`` mapping to the True/False
-        for each of those actions.
-        """
-        return {
-            'add': self.has_add_permission(request),
-            'change': self.has_change_permission(request),
-            'delete': self.has_delete_permission(request),
-            'view': self.has_view_permission(request),
-            }
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         opts = self.model._meta
@@ -204,8 +189,8 @@ class IModelAdmin(DjangoModelAdmin):
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        extra_context = self.get_context(**(extra_context or {} ))
-        return super(IModelAdmin, self).change_view(request, object_id, form_url, extra_context)
+        context = self.get_context(**(extra_context or {} ))
+        return super(IModelAdmin, self).change_view(request, object_id, form_url, context)
 
     def changelist_view(self, request, extra_context=None):
         """
@@ -435,9 +420,9 @@ class IModelAdmin(DjangoModelAdmin):
 
         return super(IModelAdmin, self).get_readonly_fields(request, obj)
 
-    def format_date(self, request):
-        d = datetime.datetime.now()
-        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
+#    def format_date(self, request):
+#        d = datetime.datetime.now()
+#        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
     def get_urls(self):
         def wrap(view, cacheable=False):
