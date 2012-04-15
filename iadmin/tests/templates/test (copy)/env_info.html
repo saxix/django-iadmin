@@ -1,0 +1,126 @@
+{% extends "test/index.html" %}
+{% load i18n iadmin_tags iadmin_urls %}{% load url from future %}
+{% block extrahead %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/jquery-ui-1.8.1.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/iadmin.css"/>
+
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/jquery.cookie.js"></script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}iadmin/js/iadmin.js"></script>
+    <script>
+        (function ($) {
+            $(document).ready(function () {
+                $('#tabs').tabs({ cookie:{ expires:30 }});
+                $('#db').tabs({ cookie:{ expires:30 }});
+            });
+        })(jQuery);
+    </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        <div class="breadcrumbs">
+            <a href="{% url "admin2:index" %}">{% trans "Home" %}</a> &rsaquo;
+            Info
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    <div id="tabs" class="info">
+        <ul>
+            <li><a href="#tabs-apps" class="">&nbsp;&nbsp;Applications&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-sys" class="">&nbsp;&nbsp;System&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-lib" class="">&nbsp;&nbsp;Packages&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-path" class="">&nbsp;&nbsp;Pythonpath&nbsp;&nbsp;</a></li>
+            <li><a href="#tabs-database" class="">&nbsp;&nbsp;Database&nbsp;&nbsp;</a></li>
+            <li><a href="{% admin_url "info_counters" %}" class="">&nbsp;&nbsp;Counters&nbsp;&nbsp;</a></li>
+
+        </ul>
+        <div id="tabs-apps">
+            <table>
+                {% for line in apps %}
+                    <tr>
+                        <td>{{ line.0 }}</td>
+                        <td>{{ line.1 }}</td>
+                    </tr>{% endfor %}
+            </table>
+        </div>
+        <div id="tabs-sys">
+            <table>
+                <tr>
+                    <td>Platform:</td>
+                    <td>{{ sys.os.0 }}</td>
+                </tr>
+                <tr>
+                    <td>Kernel</td>
+                    <td>{{ sys.os.2 }}</td>
+                </tr>
+                <tr>
+                    <td>OS</td>
+                    <td>{{ sys.os.3 }}</td>
+                </tr>
+                <tr>
+                    <td>Architecture</td>
+                    <td>{{ sys.os.4 }}</td>
+                </tr>
+                <tr>
+                    <td>Python:</td>
+                    <td>{{ sys.version|join:"." }}</td>
+                </tr>
+                <tr>
+                    <td>Django:</td>
+                    <td>{{ sys.django }}</td>
+                </tr>
+                <tr>
+                    <td>User</td>
+                    <td>{{ os_user }}</td>
+                </tr>                <tr>
+                    <td>SMTP server</td>
+                    <td>{{ sys.mail_server }} <a href='{% url "admin:test_mail" %}'>[click here to receive test email]</a> </td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="tabs-lib">
+            <table>
+                {% for line in lib %}
+                    <tr>
+                        <td>{{ line }}</td>
+                    </tr>{% endfor %}
+            </table>
+        </div>
+
+        <div id="tabs-path">
+            <table>
+                <tr>
+                    <th>current dir: {{ curdir }}</th>
+                </tr>
+                {% for line in path %}
+                    <tr>
+                        <td>{{ line }}</td>
+                    </tr>{% endfor %}
+            </table>
+        </div>
+        <div id="tabs-database">
+            <div id="db" class="info"><ul>
+                {% for db,info in database.items %}<li><a href="#db-{{db}}" class="">&nbsp;&nbsp;{{db|upper}}&nbsp;&nbsp;</a></li>{% endfor %}</ul>
+
+            {% for db,info in database.items %}
+                <div id="db-{{db}}">
+                    <table>{% for k,v in info.items %}
+                        <tr><th>{{ k|lower }}</th><td>{{ v|hide:k }}</td></tr>
+                    {% endfor %}</table>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        <div id="tabs-counters">
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block sidebar %}{% endblock %}

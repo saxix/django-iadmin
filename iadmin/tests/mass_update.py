@@ -1,6 +1,7 @@
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.cookie import CookieStorage
+from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
 from iadmin.actions.mass_update import mass_update
 from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin, BaseTestCase
@@ -16,10 +17,11 @@ class MassUpdateTest(BaseTestCase):
     def setUp(self):
         super(MassUpdateTest, self).setUp()
         self.factory = RequestFactory()
+        self._url = reverse('iadmin:auth_user_changelist')
 
     def test_action_get(self):
 
-        request = self.factory.post('/admin/auth/user/',
+        request = self.factory.post(self._url,
                 {'action': 'mass_update', 'index': 0, 'select_across': 0,
                  '_selected_action': [2, 3, 4]})
 

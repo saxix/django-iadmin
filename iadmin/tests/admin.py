@@ -43,4 +43,4 @@ class IPermission(IModelAdmin):
     search_fields = ('name'),
     list_filter = cell_filter = ('content_type', )
 
-__iadmin__ = ((User, UserAdmin), (Group, IGroupAdmin), (Permission, IPermission), (ContentType, IContentType))
+__iadmin__ = ((User, IUserAdmin), (Group, IGroupAdmin), (Permission, IPermission), (ContentType, IContentType))
