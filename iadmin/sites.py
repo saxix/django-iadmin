@@ -61,23 +61,14 @@ class IAdminService(object):
 
 
 class IAdminSite(AdminSite):
-#    template_prefix = 'admin'
-    # due how resolver works and widget add_related implementation, app_name MUST BE 'admin'
-    def __init__(self, name='iadmin', app_name='iadmin', template_prefix='iadmin'):
-        self.template_prefix = template_prefix
+
+    def __init__(self, name='iadmin', app_name='iadmin', template_prefix=None):
+        self.template_prefix = template_prefix or app_name
         return super(IAdminSite, self).__init__(name, app_name)
 
     @property
     def password_change_template(self):
         return '%s/registration/password_change_form.html' % self.template_prefix
-#
-#    @property
-#    def login_template(self):
-#        return '%s/login.html' % self.template_prefix
-#
-#    @property
-#    def index_template(self):
-#        return '%s/index.html'  % self.template_prefix
 
     def get_template(self, name):
         return '%s/%s' % (self.template_prefix, name)
@@ -162,6 +153,7 @@ class IAdminSite(AdminSite):
                             }
                         if perms.get('change', False):
                             try:
+#                                model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
                                 model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
                             except NoReverseMatch:
                                 pass
@@ -224,27 +216,6 @@ class IAdminSite(AdminSite):
         return password_change(request, **defaults)
 
 
-    def investigate_admin(self, site):
-        """
-        Register all models registerd int passed AdminSite instance
-        :param site: AdminSite instance
-        :return: None
-        """
-        for model, class_admin in site._registry.items():
-            admin_class = type('I%s' % class_admin.__class__.__name__, (type(class_admin), IModelAdmin), {})
-            self.register(model, admin_class)
-
-    def reverse_admin(self, model, view="changelist", args=None, kwargs=None):
-        """
-            return an admin url from the passed model
-        :param model: Model instance or class
-        :param view: view name as admin convention. (usually "change,changelist,update,history...)
-        :param args:  eventually args to pass to reverse function
-        :return: url as by reverse
-        """
-        view = "%s:%s_%s_%s" % (self.name, model._meta.app_label, model._meta.module_name, view)
-        url = reverse(view, args=args, kwargs=kwargs)
-        return url
 
     def get_urls(self):
 
@@ -309,6 +280,16 @@ class IAdminSite(AdminSite):
                 self._registry = before_import_registry
                 if module_has_submodule(mod, 'admin'):
                     raise
+
+    def investigate_admin(self, site):
+        """
+        Register all models registerd int passed AdminSite instance
+        :param site: AdminSite instance
+        :return: None
+        """
+        for model, class_admin in site._registry.items():
+            admin_class = type('I%s' % class_admin.__class__.__name__, (type(class_admin), IModelAdmin), {'cell_filter': class_admin.list_filter})
+            self.register(model, admin_class)
 
     def register(self, model_or_iterable, admin_class=None, **options):
         """
@@ -430,15 +411,24 @@ class IAdminSite(AdminSite):
     def import_csv(self, request, app_label, model_name, page, **kwargs):
         return CSVImporter(self, app_label, model_name, page, **kwargs).dispatch(request)
 
-#    def admin_shortcut(self, request, content_type_id, object_id):
-#        from django.contrib.contenttypes.models import ContentType
-#
-#        content_type = ContentType.objects.get(pk=content_type_id)
-#        obj = content_type.get_object_for_this_type(pk=object_id)
-#        view = "%s:%s_%s_change" % (self.admin_site.name, obj._meta.app_label, obj.__class__.__name__.lower())
-#        url = reverse(view, args=[int(object_id)])
-#        return HttpResponseRedirect(url)
+    def reverse_admin(self, model, view="changelist", args=None, kwargs=None):
+        """
+            return an admin url from the passed model
+        :param model: Model instance or class
+        :param view: view name as admin convention. (usually "change,changelist,update,history...)
+        :param args:  eventually args to pass to reverse function
+        :return: url as by reverse
+        """
+        view = "%s:%s_%s_%s" % (self.name, model._meta.app_label, model._meta.module_name, view)
+        url = reverse(view, args=args, kwargs=kwargs)
+        return url
 
-#isite = site = IAdminSite()
-#iservice = IAdminService(site)
+    def admin_shortcut(self, request, content_type_id, object_id):
+        from django.contrib.contenttypes.models import ContentType
+
+        content_type = ContentType.objects.get(pk=content_type_id)
+        obj = content_type.get_object_for_this_type(pk=object_id)
+        url = self.reverse_admin(obj, 'change', args=[int(object_id)])
+        return HttpResponseRedirect(url)
+
 
