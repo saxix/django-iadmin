@@ -1,0 +1,15 @@
+{% extends "iadmin/base.html" %}
+{% load i18n iadmin_urls %}{% load url from future%}
+
+{% block title %}{{ title }} | {% trans 'iAdmin TEST console' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'iAdmin TEST' %}</h1>
+{% endblock %}
+{% block userlinks %}
+    {{ block.super }}
+    <a href="{% admin_url "info" %}">info</a>
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

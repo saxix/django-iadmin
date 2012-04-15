@@ -1,16 +1,15 @@
 from django.contrib import auth
-from django.contrib.admin.sites import site
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.test.client import RequestFactory
-from django.test.testcases import TestCase
 from iadmin.actions.mass_update import mass_update
 from iadmin.tests.common import FireFoxLiveTest, ChromeDriverMixin, BaseTestCase
 from selenium.webdriver.support.ui import Select
-import iadmin.tests.admin
-import django.contrib.messages.storage
+import iadmin.api
+from reg import site1 as site
 
 __all__=['MassUpdateTest', 'MassUpdateFireFox']
+
 
 class MassUpdateTest(BaseTestCase):
 

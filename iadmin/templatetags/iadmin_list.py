@@ -1,9 +1,11 @@
 from django.contrib.admin.util import lookup_field, display_for_field, quote
-from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE
+from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE, SEARCH_VAR
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.base import Model
+from django.template.context import Context
+from django.template.loader import get_template, select_template
 from django.utils.html import escape, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -187,18 +189,66 @@ def iresults(cl, context):
             yield al.ResultList(None, iitems_for_result(cl, res, None, context=context))
 
 
-@register.inclusion_tag("iadmin/change_list_results.html", takes_context=True)
+@register.simple_tag(takes_context=True)
+def idate_hierarchy(context, cl):
+    tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.date_hierarchy_template))
+    ctx = al.date_hierarchy(cl)
+    return tpl.render(Context(ctx))
+
+@register.simple_tag(takes_context=True)
+def ipagination(context, cl):
+    tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.pagination_template))
+    ctx = al.pagination(cl)
+    return tpl.render(Context(ctx))
+
+
+@register.simple_tag(takes_context=True)
 def iresult_list(context, cl):
     """
     Displays the headers and data list together
     """
+    tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.results_list_template))
+
     headers = list(iresult_headers(cl))
     num_sorted_fields = 0
     for h in headers:
         if h['sortable'] and h['sorted']:
             num_sorted_fields += 1
-    return {'cl': cl,
+    return tpl.render(Context({'cl': cl,
             'result_hidden_fields': list(result_hidden_fields(cl)),
             'result_headers': headers,
             'num_sorted_fields': num_sorted_fields,
-            'results': list(iresults(cl, context))}
+            'results': list(iresults(cl, context))}))
+
+@register.simple_tag(takes_context=True)
+def isearch_form(context, cl):
+    """
+    Displays a search form for searching the list.
+    """
+    tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.search_form_template))
+
+    return tpl.render(Context({
+        'cl': cl,
+        'show_result_count': cl.result_count != cl.full_result_count,
+        'search_var': SEARCH_VAR
+    }))
+
+@register.simple_tag(takes_context=True)
+def iadmin_list_filter(context, cl, spec):
+    tpl = select_template(cl.model_admin.get_template(context['request'], spec.template))
+    return tpl.render(Context({
+        'title': spec.title,
+        'choices' : list(spec.choices(cl)),
+        'spec': spec,
+        }))
+
+@register.simple_tag(takes_context=True)
+def iadmin_actions(context):
+    """
+    Track the number of times the action field has been rendered on the page,
+    so we know which value to use.
+    """
+    cl = context['cl']
+    tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.actions_template))
+    context['action_index'] = context.get('action_index', -1) + 1
+    return tpl.render(Context(context))

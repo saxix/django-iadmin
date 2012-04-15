@@ -26,16 +26,15 @@ Table Of Contents
 
 .. toctree::
     :maxdepth: 2
-    
+
     install
     tutorial
     actions
     utils
-    settings
     api
     releases/index
     help
-    
+
 
 Indices and tables
 ==================

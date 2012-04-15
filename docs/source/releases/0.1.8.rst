@@ -3,6 +3,12 @@
 .. _`django-reversion`: http://github.com/etianen/django-reversion
 
 =================================
+iAdmin version 0.1.9
+=================================
+
+* Removed FileManager
+
+=================================
 iAdmin version 0.1.8
 =================================
 

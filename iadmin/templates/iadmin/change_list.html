@@ -1,104 +1,129 @@
-{% extends "admin/change_list.html" %}
-{% load adminmedia iadmin_list i18n %}
+{% extends "iadmin/base_site.html" %}
+{% load i18n admin_static iadmin_list %}
+{% load url from future %}
+{% load iadmin_urls %}
 
 {% block extrastyle %}
     {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}"/>
+    {% if cl.formset %}
+        <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
+    {% endif %}
+    {% if cl.formset or action_form %}
+        {% url 'admin:jsi18n' as jsi18nurl %}
+        <script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+    {% endif %}
+    {{ media.css }}
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}iadmin/css/ichangelists.css"/>
+    {% if not actions_on_top and not actions_on_bottom %}
+        <style>
+            #changelist table thead th:first-child {
+                width: inherit
+            }
+        </style>
+    {% endif %}
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
     {{ media.js }}
-    <script type="text/javascript">
-        {% if cl %}
+    {% if action_form %}{% if actions_on_top or actions_on_bottom %}
+        <script type="text/javascript">
+            {% if cl %}
+                (function ($) {
+                    $(document).ready(function ($) {
+                        $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
+                        $('.iadmin-cell-menu-button').click(function () {
+                            $(this).next().css('display', 'block');
+                        });
+                        $('ul.iadmin-cell-menu').mouseleave(function () {
+                            $(this).css('display', 'none');
+                        });
+                    });
+                })(django.jQuery);
+            {% endif %}
+
             (function ($) {
+                showchangelistfilter = function () {
+                    $("#changelist-filter").toggle();
+                }
                 $(document).ready(function ($) {
-                    $('div.cell-menu  li:hover ul, li.over ul').css('display', '');
-                    $('.iadmin-cell-menu-button').click(function () {
-                        $(this).next().css('display', 'block');
-                    });
-                    $('ul.iadmin-cell-menu').mouseleave(function () {
-                        $(this).css('display', 'none');
-                    });
+                    $("tr input.action-select").actions();
                 });
             })(django.jQuery);
-        {% endif %}
-
-        (function ($) {
-            showchangelistfilter = function () {
-                $("#changelist-filter").toggle();
-            }
-        })(django.jQuery);
-    </script>
-    <style type="text/css">
-        #changelist-filter-button {
-            background: url("{{ STATIC_URL }}iadmin/img/changelist-filter-button-bg.jpg") no-repeat scroll 0 0 transparent;
-            border-left: 1px solid #DDDDDD;
-            display: block;
-            height: auto;
-            line-height: 30px;
-            margin: 0;
-            padding-left: 10px;
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 150px;
-            z-index: 1000;
-        }
-
-        #changelist-filter {
-            top: 30px;
-            min-height: 500px;
-        }
-
-        div#sitemap {
-            margin: 0;
-            padding: 0 0 5px;
-        }
-
-        .change-list .filtered .results, .change-list .filtered .paginator, .filtered #toolbar, .filtered div.xfull {
-            margin-right: 0px !important;
-            width: auto !important;
-        }
-
-        .change-list .filtered {
-            background: white !important;
-        }
-
-        .filtered .actions {
-            border-right: 1px solid #DDDDDD;
-            margin-right: 0px !important;
-        }
-        .toplinks{
-            height: 30px;
-        }
-    </style>
+        </script>
+    {% endif %}{% endif %}
 {% endblock %}
-{% block search %}{% search_form cl %}
 
-{% endblock %}
-{% block filters %}
-    {% if cl.has_filters %}
-        <a href="javascript:showchangelistfilter();" id="changelist-filter-button">{% trans "Filter:" %}
-            {% if cl.is_filtered %}{% trans "on" %}{% else %}{% trans "off" %}{% endif %}</a>
-        <div id="changelist-filter" style="display:none;">
-            <h2>{% trans 'Filter' %}</h2>
+{% block bodyclass %}change-list{% endblock %}
 
-            <h3><a href="?">Clear all</a></h3>
-            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <div class="breadcrumbs">
+            <a href="{% admin_url 'index' %}">{% trans 'Home' %}</a>
+            &rsaquo; <a
+                href="{% admin_url 'app_list' app_label=cl.opts.app_label %}">{{ app_label|capfirst|escape }}</a>
+            &rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}
         </div>
-    {% endif %}
-{% endblock %}
+    {% endblock %}
+{% endif %}
 
-{% block object-tools-items %}
-    {% for url, label in  cl.model_admin.get_tools %}
-        <li><a class="addlink" href="{{ url }}">{{ label }} </a></li>
-    {% endfor %}
-    {#{{ block.super }}#}
-{% endblock %}
+{% block coltype %}flex{% endblock %}
 
-{% block result_list %}
-    {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
-    {% iresult_list cl %}
-    {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+{% block content %}
+    <div id="content-main">
+        {% block object-tools %}
+            {% if has_add_permission %}
+                <ul class="object-tools">
+                    {% block object-tools-items %}
+                        <li>
+                            <a href="{% admin_model_url cl.model 'add' %}{% if is_popup %}?_popup=1{% endif %}"
+                               class="addlink">
+                                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+                            </a>
+                        </li>
+                    {% endblock %}
+                </ul>
+            {% endif %}
+        {% endblock %}
+        {% if cl.formset.errors %}
+            <p class="errornote">
+                {% blocktrans count cl.formset.errors|length as counter %}Please correct the error below.{% plural %}
+                    Please correct the errors below.{% endblocktrans %}
+            </p>
+            {{ cl.formset.non_form_errors }}
+        {% endif %}
+        <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
+            {% block search %}{% isearch_form cl %}{% endblock %}
+            {% block date_hierarchy %}{% idate_hierarchy cl %}{% endblock %}
+
+            {% block filters %}
+                {% if cl.has_filters %}
+                    <a href="javascript:showchangelistfilter();" id="changelist-filter-button">{% trans "Filter:" %}
+                        {% if cl.is_filtered %}{% trans "on" %}{% else %}{% trans "off" %}{% endif %}</a>
+
+                    <div id="changelist-filter"  style="display:none;>
+                            <h2>{% trans 'Filter' %}</h2>
+                            <h3><a href="?">Clear all</a></h3>
+
+                    {% for spec in cl.filter_specs %}{% iadmin_list_filter cl spec %}{% endfor %}
+                    </div>
+                {% endif %}
+            {% endblock %}
+
+        <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %}
+              enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+            {% if cl.formset %}
+                <div>{{ cl.formset.management_form }}</div>
+            {% endif %}
+
+            {% block result_list %}
+                {% if action_form and actions_on_top and cl.full_result_count %}{% iadmin_actions %}{% endif %}
+                {% iresult_list cl %}
+                {% if action_form and actions_on_bottom and cl.full_result_count %}{% iadmin_actions %}{% endif %}
+            {% endblock %}
+            {% block pagination %}{% ipagination cl %}{% endblock %}
+        </form>
+    </div>
+    </div>
 {% endblock %}

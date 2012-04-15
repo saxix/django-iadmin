@@ -9,7 +9,7 @@ your project or ``PYTHONPATH``.
 
 1. First of all follow the instruction to install `standard admin <standard_admin>`_ application,
 
-2. Either check out iAdmin from `GitHub`_ or to pull a release off `PyPI`_. Doing ``sudo pip install django-iadmin`` or ``sudo easy_install django-iadmin`` is all that should be required.
+2. Either check out iAdmin from `GitHub`_ or to pull a release off `PyPI`_. Doing ``pip install django-iadmin`` or ``easy_install django-iadmin`` is all that should be required.
 
 3. Either symlink the ``iadmin`` directory into your project or copy the directory in. What ever works best for you.
 
@@ -33,20 +33,23 @@ Add :mod:`iadmin` to your :setting:`INSTALLED_APPS`::
 
 Add an entry into your urls.conf::
 
-
     import iadmin.proxy as admin
-    import iadmin.media_urls
-
     admin.autodiscover()
 
+    import iadmin.api
+    site1 = iadmin.api.IAdminSite()
+
     urlpatterns = patterns('',
-        (r'^admin/', include(iservice.urls)), # same prefix before include admin urls
-        (r'^admin/', include(admin.site.urls)),
-)
+        (r'^admin/', include(admin.site.urls)), # standard admin
+        (r'^iadmin/', include(site1.urls)), # iadmin instance
+    )
+
 
 
 In your admin.py file::
 
-    import iadmin
-    import iadmin.proxy as admin
+    ...
+    __iadmin__ = ((User, UserAdmin), (Group, GroupAdmin), ...)
 
+
+.. note:: iAdmin do not use the same method to register models. While `admin` registration code is into `admin.py` module, `iadmin` look for the attribute `__iadmin__` into

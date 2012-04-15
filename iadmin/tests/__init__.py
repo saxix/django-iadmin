@@ -1,8 +1,9 @@
 from django.core.urlresolvers import reverse
-from importer import *
+#from importer import *
 from changelist import *
 from mass_update import *
 from export_csv import *
+from templates import *
 
 class InfoPageTest(BaseTestCase):
 

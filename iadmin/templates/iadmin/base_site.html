@@ -1,5 +1,5 @@
-{% extends "admin/base.html" %}
-{% load i18n %}{% load url from future%}
+{% extends "iadmin/base.html" %}
+{% load i18n iadmin_urls %}{% load url from future %}
 
 {% block title %}{{ title }} | {% trans 'iAdmin console' %}{% endblock %}
 
@@ -8,7 +8,7 @@
 {% endblock %}
 {% block userlinks %}
     {{ block.super }}
-    <a href="{% url "admin:info" %}">info</a>
+    <a href="{% admin_url "info" %}">info</a>
 
 {% endblock %}
 

@@ -1,6 +1,6 @@
 {# overriden to handle tab style inlines #}
-{% extends "iadmin/base_site.html" %}
-{% load i18n iadmin_modify adminmedia static %}
+{% extends "test/base_site.html" %}
+{% load i18n iadmin_modify static iadmin_urls %}
 {% load url from future %}
 
 {% block extrahead %}{{ block.super }}
@@ -70,7 +70,7 @@
             {% endif %}
 
             {% for fieldset in adminform %}
-                {% include "iadmin/includes/fieldset.html" %}
+                {% iinclude "{{template_prefix}}/includes/fieldset.html" %}
             {% endfor %}
 
             {% block after_field_sets %}{% endblock %}

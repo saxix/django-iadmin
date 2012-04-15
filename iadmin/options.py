@@ -1,5 +1,4 @@
 from datetime import datetime
-from functools import partial
 import logging
 from django.conf.urls import patterns, url, include
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
@@ -10,7 +9,6 @@ from django.core.urlresolvers import reverse, reverse_lazy, NoReverseMatch
 from django.db.models.fields import AutoField
 from django.db.models.related import RelatedObject
 from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
-from django.forms.models import modelform_factory, inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse, SimpleTemplateResponse
 from django.utils import dateformat
@@ -45,6 +43,12 @@ class IModelAdmin(DjangoModelAdmin):
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     cell_filter_operators = {}
     tools = []
+    template_prefix = None
+    search_form_template = 'search_form.html'
+    results_list_template = 'change_list_results.html'
+    date_hierarchy_template = 'date_hierarchy.html'
+    actions_template = 'actions.html'
+    pagination_template = 'pagination.html'
 
     class Media:
         js = ("iadmin/js/iwidgets.js",)
@@ -52,6 +56,7 @@ class IModelAdmin(DjangoModelAdmin):
     def __init__(self, model, admin_site):
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
+#        self._template_prefix = self.admin_site.template_prefix
         self._process_cell_filter()
 
     def get_actions(self, request):
@@ -74,6 +79,30 @@ class IModelAdmin(DjangoModelAdmin):
                 tools.append( ( url, label) )
         return tools
 
+    def get_template(self, request, template):
+        opts = self.model._meta
+        app_label = opts.app_label
+        prefix = self.admin_site.template_prefix
+        return [
+            "%s/%s/%s/%s" % (prefix, app_label, template, opts.object_name.lower()),
+            "%s/%s/%s" % (prefix, app_label, template ),
+            "%s/%s" % (prefix, template),
+#            "iadmin/%s/%s/%s" % (app_label, template, opts.object_name.lower()),
+#            "iadmin/%s/%s" % (app_label, template ),
+#            "iadmin/%s" % template,
+            template
+            ]
+
+    def get_context(self, **kwargs):
+        opts = self.model._meta
+        app_label = opts.app_label
+
+        ctx = {'module_name': force_unicode(opts.verbose_name_plural),
+               'app_label': app_label,
+               'template_prefix': self.admin_site.template_prefix,
+                'current_app':self.admin_site.name}
+        ctx.update(kwargs)
+        return ctx
 
     def get_model_perms(self, request):
         """
@@ -126,18 +155,13 @@ class IModelAdmin(DjangoModelAdmin):
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         opts = self.model._meta
-        app_label = opts.app_label
         target_template = None
         if add and self.add_form_template is None:
             target_template = 'add_form_template'
         elif self.change_form_template is None:
             target_template = 'change_form_template'
         if target_template:
-            setattr(self, target_template, [
-                "iadmin/%s/%s/change_form.html" % (app_label, opts.object_name.lower()),
-                "iadmin/%s/change_form.html" % app_label,
-                "iadmin/change_form.html",
-                ])
+            setattr(self, target_template, self.get_template(request, 'change_form.html'))
         return super(IModelAdmin, self).render_change_form(request, context, add, change, form_url, obj)
 
     def _process_cell_filter(self):
@@ -178,6 +202,10 @@ class IModelAdmin(DjangoModelAdmin):
         flat_filter = [isinstance(v, tuple) and v[0] or v for v in self.list_filter  ]
         flat_filter.extend( [isinstance(v, tuple) and v[0] or v for v in self.cell_filter  ])
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = self.get_context(**(extra_context or {} ))
+        return super(IModelAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def changelist_view(self, request, extra_context=None):
         """
@@ -309,8 +337,8 @@ class IModelAdmin(DjangoModelAdmin):
         selection_note_all = ungettext('%(total_count)s selected',
             'All %(total_count)s selected', cl.result_count)
 
-        context = {
-            'module_name': force_unicode(opts.verbose_name_plural),
+        context = self.get_context(**{
+#            'module_name': force_unicode(opts.verbose_name_plural),
             'selection_note': _('0 of %(cnt)s selected') % {'cnt': len(cl.result_list)},
             'selection_note_all': selection_note_all % {'total_count': cl.result_count},
             'title': cl.title,
@@ -318,24 +346,27 @@ class IModelAdmin(DjangoModelAdmin):
             'cl': cl,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
-            'app_label': app_label,
+#            'app_label': app_label,
             'action_form': action_form,
             'actions_on_top': self.actions_on_top,
             'actions_on_bottom': self.actions_on_bottom,
             'actions_selection_counter': self.actions_selection_counter,
             'has_view_permission': self.has_view_permission(request),
             'cell_menu_on_click': self.cell_menu_on_click,
-            }
+            })
         context.update(extra_context or {})
 
-        return TemplateResponse(request, self.change_list_template or [
-            'iadmin/%s/%s/change_list.html' % (app_label, opts.object_name.lower()),
-            'iadmin/%s/change_list.html' % app_label,
-            'iadmin/change_list.html'
-        ], context, current_app=self.admin_site.name)
+        return TemplateResponse(request,
+            self.change_list_template or self.get_template(request, 'change_list.html'),
+            context, current_app=self.admin_site.name)
 
     def get_changelist(self, request, **kwargs):
         return IChangeList
+
+    def history_view(self, request, object_id, extra_context=None):
+        if self.object_history_template is None:
+            self.object_history_template = self.get_template(request, 'object_history.html')
+        return super(IModelAdmin, self).history_view(request, object_id, extra_context)
 
 
     #    @transaction.commit_on_success
@@ -383,7 +414,7 @@ class IModelAdmin(DjangoModelAdmin):
             inline_admin_formsets.append(inline_admin_formset)
             media = media + inline_admin_formset.media
 
-        context = {
+        context = self.get_context(**{
             'title': _('Change %s') % force_unicode(opts.verbose_name),
             'adminform': adminForm,
             'has_view_permission': self.has_view_permission(request),
@@ -394,7 +425,7 @@ class IModelAdmin(DjangoModelAdmin):
             'inline_admin_formsets': inline_admin_formsets,
             'errors': helpers.AdminErrorList(form, formsets),
             'app_label': opts.app_label,
-            }
+            })
         context.update(extra_context or {})
         return self.render_change_form(request, context, change=True, obj=obj)
 
@@ -471,12 +502,13 @@ class ITabularInline(DjangoTabularInline):
         formset.edit_link = self.edit_link
         return formset
 
+
 class ITabularList(ITabularInline):
     template = 'iadmin/edit_inline/tabular_tab.html'
     add_undefined_fields = False
 
     def get_readonly_fields(self, request, obj=None):
-        for f in  [ f for f in self.model._meta.fields if f.name != 'id' ]:
+        for f in [f for f in self.model._meta.fields if f.name != 'id']:
             yield f.name
 
     def has_add_permission(self, request):

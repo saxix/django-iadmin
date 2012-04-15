@@ -84,21 +84,23 @@ def export_to_csv(modeladmin, request, queryset):
 
     adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
     media = modeladmin.media + adminForm.media
-    return render_to_response('iadmin/export_csv.html',
-                              RequestContext(request, {'adminform': adminForm,
-                                                       'form': form,
-                                                       'change': True,
-                                                       'title': _('Export to CSV'),
-                                                       'is_popup': False,
-                                                       'save_as': False,
-                                                       'has_delete_permission': False,
-                                                       'has_add_permission': False,
-                                                       'has_change_permission': True,
-                                                       'opts': queryset.model._meta,
-                                                       'app_label': queryset.model._meta.app_label,
-                                                       'action': 'export_to_csv',
-                                                       'media': mark_safe(media),
-                                                       }))
+    tpl = modeladmin.get_template(request, 'export_csv.html' )
+    ctx = modeladmin.get_context(**{'adminform': adminForm,
+                                    'form': form,
+                                    'change': True,
+                                    'title': _('Export to CSV'),
+                                    'is_popup': False,
+                                    'save_as': False,
+                                    'has_delete_permission': False,
+                                    'has_add_permission': False,
+                                    'has_change_permission': True,
+                                    'queryset': queryset,
+                                    'opts': queryset.model._meta,
+                                    'app_label': queryset.model._meta.app_label,
+                                    'action': 'export_to_csv',
+                                    'media': mark_safe(media),
+                                    })
+    return render_to_response(tpl, RequestContext(request, ctx))
 
 
 

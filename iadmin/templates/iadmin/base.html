@@ -1,4 +1,4 @@
-{% load admin_static %}{% load url from future %}<!DOCTYPE html>
+{% load admin_static iadmin_urls %}{% load url from future %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
 <title>{% block title %}{% endblock %}</title>
@@ -32,8 +32,8 @@
                 {% if docsroot %}
                     <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
                 {% endif %}
-                <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
-                <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+                <a href="{% admin_url 'password_change' %}">{% trans 'Change password' %}</a> /
+                <a href="{% admin_url 'logout' %}">{% trans 'Log out' %}</a>
             {% endblock %}
         </div>
         {% endif %}

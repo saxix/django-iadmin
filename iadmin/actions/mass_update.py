@@ -118,25 +118,24 @@ def mass_update(modeladmin, request, queryset):
     adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
     media = modeladmin.media + adminForm.media
     dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.date) else str(obj)
+    tpl = modeladmin.get_template(request, 'mass_update.html' )
+    ctx = modeladmin.get_context(**{'adminform': adminForm,
+                                    'form': form,
+                                    'title': u"Mass update %s" % force_unicode(modeladmin.opts.verbose_name_plural),
+                                    'grouped': grouped,
+                                    'fieldvalues': json.dumps(grouped, default=dthandler),
+                                    'change': True,
+                                    'is_popup': False,
+                                    'save_as': False,
+                                    'has_delete_permission': False,
+                                    'has_add_permission': False,
+                                    'has_change_permission': True,
+                                    'opts': modeladmin.model._meta,
+                                    'app_label': modeladmin.model._meta.app_label,
+                                    'action': 'mass_update',
+                                    'media': mark_safe(media),
+                                    'selection': queryset,
+                                    } )
 
-    return render_to_response('iadmin/mass_update.html',
-        RequestContext(request, {'adminform': adminForm,
-                                 'form': form,
-                                 'title': u"Mass update %s" % force_unicode(modeladmin.opts.verbose_name_plural),
-                                 'grouped': grouped,
-                                 'fieldvalues': json.dumps(grouped, default=dthandler),
-                                 'change': True,
-                                 'is_popup': False,
-                                 'save_as': False,
-                                 'has_delete_permission': False,
-                                 'has_add_permission': False,
-                                 'has_change_permission': True,
-                                 'opts': modeladmin.model._meta,
-                                 'app_label': modeladmin.model._meta.app_label,
-                                 'action': 'mass_update',
-                                 'media': mark_safe(media),
-                                 'selection': queryset,
-                                 }))
-
-
+    return render_to_response(tpl, RequestContext(request, ctx))
 mass_update.short_description = "Mass update"
