@@ -2,7 +2,7 @@ VERSION = __version__ = (0, 1, 9, 'alpha', 0)
 __author__ = 'sax'
 import iadmin
 
-def get_version(version=None):
+def get_version(version=None, short=False):
     """Derives a PEP386-compliant version number from VERSION."""
     if version is None:
         version = VERSION
@@ -19,14 +19,16 @@ def get_version(version=None):
 
     sub = ''
     if version[3] == 'alpha' and version[4] == 0:
-        path =  iadmin.__path__[0]
-        head_path = '%s/../.git/logs/HEAD' % path
-        try:
-            for line in open(head_path):pass
-            revision = line.split()[0]
-        except IOError:
-            raise Exception('Aplha version is are only allowed as git clone')
-        sub = '.dev%s' % revision
+        sub = '.dev'
+        if not short:
+            path =  iadmin.__path__[0]
+            head_path = '%s/../.git/logs/HEAD' % path
+            try:
+                for line in open(head_path):pass
+                revision = line.split()[0]
+            except IOError:
+                raise Exception('Aplha version is are only allowed as git clone')
+            sub += revision
 
     elif version[3] != 'final':
         mapping = {'alpha': 'a', 'beta': 'b', 'rc': 'c'}
