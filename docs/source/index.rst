@@ -22,8 +22,8 @@ Features
 - tabbed view of inlines
 - auto add models not registered
 - auto add fields not present in fieldset (add_undefined_fields)
-- link to foreignkey edit page from changelist (:ref:`list_display_rel_links<list_display_rel_links>` )
-- filters on cell values (:ref:`cell_filter<tutorial-cell-filter>`)
+- link to foreignkey edit page from changelist (:ref:`list_display_rel_links <list_display_rel_links>` )
+- filters on cell values (:ref:`cell_filter<cell_filter>`)
 - utilities ( tabular_factory)
 - mass updates functionality
 - export to csv with options and formatting
@@ -34,29 +34,14 @@ Features
 Table Of Contents
 =================
 .. toctree::
-    :maxdepth: 2
-    :hidden:
+    :maxdepth: 1
 
     install
     api
-
-
-.. toctree::
-    :maxdepth: 2
-
-    install
-    tutorial
-    actions
-    utils
-    api
-    releases/index
-    help
-
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 

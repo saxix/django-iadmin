@@ -36,7 +36,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "_ext"))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx','sphinx.ext.todo',
               'sphinx.ext.coverage', 'sphinx.ext.ifconfig', 'sphinx.ext.extlinks', 'ext']
 
-extensions = ['ext', 'sphinx.ext.todo',]
+extensions = ['djangodocs', 'ext', 'sphinx.ext.todo',]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

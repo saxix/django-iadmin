@@ -5,18 +5,18 @@
 API
 ===
 
+``IModelAdmin``
+---------------
 
 .. class:: IModelAdmin
 
     The ``IModelAdmin`` simply extends the ``ModelAdmin``
 
-
-``IModelAdmin`` options
------------------------
 .. attribute:: IModelAdmin.add_undefined_fields
 
     If True add all fields of the model to the form regardless are present in ``fields`` or ``fieldset`` attribute. This flag is only useful if you want to layout only some field into the fieldset but still want all fields available for editing. When ``add_undefined_fields`` a new section `Other` will be created with all fields not listed in the fieldset.
 
+.. _cell_filter:
 .. attribute:: IModelAdmin.cell_filter
 
     Set ``cell_filter`` to activate drop-down menu into the cell's grid, as illustrated in the following example:
@@ -45,8 +45,10 @@ API
     .. image:: _static/cell_filter_operators.png
 
 
+.. _list_display_rel_links:
 
 .. attribute:: IModelAdmin.list_display_rel_links
+
 .. attribute:: IModelAdmin.cell_menu_on_click
 
 .. attribute:: IModelAdmin.buttons
@@ -83,6 +85,10 @@ API
 .. attribute:: IModelAdmin.get_template
 
     .. versionadded:: 0.1.9
+
+
+``IAdminSite``
+--------------
 
 .. class:: IAdminSite
 
@@ -143,6 +149,20 @@ API
 
     .. versionadded:: 0.1.9
 
+``ITabularInline``
+------------------
+
 .. class:: ITabularInline
 
+``ITabularList``
+----------------
+
 .. class:: ITabularList
+
+
+.. module:: iadmin.utils
+
+``Utilities``
+-------------
+
+.. function:: tabular_factory
