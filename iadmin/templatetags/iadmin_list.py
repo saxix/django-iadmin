@@ -34,6 +34,10 @@ def get_items_cell_filter(cl, column, obj):
     menu_items = []
     filter = cl.cell_filters.get(column, None)
     if filter:
+        # because investigate_admin() try to convert list_filter to cell_filter,
+        # after django 1.4 we could get a tuple here.
+        if isinstance(filter, (list, tuple)):
+            filter, _unused = filter
         filter_params = filter.expected_parameters()
         if filter.is_active(cl):
             menu_items.append((cl.get_query_string({}, filter_params), _('Remove filter')))
