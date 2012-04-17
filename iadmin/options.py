@@ -1,8 +1,7 @@
 from datetime import datetime
 import logging
-from django.conf.urls import patterns, url, include
 from django.contrib.admin import ModelAdmin as DjangoModelAdmin, TabularInline as DjangoTabularInline, helpers
-from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.options import IncorrectLookupParameters, csrf_protect_m
 from django.contrib.admin.util import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse, reverse_lazy, NoReverseMatch
@@ -49,13 +48,59 @@ class IModelAdmin(DjangoModelAdmin):
     actions_template = 'actions.html'
     pagination_template = 'pagination.html'
 
-    class Media:
-        js = ("iadmin/js/iwidgets.js",)
 
     def __init__(self, model, admin_site):
         self.extra_allowed_filter = []
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
+
+    def get_urls(self):
+        from django.conf.urls import patterns, url
+
+        def wrap(view):
+            def wrapper(*args, **kwargs):
+                return self.admin_site.admin_view(view)(*args, **kwargs)
+            return update_wrapper(wrapper, view)
+
+        info = self.model._meta.app_label, self.model._meta.module_name
+
+        urlpatterns = patterns('',
+            url(r'^$',
+                wrap(self.changelist_view),
+                name='%s_%s_changelist' % info),
+            url(r'^add/$',
+                wrap(self.add_view),
+                name='%s_%s_add' % info),
+            url(r'^(.+)/history/$',
+                wrap(self.history_view),
+                name='%s_%s_history' % info),
+            url(r'^(.+)/delete/$',
+                wrap(self.delete_view),
+                name='%s_%s_delete' % info),
+            url(r'^(.+)/view/$',
+                wrap(self.display_view),
+                name='%s_%s_display' % info),
+            url(r'^(.+)/$',
+                wrap(self.change_view),
+                name='%s_%s_change' % info),
+        )
+        return urlpatterns
+
+    class Media:
+        js = ("iadmin/js/iwidgets.js",)
+
+    def get_model_perms(self, request):
+        """
+        Returns a dict of all perms for this model. This dict has the keys
+        ``add``, ``change``, and ``delete`` mapping to the True/False for each
+        of those actions.
+        """
+        return {
+            'add': self.has_add_permission(request),
+            'change': self.has_change_permission(request),
+            'delete': self.has_delete_permission(request),
+            'view': self.has_view_permission(request),
+            }
 
     def get_actions(self, request):
         acts = super(IModelAdmin, self).get_actions(request)
@@ -102,18 +147,7 @@ class IModelAdmin(DjangoModelAdmin):
         ctx.update(kwargs)
         return ctx
 
-    def get_model_perms(self, request):
-        """
-        Returns a dict of all perms for this model. This dict has the keys
-        ``add``, ``change``, and ``delete`` mapping to the True/False for each
-        of those actions.
-        """
-        return {
-            'add': self.has_add_permission(request),
-            'change': self.has_change_permission(request),
-            'delete': self.has_delete_permission(request),
-            'view': self.has_view_permission(request),
-        }
+
 
     def has_view_permission(self, request, obj=None):
         """
@@ -192,12 +226,12 @@ class IModelAdmin(DjangoModelAdmin):
         context = self.get_context(**(extra_context or {} ))
         return super(IModelAdmin, self).change_view(request, object_id, form_url, context)
 
+#    @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
         """
         The 'change list' admin view for this model.
         """
         from django.contrib.admin.views.main import ERROR_FLAG
-
         opts = self.model._meta
         app_label = opts.app_label
         if not (self.has_change_permission(request, None) or self.has_view_permission(request, None)):
@@ -323,7 +357,7 @@ class IModelAdmin(DjangoModelAdmin):
             'All %(total_count)s selected', cl.result_count)
 
         context = self.get_context(**{
-#            'module_name': force_unicode(opts.verbose_name_plural),
+            'module_name': force_unicode(opts.verbose_name_plural),
             'selection_note': _('0 of %(cnt)s selected') % {'cnt': len(cl.result_list)},
             'selection_note_all': selection_note_all % {'total_count': cl.result_count},
             'title': cl.title,
@@ -331,7 +365,7 @@ class IModelAdmin(DjangoModelAdmin):
             'cl': cl,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
-#            'app_label': app_label,
+            'app_label': app_label,
             'action_form': action_form,
             'actions_on_top': self.actions_on_top,
             'actions_on_bottom': self.actions_on_bottom,
@@ -424,36 +458,7 @@ class IModelAdmin(DjangoModelAdmin):
 #        d = datetime.datetime.now()
 #        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
-    def get_urls(self):
-        def wrap(view, cacheable=False):
-            def wrapper(*args, **kwargs):
-                return self.admin_site.admin_view(view, cacheable)(*args, **kwargs)
 
-            return update_wrapper(wrapper, view)
-
-        info = self.model._meta.app_label, self.model._meta.module_name
-        #        urlpatterns = super(IModelAdmin, self).get_urls()
-        urlpatterns = patterns('',
-            url(r'^$',
-                wrap(self.changelist_view),
-                name='%s_%s_changelist' % info),
-            url(r'^add/$',
-                wrap(self.add_view),
-                name='%s_%s_add' % info),
-            url(r'^(.+)/history/$',
-                wrap(self.history_view),
-                name='%s_%s_history' % info),
-            url(r'^(.+)/delete/$',
-                wrap(self.delete_view),
-                name='%s_%s_delete' % info),
-            url(r'^(.+)/view/$',
-                wrap(self.display_view),
-                name='%s_%s_display' % info),
-            url(r'^(.+)/$',
-                wrap(self.change_view),
-                name='%s_%s_change' % info),
-        )
-        return urlpatterns
 
     def _declared_fieldsets(self):
         # overriden to handle `add_undefined_fields`
