@@ -61,8 +61,7 @@ class IAdminService(object):
 
 
 class IAdminSite(AdminSite):
-
-    def __init__(self, name='iadmin', app_name='iadmin', template_prefix=None):
+    def __init__(self, name='iadmin', app_name='iadmin', template_prefix='iadmin'):
         self.template_prefix = template_prefix or app_name
         return super(IAdminSite, self).__init__(name, app_name)
 
@@ -111,7 +110,8 @@ class IAdminSite(AdminSite):
                     else:
                         app_dict[app_label] = {
                             'name': app_label.title(),
-                            'app_url': reverse('%s:app_list' % self.app_name , kwargs={'app_label': app_label}, current_app=self.name),
+                            'app_url': reverse('%s:app_list' % self.app_name, kwargs={'app_label': app_label},
+                                current_app=self.name),
                             'has_module_perms': has_module_perms,
                             'models': [model_dict],
                             }
@@ -131,7 +131,7 @@ class IAdminSite(AdminSite):
         context.update(extra_context or {})
         return TemplateResponse(request, [
             self.index_template or self.get_template('index.html')
-            ], context, current_app=self.name)
+        ], context, current_app=self.name)
 
 
     def app_index(self, request, app_label, extra_context=None):
@@ -153,7 +153,7 @@ class IAdminSite(AdminSite):
                             }
                         if perms.get('change', False):
                             try:
-#                                model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
+                            #                                model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
                                 model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
                             except NoReverseMatch:
                                 pass
@@ -187,7 +187,7 @@ class IAdminSite(AdminSite):
         return TemplateResponse(request, self.app_index_template or [
             self.get_template('%s/app_index.html' % app_label),
             self.get_template('app_index.html'),
-        ], context, current_app=self.name)
+            ], context, current_app=self.name)
 
     def login(self, request, extra_context=None):
         self.login_template = self.login_template or self.get_template('login.html')
@@ -205,20 +205,19 @@ class IAdminSite(AdminSite):
         Handles the "change password" task -- both form display and validation.
         """
         from django.contrib.auth.views import password_change
+
         url = reverse('admin:password_change_done', current_app=self.name)
         defaults = {
             'current_app': self.name,
             'post_change_redirect': url,
-            'extra_context' : self.get_context()
+            'extra_context': self.get_context()
         }
         if self.password_change_template is not None:
             defaults['template_name'] = self.password_change_template
         return password_change(request, **defaults)
 
 
-
     def get_urls(self):
-
         def wrap(view, cacheable=False):
             def wrapper(*args, **kwargs):
                 return self.admin_view(view, cacheable)(*args, **kwargs)
@@ -251,7 +250,7 @@ class IAdminSite(AdminSite):
                 name='admin_shortcut'),
 
         )
-        return urlpatterns +  super(IAdminSite, self).get_urls()
+        return urlpatterns + super(IAdminSite, self).get_urls()
 
     @property
     def urls(self):
@@ -288,7 +287,8 @@ class IAdminSite(AdminSite):
         :return: None
         """
         for model, class_admin in site._registry.items():
-            admin_class = type('I%s' % class_admin.__class__.__name__, (type(class_admin), IModelAdmin), {'cell_filter': class_admin.list_filter})
+            admin_class = type('I%s' % class_admin.__class__.__name__, (type(class_admin), IModelAdmin),
+                    {'cell_filter': class_admin.list_filter})
             self.register(model, admin_class)
 
     def register(self, model_or_iterable, admin_class=None, **options):
@@ -300,7 +300,7 @@ class IAdminSite(AdminSite):
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
 
-        override=options.pop('override', False)
+        override = options.pop('override', False)
 
         for model in model_or_iterable:
             if model in self._registry:
@@ -324,7 +324,7 @@ class IAdminSite(AdminSite):
         return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
     def get_context(self, **kwargs):
-        ctx = {'current_app':self.name}
+        ctx = {'current_app': self.name}
         ctx.update(kwargs)
         return ctx
 
@@ -385,25 +385,27 @@ class IAdminSite(AdminSite):
         lib = sorted([str(e) for e in pkg_resources.working_set], lambda x, y: cmp(x.lower(), y.lower()))
 
         context = self.get_context(**{'lib': lib,
-                   'curdir': os.path.abspath(os.path.curdir),
-                   'os_user': getuser(),
-                   'os': os,
-                   'title': _("System information"),
-                   'sys': {'platform': sys.platform,
-                           'version': sys.version_info,
-                           'os': os.uname(),
-                           'mail_server': settings.EMAIL_HOST,
-                           'django': django.get_version()},
-                   'database': settings.DATABASES,
-                   'path': sys.path,
-                   'apps': _apps()
+                                      'curdir': os.path.abspath(os.path.curdir),
+                                      'os_user': getuser(),
+                                      'os': os,
+                                      'title': _("System information"),
+                                      'sys': {'platform': sys.platform,
+                                              'version': sys.version_info,
+                                              'os': os.uname(),
+                                              'mail_server': settings.EMAIL_HOST,
+                                              'django': django.get_version()},
+                                      'database': settings.DATABASES,
+                                      'path': sys.path,
+                                      'apps': _apps()
         })
         context_instance = template.RequestContext(request, current_app=self.name)
 
         return render_to_response(('%s/env_info.html' % self.template_prefix,
                                    'iadmin/env_info.html'), context, context_instance=context_instance)
+
     def test_mail(self, request):
         from django.core.mail import send_mail
+
         email = request.user.email
         send_mail('test email', 'This is a test message', email, [email], fail_silently=True)
         return HttpResponseRedirect(reverse("%s:info" % self.app_name))

@@ -15,21 +15,25 @@ from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from iadmin import widgets
 from iadmin.views import LIST_DISPLAY
+from iadmin.widgets import IRelatedFieldWidgetWrapper
 
 from .views import IChangeList
 from django.utils.translation import ugettext as _, ungettext
 import iadmin.actions as ac
+
 __all__ = ['IModelAdmin', 'ITabularInline']
 
 AUTOCOMPLETE = 'a'
 JSON = 'j'
 PJSON = 'p'
 
-
 from django.db.models import options
+
 def get_view_permission(self):
     return 'view_%s' % self.object_name.lower()
+
 options.Options.get_view_permission = get_view_permission
 
 class IModelAdmin(DjangoModelAdmin):
@@ -43,7 +47,7 @@ class IModelAdmin(DjangoModelAdmin):
     cell_menu_on_click = True # if true need to click on icon else mouseover is enough
     actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
     cell_filter_operators = {}
-    buttons= []
+    buttons = []
     search_form_template = 'search_form.html'
     results_list_template = 'change_list_results.html'
     date_hierarchy_template = 'date_hierarchy.html'
@@ -57,12 +61,22 @@ class IModelAdmin(DjangoModelAdmin):
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        ret = super(IModelAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+        if ret and isinstance(ret.widget, widgets.RelatedFieldWidgetWrapper):
+            ret.widget.__class__ = IRelatedFieldWidgetWrapper
+
+        return ret
+
+        #    def formfield_for_dbfield(self, db_field, **kwargs):
+
     def get_urls(self):
         from django.conf.urls import patterns, url
 
         def wrap(view):
             def wrapper(*args, **kwargs):
                 return self.admin_site.admin_view(view)(*args, **kwargs)
+
             return update_wrapper(wrapper, view)
 
         info = self.model._meta.app_label, self.model._meta.module_name
@@ -120,6 +134,7 @@ class IModelAdmin(DjangoModelAdmin):
         Return a sequence containing the fields to be displayed on the
         changelist.
         """
+
         def get_visible(opts):
             for i in opts:
                 if i < len(self.list_display):
@@ -127,7 +142,7 @@ class IModelAdmin(DjangoModelAdmin):
 
         opt = request.GET.get(LIST_DISPLAY, None)
         if opt:
-            ret = list(get_visible(map(lambda x: x and int(x)-1, opt.split('.'))))
+            ret = list(get_visible(map(lambda x: x and int(x) - 1, opt.split('.'))))
         else:
             ret = self.list_display
         return ret
@@ -136,14 +151,14 @@ class IModelAdmin(DjangoModelAdmin):
         opts = self.model._meta
         info = self.admin_site.app_name, opts.app_label, opts.module_name
 
-        _url= reverse('%s:%s_%s_add' % info)
+        _url = reverse('%s:%s_%s_add' % info)
         buttons = [(_url, mark_safe("Add %s" % unicode(opts.verbose_name)))]
         for url, label in self.buttons:
             try:
-                buttons.append( (reverse(url), label) )
+                buttons.append((reverse(url), label))
             except NoReverseMatch, e:
                 logging.error(e)
-                buttons.append( ( url, label) )
+                buttons.append(( url, label))
         return buttons
 
     def get_template(self, request, template):
@@ -158,7 +173,7 @@ class IModelAdmin(DjangoModelAdmin):
             "iadmin/%s/%s" % (app_label, template ),
             "iadmin/%s" % template,
             template
-            ]
+        ]
 
     def get_context(self, **kwargs):
         opts = self.model._meta
@@ -167,10 +182,9 @@ class IModelAdmin(DjangoModelAdmin):
         ctx = {'module_name': force_unicode(opts.verbose_name_plural),
                'app_label': app_label,
                'template_prefix': self.admin_site.template_prefix,
-                'current_app':self.admin_site.app_name}
+               'current_app': self.admin_site.app_name}
         ctx.update(kwargs)
         return ctx
-
 
 
     def has_view_permission(self, request, obj=None):
@@ -183,14 +197,14 @@ class IModelAdmin(DjangoModelAdmin):
         """
         opts = self.opts
         return self.has_change_permission(request, obj) or\
-           request.user.has_perm(opts.app_label + '.' + opts.get_view_permission() )
+               request.user.has_perm(opts.app_label + '.' + opts.get_view_permission())
 
     def response_add(self, request, obj, post_url_continue='../%s/'):
         opts = obj._meta
         if self.has_view_permission(request, None) and not self.has_change_permission(request, None):
             post_url = reverse('admin:%s_%s_changelist' %
                                (opts.app_label, opts.module_name),
-                               current_app=self.admin_site.name)
+                current_app=self.admin_site.name)
             return HttpResponseRedirect(post_url)
         else:
             return super(IModelAdmin, self).response_add(request, obj, post_url_continue='../%s/')
@@ -242,13 +256,18 @@ class IModelAdmin(DjangoModelAdmin):
             parts.pop()
         clean_lookup = LOOKUP_SEP.join(parts)
 
-        flat_filter = [isinstance(v, tuple) and v[0] or v for v in self.list_filter  ]
-        flat_filter.extend( [isinstance(v, tuple) and v[0] or v for v in self.cell_filter  ])
+        flat_filter = [isinstance(v, tuple) and v[0] or v for v in self.list_filter]
+        flat_filter.extend([isinstance(v, tuple) and v[0] or v for v in self.cell_filter])
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         context = self.get_context(**(extra_context or {} ))
         return super(IModelAdmin, self).change_view(request, object_id, form_url, context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        context = self.get_context(**(extra_context or {} ))
+        return super(IModelAdmin, self).add_view(request, form_url, context)
+
 
     @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
@@ -256,6 +275,7 @@ class IModelAdmin(DjangoModelAdmin):
         The 'change list' admin view for this model.
         """
         from django.contrib.admin.views.main import ERROR_FLAG
+
         opts = self.model._meta
         app_label = opts.app_label
         if not (self.has_change_permission(request, None) or self.has_view_permission(request, None)):
@@ -387,7 +407,7 @@ class IModelAdmin(DjangoModelAdmin):
             'title': cl.title,
             'is_popup': cl.is_popup,
             'cl': cl,
-            'original_list_display' : self._original_list_display,
+            'original_list_display': self._original_list_display,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
             'app_label': app_label,
@@ -479,9 +499,9 @@ class IModelAdmin(DjangoModelAdmin):
 
         return super(IModelAdmin, self).get_readonly_fields(request, obj)
 
-#    def format_date(self, request):
-#        d = datetime.datetime.now()
-#        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
+    #    def format_date(self, request):
+    #        d = datetime.datetime.now()
+    #        return HttpResponse(dateformat.format(d, request.GET.get('fmt', '')))
 
 
 
