@@ -219,6 +219,7 @@ def iresult_list(context, cl):
         if h['sortable'] and h['sorted']:
             num_sorted_fields += 1
     return tpl.render(Context({'cl': cl,
+           'original_list_display' : context['original_list_display'],
             'result_hidden_fields': list(result_hidden_fields(cl)),
             'result_headers': headers,
             'num_sorted_fields': num_sorted_fields,
@@ -256,3 +257,10 @@ def iadmin_actions(context):
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.actions_template))
     context['action_index'] = context.get('action_index', -1) + 1
     return tpl.render(Context(context))
+
+@register.simple_tag(takes_context=True)
+def iadmin_columns_panel(context, list_columns):
+    cl = context['cl']
+    tpl = select_template(['iadmin/includes/columns_panel.html'])
+    ctx = {'list_columns': list_columns}
+    return tpl.render(Context(ctx))

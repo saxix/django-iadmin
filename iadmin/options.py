@@ -15,6 +15,7 @@ from django.utils.encoding import force_unicode
 from django.utils.functional import update_wrapper
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from iadmin.views import LIST_DISPLAY
 
 from .views import IChangeList
 from django.utils.translation import ugettext as _, ungettext
@@ -35,6 +36,7 @@ class IModelAdmin(DjangoModelAdmin):
     """
         extended ModelAdmin
     """
+    list_display = ('__str__',)
     add_undefined_fields = False
     list_display_rel_links = ()
     cell_filter = ()
@@ -51,6 +53,7 @@ class IModelAdmin(DjangoModelAdmin):
 
     def __init__(self, model, admin_site):
         self.extra_allowed_filter = []
+        self._original_list_display = self.list_display
         super(IModelAdmin, self).__init__(model, admin_site)
         self._process_cell_filter()
 
@@ -87,7 +90,10 @@ class IModelAdmin(DjangoModelAdmin):
         return urlpatterns
 
     class Media:
-        js = ("iadmin/js/iwidgets.js",)
+        js = ('iadmin/js/iadmin.js',
+              'iadmin/js/iwidgets.js',
+              'iadmin/js/jquery.url.js',
+            )
 
     def get_model_perms(self, request):
         """
@@ -107,6 +113,24 @@ class IModelAdmin(DjangoModelAdmin):
         if not self.has_delete_permission(request, None):
             acts.pop('delete_selected', None)
         return acts
+
+
+    def get_list_display(self, request):
+        """
+        Return a sequence containing the fields to be displayed on the
+        changelist.
+        """
+        def get_visible(opts):
+            for i in opts:
+                if i < len(self.list_display):
+                    yield self.list_display[i]
+
+        opt = request.GET.get(LIST_DISPLAY, None)
+        if opt:
+            ret = list(get_visible(map(lambda x: x and int(x)-1, opt.split('.'))))
+        else:
+            ret = self.list_display
+        return ret
 
     def get_buttons(self):
         opts = self.model._meta
@@ -226,7 +250,7 @@ class IModelAdmin(DjangoModelAdmin):
         context = self.get_context(**(extra_context or {} ))
         return super(IModelAdmin, self).change_view(request, object_id, form_url, context)
 
-#    @csrf_protect_m
+    @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
         """
         The 'change list' admin view for this model.
@@ -363,6 +387,7 @@ class IModelAdmin(DjangoModelAdmin):
             'title': cl.title,
             'is_popup': cl.is_popup,
             'cl': cl,
+            'original_list_display' : self._original_list_display,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
             'app_label': app_label,

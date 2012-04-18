@@ -1,9 +1,20 @@
 Resolver = null;
+Array.prototype.remove= function(){
+    var what, a= arguments, L= a.length, ax;
+    while(L && this.length){
+        what= a[--L];
+        while((ax= this.indexOf(what))!= -1){
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
 (function($) {
     $(document).ready(function() {
         $("#nojsmessage").hide();
     });
-    
+
     Resolver = function() {
             return {
                 reverse: function(name, args) {
@@ -36,4 +47,4 @@ Resolver = null;
                 }
             }
         }();
-})(jQuery);
+})(django.jQuery);

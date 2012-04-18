@@ -46,7 +46,10 @@
             (function ($) {
                 showchangelistfilter = function () {
                     $("#changelist-filter").toggle();
-                }
+                };
+                showhide = function (id) {
+                    $(id).toggle();
+                };
                 $(document).ready(function ($) {
                     $("tr input.action-select").actions();
                 });
@@ -99,18 +102,17 @@
 
             {% block filters %}
                 {% if cl.has_filters %}
-                    <a href="javascript:showchangelistfilter();" id="changelist-filter-button">{% trans "Filter:" %}
+                    <a href="javascript:showhide('#changelist-filter');"
+                        id="changelist-filter-button">{% trans "Filter:" %}
                         {% if cl.is_filtered %}{% trans "on" %}{% else %}{% trans "off" %}{% endif %}</a>
 
-                    <div id="changelist-filter"  style="display:none;>
+                    <div id="changelist-filter"  style="display:none;">
                             <h2>{% trans 'Filter' %}</h2>
-                            <h3><a href="?">Clear all</a></h3>
-
+                            {% if cl.is_filtered %}<h3><a href="?">Clear all</a></h3>{% endif %}
                     {% for spec in cl.filter_specs %}{% iadmin_list_filter cl spec %}{% endfor %}
                     </div>
                 {% endif %}
             {% endblock %}
-
         <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %}
               enctype="multipart/form-data"{% endif %}>{% csrf_token %}
             {% if cl.formset %}

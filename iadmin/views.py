@@ -10,8 +10,21 @@ __author__ = 'sax'
 
 from django.contrib.admin.views.main import ChangeList, IS_POPUP_VAR, SEARCH_VAR, ORDER_TYPE_VAR, ORDER_VAR, ALL_VAR, IGNORED_PARAMS
 
+LIST_DISPLAY = 'ld'
+
+import django.contrib.admin.views.main
+django.contrib.admin.views.main.IGNORED_PARAMS = IGNORED_PARAMS + (LIST_DISPLAY,)
 
 class IChangeList(ChangeList):
+    def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
+                 list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
+        self.readonly = False
+        self.request = request
+
+        super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
+            search_fields, list_select_related, list_per_page, list_max_show_all,
+            list_editable, model_admin)
+
     def get_filters(self, request):
         if self.list_filter:
             new_list = []
@@ -24,15 +37,6 @@ class IChangeList(ChangeList):
 
             self.list_filter = new_list
         return super(IChangeList, self).get_filters(request)
-
-    def __init__(self, request, model, list_display, list_display_links, list_filter, date_hierarchy, search_fields,
-                 list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
-        self.readonly = False
-        self.request = request
-
-        super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
-            search_fields, list_select_related, list_per_page, list_max_show_all,
-            list_editable, model_admin)
 
     def is_filtered(self):
         lookup_params = self.params.copy() # a dictionary of the query string
