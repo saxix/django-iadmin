@@ -1,7 +1,8 @@
 <a id="changelist-col-button" class="button" href="javascript:showhide('#changelist-cols-layout');">...</a>
 <div id="changelist-cols-layout" style="display:none;">
     {% for c in list_columns %}
-        <div><input type="checkbox" value="{{ forloop.counter }}">{{ forloop.counter }} {{ c|capfirst }}</div>
+        <div class="col-item"><input type="checkbox" value="{{ forloop.counter }}">
+            <a href="#">{{ c|capfirst }}</a></div>
     {% endfor %}
 </div>
 <script type="text/javascript">
@@ -9,25 +10,30 @@
         $(document).ready(function ($) {
             args = $.url(location).param();
             var cols = ["1", "2", "3", "4", "5"];
-            if (typeof args.ld != 'undefined'){
+            if (typeof args.ld != 'undefined') {
                 cols = args.ld.split('.');
             }
 
             $("#changelist-cols-layout input").each(function () {
-                console.log ( $(this), cols, $(this).val(),  $.inArray($(this).val(), cols)>=0 );
-                $(this).attr('checked', $.inArray($(this).val(), cols)>=0 );
+                $(this).attr('checked', $.inArray($(this).val(), cols) >= 0);
             });
 
-
-            $('#changelist-cols-layout input').click(function () {
+            toggle = function () {
                 var base = $.url(location).segment().join('/');
                 var sel = new Array();
                 $("#changelist-cols-layout input:checked").each(function () {
                     sel.push($(this).attr('value'));
                 });
                 args['ld'] = sel.join('.');
+                console.log(sel);
                 location.href = '?' + $.param(args);
+            };
+            $('#changelist-cols-layout a').click(function () {
+                var target = $(this).parent().find('input');
+                target.attr('checked', !target.attr('checked'));
+                toggle();
             });
+            $('#changelist-cols-layout input').click(toggle);
         });
     })(django.jQuery);
 </script>

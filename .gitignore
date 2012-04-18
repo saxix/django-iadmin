@@ -4,4 +4,4 @@
 dist
 MANIFEST
 project/*.log
-
+docs/dest
