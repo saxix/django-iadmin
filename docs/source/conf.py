@@ -103,8 +103,13 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
-html_theme = 'haiku'
+import os
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    html_theme = 'default'
+else:
+    html_theme = 'nature'
+#html_theme = 'haiku'
 #html_theme = 'sphinxdoc'
 #html_theme = "djangodocs"
 
