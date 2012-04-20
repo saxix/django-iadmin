@@ -34,7 +34,7 @@ class MassUpdateTest(BaseTestCase):
     def test_action_post(self):
         target_ids = [2, 3, 4, 7, 10]
 
-        request = self.factory.post('/admin/auth/user/',
+        request = self.factory.post(self._url,
                 {'action': 'mass_update', 'apply': 'Update records', 'chk_id_is_active': 'on',
                  '_selected_action': target_ids})
 
@@ -52,7 +52,7 @@ class MassUpdateTest(BaseTestCase):
 
         target_ids = [2, 3, 4, 7, 10]
 
-        request = self.factory.post('/admin/auth/user/',
+        request = self.factory.post(self._url,
                 {'action': 'mass_update', 'apply': 'Update records', 'chk_id_groups': 'on',
                  'groups': ['2'],'_selected_action': target_ids, '_validate': 'on'})
 
@@ -70,6 +70,10 @@ class MassUpdateTest(BaseTestCase):
 
 
 class MassUpdateFireFox(FireFoxLiveTest):
+    def setUp(self):
+        super(MassUpdateFireFox, self).setUp()
+        self.factory = RequestFactory()
+        self._url = reverse('iadmin:auth_user_changelist')
 
     def test_mass_update_1(self):
         """
@@ -79,7 +83,7 @@ class MassUpdateFireFox(FireFoxLiveTest):
 
         self.login()
         driver = self.driver
-        driver.get(self.base_url + "/admin/auth/user/")
+        self.go( self._url )
         self.assertEqual("Select user to change | iAdmin console", driver.title)
         driver.find_element_by_xpath("//input[@id='action-toggle']").click() # select all
         driver.find_element_by_xpath("//input[@name='_selected_action' and @value='1']").click() # unselect sax

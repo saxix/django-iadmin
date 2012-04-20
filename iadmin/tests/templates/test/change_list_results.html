@@ -1,4 +1,4 @@
-{% load i18n admin_static %}
+{% load i18n admin_static iadmin_list %}
 {% if result_hidden_fields %}
 <div class="hiddenfields">{# DIV for HTML validation #}
 {% for item in result_hidden_fields %}{{ item }}{% endfor %}
@@ -11,6 +11,11 @@
 <tr>
 {% for header in result_headers %}
 <th scope="col" {{ header.class_attrib }}>
+    {% block column-layout %}
+        {% if result_headers|last == header %}
+            {% iadmin_columns_panel original_list_display %}
+        {%  endif %}
+    {% endblock column-layout %}
    {% if header.sortable %}
      {% if header.sort_priority > 0 %}
        <div class="sortoptions">
@@ -21,10 +26,12 @@
      {% endif %}
    {% endif %}
     {% if header.filtered %}<a class="col-filtered" href="{{ header.clear_filter_url }}">&nbsp;</a>{% endif %}
-   <div class="text">{% if header.sortable %}<a href="{{ header.url_primary }}">{{ header.text|capfirst }}</a>{% else %}<span>{{ header.text|capfirst }}</span>{% endif %}</div>
+   <div class="text">{% if header.sortable %}<a href="{{ header.url_primary }}">{{ header.text|capfirst }}</a>{% else %}<span>{{ header.text|capfirst }}</span>{% endif %}
 
-   <div class="clear"></div>
-</th>{% endfor %}
+   </div>
+    <div class="clear"></div>
+</th>
+{% endfor %}
 </tr>
 </thead>
 <tbody>

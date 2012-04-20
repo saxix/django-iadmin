@@ -1,3 +1,4 @@
+from django.contrib.admin.options import ModelAdmin
 import os
 import copy
 import datetime
@@ -19,7 +20,7 @@ from django.utils import dateformat
 from django.utils.functional import update_wrapper
 from django.utils.translation import gettext as _
 
-from iadmin.options import IModelAdmin
+from iadmin.options import IModelAdmin, IModelAdminMixin
 from iadmin.tools import CSVImporter
 
 try:
@@ -257,9 +258,23 @@ class IAdminSite(AdminSite):
         return self.get_urls(), self.app_name, self.name
 
 
+    def get_imodeladmin(self, model_admin):
+        if not isinstance(model_admin, ModelAdmin) and issubclass(model_admin, IModelAdminMixin):
+            return model_admin
+
+        name = 'I%s' % model_admin.__class__.__name__
+        bases = (model_admin, IModelAdmin)
+        args = {'cell_filter': model_admin.list_filter}
+        try:
+            return type(name, bases, args)
+        except TypeError, e:
+            return type(name, (IModelAdminMixin, type(model_admin) ), args)
+        except Exception, e:
+            return IModelAdmin
+
     def process(self, mod):
         for model, model_admin in mod.__iadmin__:
-            self.register(model, model_admin)
+            self.register(model, self.get_imodeladmin(model_admin))
 
     def autodiscover(self):
         """
@@ -286,10 +301,8 @@ class IAdminSite(AdminSite):
         :param site: AdminSite instance
         :return: None
         """
-        for model, class_admin in site._registry.items():
-            admin_class = type('I%s' % class_admin.__class__.__name__, (type(class_admin), IModelAdmin),
-                    {'cell_filter': class_admin.list_filter})
-            self.register(model, admin_class)
+        for model, model_admin in site._registry.items():
+            self.register(model, self.get_imodeladmin(model_admin))
 
     def register(self, model_or_iterable, admin_class=None, **options):
         """
