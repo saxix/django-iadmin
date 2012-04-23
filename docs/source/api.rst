@@ -14,7 +14,7 @@ API
 
 .. attribute:: IModelAdmin.add_undefined_fields
 
-    If True add all fields of the model to the form regardless are present in ``fields`` or ``fieldset`` attribute. This flag is only useful if you want to layout only some field into the fieldset but still want all fields available for editing. When ``add_undefined_fields`` a new section `Other` will be created with all fields not listed in the fieldset.
+    If True add all fields of the model to the form regardless are present in ``fields`` or ``fieldset`` attribute. This flag is only useful if you want to layout only some field into the fieldset but still want all fields available for editing. When ``add_undefined_fields`` a new section **Other** will be created with all fields not listed in the fieldset.
 
 .. _cell_filter:
 .. attribute:: IModelAdmin.cell_filter
@@ -141,9 +141,6 @@ API
 .. attribute:: IAdminSite.env_info_counters
 
 .. attribute:: IAdminSite.env_info
-
-.. attribute:: IAdminSite.test_mail
-
 
 .. attribute:: IAdminSite.test_mail
 

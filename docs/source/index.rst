@@ -10,11 +10,6 @@ iAdmin documentation
 
 iAdmin is an alternative Django Admin application that offer some useful extra `features`; Can works both as replacement of standard admin application or parallel to it on an alternate url.
 
-.. admonition:: Work in progress
-
-    This document is still incomplete e under development
-
-
 ========
 Features
 ========

@@ -11,7 +11,9 @@ Cell Filter
 
 .. image:: _static/cell_filter.png
 
-.. image:: _static/cell_filter_operator.png
+Custom operators:
+
+.. image:: _static/cell_filter_operators.png
 
 
 Show/Hide Columns
