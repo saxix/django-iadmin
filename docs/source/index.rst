@@ -19,6 +19,7 @@ iAdmin is an alternative Django Admin application that offer some useful extra `
 Features
 ========
 
+- show/hide columns into change_list
 - tabbed view of inlines
 - auto add models not registered
 - auto add fields not present in fieldset (add_undefined_fields)
@@ -38,6 +39,8 @@ Table Of Contents
 
     install
     api
+    screenshots
+
 
 Indices and tables
 ==================

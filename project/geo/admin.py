@@ -17,12 +17,8 @@ class LocationAdmin(ModelAdmin):
 class CountryAdmin(ModelAdmin):
     list_display = ('name', 'ISO_code', 'ISO3_code', 'num_code', 'iana_tld', 'currency', 'population', 'fullname', 'region', 'continent')
     search_fields = ('name', 'fullname')
-#    cell_filter = ('region', 'continent', 'ISO_code', 'num_code')
     list_filter = ('name', 'region')
-#    ajax_list_display = ('fullname',) # beacause autocomplete double check the entry here must be present one of ajax_search_fields
 
-#    inlines = (tabular_factory(Location, Inline=TabularInline), )
-#    cell_filter_operators = {'num_code': ('exact', 'not', 'lt', 'gt')}
 
     def __init__(self, model, admin_site):
         super(CountryAdmin, self).__init__(model, admin_site)
@@ -46,3 +42,15 @@ admin.site.register(Ocean)
 
 
 from iadmin.tests.admin import __iadmin__
+
+try:
+    from iadmin.api import IModelAdminMixin, tabular_factory
+    class ICountryAdmin(IModelAdminMixin, CountryAdmin):
+        cell_filter = ('region', 'continent', 'ISO_code', 'num_code')
+        inlines = (tabular_factory(Location, fields=['name', 'code']),
+                 )
+        cell_filter_operators = {'num_code': ('exact', 'not', 'lt', 'gt')}
+
+    __iadmin__ = ((Country, ICountryAdmin), )
+except ImportError:
+    pass
