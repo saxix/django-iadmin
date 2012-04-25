@@ -1,10 +1,7 @@
-import django.contrib.admin
-import iadmin.api
-django.contrib.admin.site = iadmin.api.site
-django.contrib.admin.ModelAdmin = iadmin.api.IModelAdmin
-django.contrib.admin.TabularInline = iadmin.api.ITabularInline
+from iadmin.api import ITabularInline as TabularInline
+from iadmin.api import IModelAdmin as ModelAdmin
+from iadmin.api import IAdminSite as AdminSite
 
-from django.contrib.admin import site, ModelAdmin, TabularInline
+site = AdminSite( 'admin', 'admin')
 from iadmin.api import *
-
 

@@ -1,22 +1,17 @@
+<div id='aa'>
 <a id="changelist-col-button" class="button" href="javascript:showhide('#changelist-cols-layout');">...</a>
 <div id="changelist-cols-layout" style="display:none;">
-    {% for c in list_columns %}
-        <div class="col-item"><input type="checkbox" value="{{ forloop.counter }}">
-            <a href="#">{{ c|capfirst }}</a></div>
+    {% for c in result_headers %}
+        <div class="col-item"><input type="checkbox" value="{{ forloop.counter }}"
+                {% if c.visible %} checked="checked" {% endif %}>
+            <a href="#">{{ c.text|capfirst }}</a></div>
     {% endfor %}
+</div>
 </div>
 <script type="text/javascript">
     (function ($) {
         $(document).ready(function ($) {
             args = $.url(location).param();
-            var cols = ["1", "2", "3", "4", "5"];
-            if (typeof args.ld != 'undefined') {
-                cols = args.ld.split('.');
-            }
-
-            $("#changelist-cols-layout input").each(function () {
-                $(this).attr('checked', $.inArray($(this).val(), cols) >= 0);
-            });
 
             toggle = function () {
                 var base = $.url(location).segment().join('/');
@@ -25,7 +20,6 @@
                     sel.push($(this).attr('value'));
                 });
                 args['ld'] = sel.join('.');
-                console.log(sel);
                 location.href = '?' + $.param(args);
             };
             $('#changelist-cols-layout a').click(function () {

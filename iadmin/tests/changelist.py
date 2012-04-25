@@ -15,6 +15,7 @@ class ChangeListTest(BaseTestCase):
     def test_equals_to(self):
         url = reverse("iadmin:auth_user_changelist")
         u = User.objects.get(email='sax@os4d.org')
+        response = self.client.get(url)
         response = self.client.get(url, {'email__exact':u.email})
 
         self.assertEqual(response.status_code, 200)
@@ -24,6 +25,7 @@ class ChangeListTest(BaseTestCase):
 class CellFilterFireFox(FireFoxLiveTest):
 
     def setUp(self):
+        super(CellFilterFireFox, self).setUp()
         self.url = reverse("iadmin:auth_user_changelist")
 
     def _test_menu_open(self):

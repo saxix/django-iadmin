@@ -88,7 +88,7 @@ li.iadmin-cell-menu-item:hover {
     right: 0;
     top: 0;
     width: 150px;
-    z-index: 1000;
+    z-index: 2000;
 }
 
 #changelist-filter {
@@ -118,7 +118,11 @@ div#sitemap {
 .toplinks {
     height: 30px;
 }
-
+#aa{
+    position: relative;
+    float: right;
+    width:100%;
+}
 #changelist-col-button {
     float: right;
     cursor: pointer;
@@ -131,7 +135,7 @@ div#sitemap {
     position: absolute;
     right: 0;
     min-height: 200px;
-    top: 82px;
+    top: 20px;
     width: 160px;
     z-index: 2000;
     padding: 5px;

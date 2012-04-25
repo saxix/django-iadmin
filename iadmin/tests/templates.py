@@ -9,8 +9,9 @@ TEST_TEMPLATES_DIRS = (os.path.join(os.path.dirname(__file__), 'templates'), )
 TEST_TEMPLATE_LOADERS = ('django.template.loaders.filesystem.Loader',)
 
 class CustomTemplateFirefox(FireFoxLiveTest):
-    def setUp(self):
-        self.factory = RequestFactory()
+#    def setUp(self):
+#        super(CustomTemplateFirefox, self).setUp()
+#        self.factory = RequestFactory()
 
     def test1(self):
         driver = self.driver

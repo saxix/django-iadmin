@@ -41,7 +41,8 @@ admin.site.register(Lake, LakeAdmin)
 admin.site.register(Ocean)
 
 
-from iadmin.tests.admin import __iadmin__
+from iadmin.tests.admin import __iadmin__, User, IUserAdmin, Permission, IPermission
+
 
 try:
     from iadmin.api import IModelAdminMixin, tabular_factory
@@ -50,7 +51,6 @@ try:
         inlines = (tabular_factory(Location, fields=['name', 'code']),
                  )
         cell_filter_operators = {'num_code': ('exact', 'not', 'lt', 'gt')}
-
-    __iadmin__ = ((Country, ICountryAdmin), )
+    __iadmin__ = ((User, IUserAdmin), (Permission, IPermission), (Country, ICountryAdmin), )
 except ImportError:
     pass

@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import User, Group, Permission
 from iadmin.actions import mass_update
@@ -19,21 +20,20 @@ class IUserAdmin(IModelAdminMixin, UserAdmin):
         return ",".join([o.name for o in obj.groups.all()])
 
     _groups.short_description = 'Groups'
-#
-#
-#class IUserInline(ITabularInline):
-#    model = User.groups.through
-#    extra = 0
-#
-#
-#class IGroupAdmin(GroupAdmin, IModelAdmin):
-#    inlines = (IUserInline, )
-#
-#
-#class IContentType(IModelAdmin):
-#    list_display = ('name', 'app_label', 'model', )
-#
-#
+
+class IUserInline(ITabularInline):
+    model = User.groups.through
+    extra = 0
+
+
+class IGroupAdmin(GroupAdmin, IModelAdmin):
+    inlines = (IUserInline, )
+
+
+class IContentType(IModelAdmin):
+    list_display = ('name', 'app_label', 'model', )
+
+
 class IPermission(IModelAdmin):
     list_display = ('name', 'content_type', 'codename', )
     search_fields = ('name'),
@@ -41,4 +41,5 @@ class IPermission(IModelAdmin):
 #
 #__iadmin__ = ((User, IUserAdmin), (Group, IGroupAdmin), (Permission, IPermission), (ContentType, IContentType))
 
-__iadmin__ = ((User, IUserAdmin), (Permission, IPermission) )
+#admin.site.register(User)
+__iadmin__ = ((User, IUserAdmin), (Group, IGroupAdmin), (Permission, IPermission) )

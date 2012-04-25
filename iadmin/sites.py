@@ -19,40 +19,42 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils import dateformat
 from django.utils.functional import update_wrapper
 from django.utils.translation import gettext as _
+import iadmin.actions
 
 from iadmin.options import IModelAdmin, IModelAdminMixin
 from iadmin.tools import CSVImporter
+
 
 try:
     from getpass import getuser
 except ImportError:
     getuser = lambda: 'info not available'
 
-INDEX_CACHE_KEY = 'admin:admin_index'
+#INDEX_CACHE_KEY = 'admin:admin_index'
 
-def cache_admin(method, key=None):
-    entry = key or method.__name__
-
-    def __inner(*args, **kwargs):
-        cached = cache.get(entry, None)
-        if not cached:
-            cached = method(*args, **kwargs)
-            cache.set(entry, cached, 3600)
-        return cached
-
-    return __inner
-
-
-def cache_app_index(func):
-    def __inner(self, request, app_label, extra_context=None):
-        entry = "%s_index" % app_label
-        cached = cache.get(entry, None)
-        if not cached:
-            cached = func(self, request, app_label, extra_context)
-            cache.set(entry, cached, -1)
-        return cached
-
-    return __inner
+#def cache_admin(method, key=None):
+#    entry = key or method.__name__
+#
+#    def __inner(*args, **kwargs):
+#        cached = cache.get(entry, None)
+#        if not cached:
+#            cached = method(*args, **kwargs)
+#            cache.set(entry, cached, 3600)
+#        return cached
+#
+#    return __inner
+#
+#
+#def cache_app_index(func):
+#    def __inner(self, request, app_label, extra_context=None):
+#        entry = "%s_index" % app_label
+#        cached = cache.get(entry, None)
+#        if not cached:
+#            cached = func(self, request, app_label, extra_context)
+#            cache.set(entry, cached, -1)
+#        return cached
+#
+#    return __inner
 
 __all__ = ['site', 'IAdminSite']
 
@@ -60,11 +62,21 @@ class IAdminService(object):
     def __init__(self, adminsite):
         self.admin_site = adminsite
 
+class IProxy(object):
+    def __enter__(self):
+        import iadmin.proxy
+        self.backup, django.contrib.admin.site = django.contrib.admin.site, iadmin.proxy.site
+
+    def __exit__( self, type, value, tb ):
+        django.contrib.admin.site = self.backup
 
 class IAdminSite(AdminSite):
     def __init__(self, name='iadmin', app_name='iadmin', template_prefix='iadmin'):
         self.template_prefix = template_prefix or app_name
-        return super(IAdminSite, self).__init__(name, app_name)
+        ret = super(IAdminSite, self).__init__(name, app_name)
+        self._actions = {'delete_selected': iadmin.actions.delete.delete_selected}
+        self._global_actions = self._actions.copy()
+        return ret
 
     @property
     def password_change_template(self):
@@ -84,10 +96,8 @@ class IAdminSite(AdminSite):
         for model, model_admin in self._registry.items():
             app_label = model._meta.app_label
             has_module_perms = user.has_module_perms(app_label)
-
             if has_module_perms:
                 perms = model_admin.get_model_perms(request)
-
                 # Check whether user has any perm for this module.
                 # If so, add the module to the model_list.
                 if True in perms.values():
@@ -96,7 +106,7 @@ class IAdminSite(AdminSite):
                         'name': capfirst(model._meta.verbose_name_plural),
                         'perms': perms,
                         }
-                    if perms.get('change', False):
+                    if perms.get('view', False):
                         try:
                             model_dict['admin_url'] = reverse('%s:%s_%s_changelist' % info, current_app=self.name)
                         except NoReverseMatch:
@@ -283,6 +293,24 @@ class IAdminSite(AdminSite):
         from django.utils.importlib import import_module
         from django.utils.module_loading import module_has_submodule
 
+        with IProxy():
+            for app in settings.INSTALLED_APPS:
+                mod = import_module(app)
+                try:
+                    before_import_registry = copy.copy(self._registry)
+                    mod = import_module('%s.admin' % app)
+                except BaseException:
+                    self._registry = before_import_registry
+                    if module_has_submodule(mod, 'admin'):
+                        raise
+
+    def autoregister(self):
+        """
+        register models defined into __iadmin__ attribute
+        """
+        from django.utils.importlib import import_module
+        from django.utils.module_loading import module_has_submodule
+
         for app in settings.INSTALLED_APPS:
             mod = import_module(app)
             try:
@@ -310,6 +338,8 @@ class IAdminSite(AdminSite):
         """
         if not admin_class:
             admin_class = IModelAdmin
+        else:
+            admin_class = self.get_imodeladmin(admin_class)
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
 

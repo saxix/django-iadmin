@@ -14,19 +14,19 @@ def create_extra_permission(sender, **kwargs):
     from django.contrib.contenttypes.models import ContentType
 
     for model in get_models(sender):
-        for action in ('view', 'export', 'massupdate', 'import'):
+        for action in ('read', 'export', 'massupdate', 'import'):
             opts = model._meta
             codename = _get_permission_codename(action, opts)
             label = u'Can %s %s' % (action, opts.verbose_name_raw)
             ct = ContentType.objects.get_for_model(model)
             Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': label})
 
-    # restrictions
-    for model in get_models(sender):
-        opts = model._meta
-        codename = u'read_only_%s' % opts.object_name.lower()
-        label = u'Can only read %s' % opts.verbose_name_raw
-        ct = ContentType.objects.get_for_model(model)
-        Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': label})
+#    # restrictions
+#    for model in get_models(sender):
+#        opts = model._meta
+#        codename = u'read_only_%s' % opts.object_name.lower()
+#        label = u'Can only read %s' % opts.verbose_name_raw
+#        ct = ContentType.objects.get_for_model(model)
+#        Permission.objects.get_or_create(codename=codename, content_type=ct, defaults={'name': label})
 
 signals.post_syncdb.connect(create_extra_permission)

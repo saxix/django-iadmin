@@ -20,7 +20,8 @@ class IChangeList(ChangeList):
                  list_select_related, list_per_page, list_max_show_all, list_editable, model_admin):
         self.readonly = False
         self.request = request
-
+        self.actions_present = list_display[0] == 'action_checkbox'
+        self.full_list_display = model_admin.full_list_display
         super(IChangeList, self).__init__(request, model, list_display, list_display_links, list_filter, date_hierarchy,
             search_fields, list_select_related, list_per_page, list_max_show_all,
             list_editable, model_admin)

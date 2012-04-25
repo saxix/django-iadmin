@@ -1,6 +1,7 @@
-from django.contrib.admin.util import lookup_field, display_for_field, quote
-from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE, SEARCH_VAR
+from django.contrib.admin.util import lookup_field, display_for_field, quote, label_for_field
+from django.contrib.admin.views.main import EMPTY_CHANGELIST_VALUE, SEARCH_VAR, ORDER_VAR
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import simplejson as json
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.base import Model
@@ -14,21 +15,117 @@ from django.utils.encoding import smart_unicode, force_unicode
 from django.contrib.admin.templatetags.admin_list import register, result_hidden_fields, _boolean_icon
 import django.contrib.admin.templatetags.admin_list as al
 from iadmin.utils import Null, iter_get_attr
+from iadmin.views import LIST_DISPLAY
 
 
 al__result_headers = al.result_headers
 
+@register.filter
+def visible(headers):
+    """ returns only headers of visible columns """
+    return [el for el in headers if el.get('visible', True) ]
+
 def iresult_headers(cl):
-    original = list(al__result_headers(cl))
+    """
+    Generates the list column headers.
+    """
+    ordering_field_columns = cl.get_ordering_field_columns()
+    if cl.list_display[0]  == 'action_checkbox':
+        text, attr = label_for_field('action_checkbox', cl.model,
+            model_admin = cl.model_admin,
+            return_attr = True
+        )
+        yield {
+            "text": text,
+            "visible" : True,
+            "class_attrib": mark_safe(' class="action-checkbox-column"'),
+            "sortable": False,
+            }
 
-    for i, field_name in enumerate(cl.list_display):
+    for i, field_name in enumerate(cl.full_list_display):
+        text, attr = label_for_field(field_name, cl.model,
+            model_admin = cl.model_admin,
+            return_attr = True
+        )
+        if attr:
+            admin_order_field = getattr(attr, "admin_order_field", None)
+            if not admin_order_field:
+                # Not sortable
+                yield {
+                    "text": text,
+                    "visible" : field_name in cl.list_display,
+                    "sortable": False,
+                    }
+                continue
+
+        # OK, it is sortable if we got this far
+        th_classes = ['sortable']
+        order_type = ''
+        new_order_type = 'asc'
+        sort_priority = 0
+        sorted = False
+        # Is it currently being sorted on?
+        if i in ordering_field_columns:
+            sorted = True
+            order_type = ordering_field_columns.get(i).lower()
+            sort_priority = ordering_field_columns.keys().index(i) + 1
+            th_classes.append('sorted %sending' % order_type)
+            new_order_type = {'asc': 'desc', 'desc': 'asc'}[order_type]
+
+        # build new ordering param
+        o_list_primary = [] # URL for making this field the primary sort
+        o_list_remove  = [] # URL for removing this field from sort
+        o_list_toggle  = [] # URL for toggling order type for this field
+        make_qs_param = lambda t, n: ('-' if t == 'desc' else '') + str(n)
+
+        for j, ot in ordering_field_columns.items():
+            if j == i: # Same column
+                param = make_qs_param(new_order_type, j)
+                # We want clicking on this header to bring the ordering to the
+                # front
+                o_list_primary.insert(0, param)
+                o_list_toggle.append(param)
+                # o_list_remove - omit
+            else:
+                param = make_qs_param(ot, j)
+                o_list_primary.append(param)
+                o_list_toggle.append(param)
+                o_list_remove.append(param)
+
+        if i not in ordering_field_columns:
+            o_list_primary.insert(0, make_qs_param(new_order_type, i))
+
         filter = cl.cell_filters.get(field_name, Null())
-        original_data = original[i]
+        clear_filter_url = ""
         if filter.is_active(cl):
-            original_data['filtered'] = True
-            original_data['clear_filter_url'] = cl.get_query_string({}, filter.expected_parameters())
-        yield original_data
+            clear_filter_url = cl.get_query_string({}, filter.expected_parameters())
 
+        yield {
+            "visible" : field_name in cl.list_display,
+            "filtered" : filter.is_active(cl),
+            "clear_filter_url": clear_filter_url ,
+            "text": text,
+            "sortable": True,
+            "sorted": sorted,
+            "ascending": order_type == "asc",
+            "sort_priority": sort_priority,
+            "url_primary": cl.get_query_string({ORDER_VAR: '.'.join(o_list_primary)}),
+            "url_remove": cl.get_query_string({ORDER_VAR: '.'.join(o_list_remove)}),
+            "url_toggle": cl.get_query_string({ORDER_VAR: '.'.join(o_list_toggle)}),
+            "class_attrib": mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')
+        }
+
+@register.simple_tag(takes_context=True)
+def iadmin_columns_panel(context):
+    cl = context['cl']
+    tpl = select_template(['iadmin/includes/columns_panel.html'])
+    result_headers = context['result_headers']
+    if cl.list_display[0] == 'action_checkbox':
+        result_headers = result_headers[1:]
+    ctx = {
+           'result_headers' : result_headers,
+    }
+    return tpl.render(Context(ctx))
 
 def get_items_cell_filter(cl, column, obj):
     menu_items = []
@@ -213,14 +310,15 @@ def iresult_list(context, cl):
     """
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.results_list_template))
 
+#    request = context['request']
     headers = list(iresult_headers(cl))
     num_sorted_fields = 0
     for h in headers:
         if h['sortable'] and h['sorted']:
             num_sorted_fields += 1
     return tpl.render(Context({'cl': cl,
-           'original_list_display' : context['original_list_display'],
-            'result_hidden_fields': list(result_hidden_fields(cl)),
+           'request': context['request'],
+           'result_hidden_fields': list(result_hidden_fields(cl)),
             'result_headers': headers,
             'num_sorted_fields': num_sorted_fields,
             'results': list(iresults(cl, context))}))
@@ -258,9 +356,4 @@ def iadmin_actions(context):
     context['action_index'] = context.get('action_index', -1) + 1
     return tpl.render(Context(context))
 
-@register.simple_tag(takes_context=True)
-def iadmin_columns_panel(context, list_columns):
-    cl = context['cl']
-    tpl = select_template(['iadmin/includes/columns_panel.html'])
-    ctx = {'list_columns': list_columns}
-    return tpl.render(Context(ctx))
+

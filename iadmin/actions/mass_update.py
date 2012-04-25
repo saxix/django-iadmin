@@ -119,7 +119,7 @@ def mass_update(modeladmin, request, queryset):
     media = modeladmin.media + adminForm.media
     dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.date) else str(obj)
     tpl = modeladmin.get_template(request, 'mass_update.html' )
-    ctx = modeladmin.get_context(**{'adminform': adminForm,
+    ctx = modeladmin.get_context_data(**{'adminform': adminForm,
                                     'form': form,
                                     'title': u"Mass update %s" % force_unicode(modeladmin.opts.verbose_name_plural),
                                     'grouped': grouped,

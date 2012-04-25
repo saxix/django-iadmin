@@ -58,7 +58,7 @@ class IModelAdminMixin(object):
 
     def __init__(self, model, admin_site):
         self.extra_allowed_filter = []
-        self._original_list_display = self.list_display
+        self.full_list_display = self.list_display
         DjangoModelAdmin.__init__(self, model, admin_site)
         self._process_cell_filter()
 
@@ -94,7 +94,7 @@ class IModelAdminMixin(object):
             ret = self.list_display
         return ret
 
-    def get_context(self, **kwargs):
+    def get_context_data(self, **kwargs):
         opts = self.model._meta
         app_label = opts.app_label
 
@@ -239,14 +239,13 @@ class IModelAdminMixin(object):
         selection_note_all = ungettext('%(total_count)s selected',
             'All %(total_count)s selected', cl.result_count)
 
-        context = self.get_context(**{
+        context = self.get_context_data(**{
             'module_name': force_unicode(opts.verbose_name_plural),
             'selection_note': _('0 of %(cnt)s selected') % {'cnt': len(cl.result_list)},
             'selection_note_all': selection_note_all % {'total_count': cl.result_count},
             'title': cl.title,
             'is_popup': cl.is_popup,
             'cl': cl,
-            'original_list_display': self._original_list_display,
             'media': media,
             'has_add_permission': self.has_add_permission(request),
             'app_label': app_label,
@@ -286,11 +285,11 @@ class IModelAdminMixin(object):
             "iadmin/%s/%s/%s" % (app_label, template, opts.object_name.lower()),
             "iadmin/%s/%s" % (app_label, template ),
             "iadmin/%s" % template,
-#            template
+            template
         ]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        context = self.get_context(**(extra_context or {} ))
+        context = self.get_context_data(**(extra_context or {} ))
         ret =  DjangoModelAdmin.change_view(self, request, object_id, form_url, context)
         if request.method == 'POST' and "_saveasnew" in request.POST:
             ret = self.add_view(request, form_url=reverse('%s:%s_%s_add' %
@@ -330,6 +329,30 @@ class IModelAdminMixin(object):
         flat_filter.extend([isinstance(v, tuple) and v[0] or v for v in self.cell_filter])
         return clean_lookup in self.extra_allowed_filter or clean_lookup in flat_filter
 
+    def has_view_permission(self, request, obj=None):
+        """
+        Returns True if the given request has permission to change or view
+        the given Django model instance.
+
+        If `obj` is None, this should return True if the given request has
+        permission to change *any* object of the given type.
+        """
+        opts = self.opts
+        return self.has_change_permission(request, obj) or\
+               request.user.has_perm(opts.app_label + '.' + opts.get_view_permission())
+
+    def get_model_perms(self, request):
+        """
+        Returns a dict of all perms for this model. This dict has the keys
+        ``add``, ``change``, and ``delete`` mapping to the True/False for each
+        of those actions.
+        """
+        return {
+            'add': self.has_add_permission(request),
+            'change': self.has_change_permission(request),
+            'delete': self.has_delete_permission(request),
+            'view': self.has_view_permission(request),
+            }
 
 
 class IModelAdmin(IModelAdminMixin, DjangoModelAdmin):
@@ -392,18 +415,18 @@ class IModelAdmin(IModelAdminMixin, DjangoModelAdmin):
 #              'iadmin/js/jquery.url.js',
 #            )
 
-    def get_model_perms(self, request):
-        """
-        Returns a dict of all perms for this model. This dict has the keys
-        ``add``, ``change``, and ``delete`` mapping to the True/False for each
-        of those actions.
-        """
-        return {
-            'add': self.has_add_permission(request),
-            'change': self.has_change_permission(request),
-            'delete': self.has_delete_permission(request),
-            'view': self.has_view_permission(request),
-            }
+#    def get_model_perms(self, request):
+#        """
+#        Returns a dict of all perms for this model. This dict has the keys
+#        ``add``, ``change``, and ``delete`` mapping to the True/False for each
+#        of those actions.
+#        """
+#        return {
+#            'add': self.has_add_permission(request),
+#            'change': self.has_change_permission(request),
+#            'delete': self.has_delete_permission(request),
+#            'view': self.has_view_permission(request),
+#            }
 
 #    def get_actions(self, request):
 #        acts = super(IModelAdmin, self).get_actions(request)
@@ -454,17 +477,17 @@ class IModelAdmin(IModelAdminMixin, DjangoModelAdmin):
 #        return ctx
 
 
-    def has_view_permission(self, request, obj=None):
-        """
-        Returns True if the given request has permission to change or view
-        the given Django model instance.
-
-        If `obj` is None, this should return True if the given request has
-        permission to change *any* object of the given type.
-        """
-        opts = self.opts
-        return self.has_change_permission(request, obj) or\
-               request.user.has_perm(opts.app_label + '.' + opts.get_view_permission())
+#    def has_view_permission(self, request, obj=None):
+#        """
+#        Returns True if the given request has permission to change or view
+#        the given Django model instance.
+#
+#        If `obj` is None, this should return True if the given request has
+#        permission to change *any* object of the given type.
+#        """
+#        opts = self.opts
+#        return self.has_change_permission(request, obj) or\
+#               request.user.has_perm(opts.app_label + '.' + opts.get_view_permission())
 
     def response_add(self, request, obj, post_url_continue='../%s/'):
         opts = obj._meta
@@ -524,7 +547,7 @@ class IModelAdmin(IModelAdminMixin, DjangoModelAdmin):
 #        return super(IModelAdmin, self).change_view(request, object_id, form_url, context)
 
     def add_view(self, request, form_url='', extra_context=None):
-        context = self.get_context(**(extra_context or {} ))
+        context = self.get_context_data(**(extra_context or {} ))
         return super(IModelAdmin, self).add_view(request, form_url, context)
 
 
@@ -737,7 +760,7 @@ class IModelAdmin(IModelAdminMixin, DjangoModelAdmin):
             inline_admin_formsets.append(inline_admin_formset)
             media = media + inline_admin_formset.media
 
-        context = self.get_context(**{
+        context = self.get_context_data(**{
             'title': _('Change %s') % force_unicode(opts.verbose_name),
             'adminform': adminForm,
             'has_view_permission': self.has_view_permission(request),

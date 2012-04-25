@@ -1,7 +1,6 @@
 .. include globals.rst
 .. _index:
 
-====================
 iAdmin documentation
 ====================
 
@@ -10,9 +9,8 @@ iAdmin documentation
 
 iAdmin is an alternative Django Admin application that offer some useful extra `features`; Can works both as replacement of standard admin application or parallel to it on an alternate url.
 
-========
 Features
-========
+--------
 
 - show/hide columns into change_list
 - tabbed view of inlines
@@ -26,9 +24,9 @@ Features
 - info page for packages and application version
 - easy creation of multiple instances that use different template
 
-=================
 Table Of Contents
-=================
+-----------------
+
 .. toctree::
     :maxdepth: 1
 
@@ -36,6 +34,13 @@ Table Of Contents
     api
     screenshots
 
+Links
+~~~~~
+
+   * Project home page: https://github.com/saxix/django-iadmin
+   * Issue tracker: https://github.com/saxix/django-iadmin/issues?sort
+   * Download: http://pypi.python.org/pypi/django-iadmin/
+   * Docs: http://readthedocs.org/docs/django-iadmin/en/latest/
 
 Indices and tables
 ==================

@@ -1,7 +1,7 @@
 {% extends "iadmin/base_site.html" %}
 {% load i18n admin_static iadmin_urls%}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "iadmin/css/dashboard.css" %}" />{% endblock %}
 
 {% block coltype %}colMS{% endblock %}
 
@@ -32,7 +32,7 @@
             {% endif %}
 
             {% if model.admin_url %}
-                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+                <td><a href="{{ model.admin_url }}" class="viewlink">{% trans 'Change' %}</a></td>
             {% else %}
                 <td>&nbsp;</td>
             {% endif %}

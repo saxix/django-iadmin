@@ -85,7 +85,7 @@ def export_to_csv(modeladmin, request, queryset):
     adminForm = helpers.AdminForm(form, modeladmin.get_fieldsets(request), {}, [], model_admin=modeladmin)
     media = modeladmin.media + adminForm.media
     tpl = modeladmin.get_template(request, 'export_csv.html' )
-    ctx = modeladmin.get_context(**{'adminform': adminForm,
+    ctx = modeladmin.get_context_data(**{'adminform': adminForm,
                                     'form': form,
                                     'change': True,
                                     'title': _('Export to CSV'),

@@ -13,6 +13,7 @@ __all__=['ExportCSVFireFox', ]
 
 class ExportCSVFireFox(FireFoxLiveTest):
     def setUp(self):
+        super(ExportCSVFireFox, self).setUp()
         self.factory = RequestFactory()
         self._url = reverse('iadmin:auth_user_changelist')
 
