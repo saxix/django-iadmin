@@ -6,7 +6,7 @@ import django
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django import http, template
-from django.contrib.admin.sites import AdminSite
+from django.contrib.admin.sites import AdminSite, AlreadyRegistered
 from django.core.cache import cache
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.db.models.base import ModelBase
@@ -23,7 +23,7 @@ import iadmin.actions
 
 from iadmin.options import IModelAdmin, IModelAdminMixin
 from iadmin.tools import CSVImporter
-
+import logging
 
 try:
     from getpass import getuser
@@ -284,7 +284,11 @@ class IAdminSite(AdminSite):
 
     def process(self, mod):
         for model, model_admin in mod.__iadmin__:
-            self.register(model, self.get_imodeladmin(model_admin))
+            try:
+                self.register(model, model_admin)
+            except Exception, e:
+                logging.error( e )
+
 
     def autodiscover(self):
         """
@@ -353,12 +357,13 @@ class IAdminSite(AdminSite):
                     continue
             super(IAdminSite, self).register(model, admin_class, **options)
 
-    def register_all(self):
+    def register_all(self, exclude=None):
         """
         register all models of all applications
         :return: None
         """
-        for app in get_apps():
+        _exclude = exclude or []
+        for app in (a for a in get_apps() if a not in _exclude):
             for model in get_models(app):
                 self.register(model, IModelAdmin)
 

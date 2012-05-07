@@ -2,7 +2,7 @@
 
 def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     """ factory for ITabularInline
-            
+
     >>> class MD(IModelAdmin):
     ...     inlines = [tabular_factory(Permission)]
     """
@@ -15,11 +15,6 @@ def tabular_factory(model, fields=None, inline=None, form=None, **kwargs):
     attrs.update(kwargs)
     Tab = type(name, (Inline,), attrs)
     return Tab
-
-def imodeladmin_transformer(model_admin):
-
-    class IModelAdmin(model_admin.__class__):
-        pass
 
 class Null(object):
 
@@ -105,7 +100,7 @@ class Choices(object):
 
 def iter_get_attr(obj, attr, default=None):
     """Recursive get object's attribute. May use dot notation.
-    
+
     >>> class C(object): pass
     >>> a = C()
     >>> a.b = C()
