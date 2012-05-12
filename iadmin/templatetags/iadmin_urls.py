@@ -11,11 +11,11 @@ def admin_urlname(opts, arg):
 
 @register.simple_tag(takes_context=True)
 def admin_url(context, name, *args, **kwargs):
-    return reverse('%s:%s' % (context['current_app'], name), args=args, kwargs=kwargs, current_app=context['current_app'])
+    return reverse('%s:%s' % (context.get('current_app','iadmin'), name), args=args, kwargs=kwargs, current_app=context.get('current_app','iadmin'))
 
 @register.simple_tag(takes_context=True)
 def admin_model_url(context, model, name):
-    return reverse('%s:%s_%s_%s' % (context['current_app'], model._meta.app_label, model._meta.module_name, name))
+    return reverse('%s:%s_%s_%s' % (context.get('current_app','iadmin'), model._meta.app_label, model._meta.module_name, name))
 
 @register.simple_tag(takes_context=True)
 def iinclude(context, filename):
