@@ -82,4 +82,21 @@ class ChromeDriverMixin(object):
 
 
 class FireFoxLiveTest(FirefoxDriverMixin, SeleniumTestCase):
-    pass
+    INSTALLED_APPS = (
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.sites',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'iadmin',
+        'django.contrib.admin',
+        'django.contrib.admindocs',
+        'geo',
+        )
+
+    def setUp(self):
+        self.settings(INSTALLED_APPS=FireFoxLiveTest.INSTALLED_APPS)
+        super(FireFoxLiveTest, self).setUp()
+
+
