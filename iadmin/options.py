@@ -287,10 +287,10 @@ class IModelAdminMixin(object):
         app_label = opts.app_label
         prefix = self.admin_site.template_prefix
         return [
-            "%s/%s/%s/%s" % (prefix, app_label, template, opts.object_name.lower()),
+            "%s/%s/%s/%s" % (prefix, app_label, opts.object_name.lower(), template),
             "%s/%s/%s" % (prefix, app_label, template ),
             "%s/%s" % (prefix, template),
-            "iadmin/%s/%s/%s" % (app_label, template, opts.object_name.lower()),
+            "iadmin/%s/%s/%s" % (app_label, opts.object_name.lower(), template),
             "iadmin/%s/%s" % (app_label, template ),
             "iadmin/%s" % template,
             template
