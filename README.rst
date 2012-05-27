@@ -15,7 +15,7 @@ Features
 - filter by cell values (cell_filters)
 - info page with packages, installed apps version, database info
 
-Please read online documentation at http://packages.python.org/django-iadmin/
+Please read online documentation at http://readthedocs.org/docs/django-iadmin/en/latest/
 
 Project links
 -------------
@@ -27,4 +27,4 @@ Project links
 Installation
 ------------
 
-Read installation instruction at http://packages.python.org/django-iadmin/install.html
+Read installation instruction at http://readthedocs.org/docs/django-iadmin/en/latest/install/
