@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.test.client import RequestFactory
 import os
 from django.core.urlresolvers import reverse
-from iadmin.tests.common import FireFoxLiveTest
+from iadmin.tests.selenium_tests.common import FireFoxLiveTest
 
 __all__ = ['CustomTemplateFirefox', ]
 TEST_TEMPLATES_DIRS = (os.path.join(os.path.dirname(__file__), 'templates'), )
@@ -16,13 +15,13 @@ class CustomTemplateFirefox(FireFoxLiveTest):
     def test1(self):
         driver = self.driver
         url = reverse('test:index')
-        self.login( url )
+        self.login(url)
         self.assertEqual("Site administration | iAdmin TEST console", driver.title)
 
     def test2(self):
         driver = self.driver
         url = reverse('iadmin:index')
-        self.login( url )
+        self.login(url)
         self.assertEqual("Site administration | iAdmin console", driver.title)
         url = reverse('iadmin:auth_permission_add')
         self.go(url)

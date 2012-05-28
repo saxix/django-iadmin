@@ -2,6 +2,10 @@
 Django iAdmin
 ==============
 
+.. image:: https://secure.travis-ci.org/saxix/django-iadmin.png?branch=master
+   :target: http://travis-ci.org/saxix/django-iadmin/
+
+
 iAdmin is a replacement of standard django admin application.
 
 

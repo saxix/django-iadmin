@@ -1,9 +1,17 @@
-from django.core.urlresolvers import reverse
-#from importer import *
+from django.conf import settings
+from importer import *
 from changelist import *
 from mass_update import *
-from export_csv import *
-from templates import *
+
+if getattr(settings,'ENABLE_SELENIUM', True):
+    try:
+        import selenium
+        from selenium_tests import *
+    except ImportError:
+        import warnings
+        warnings.warn('Unanble load Selenium. Selenium tests will be disabled')
+
+
 
 class InfoPageTest(BaseTestCase):
 

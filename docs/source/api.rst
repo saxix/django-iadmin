@@ -163,3 +163,10 @@ API
 -------------
 
 .. function:: tabular_factory
+
+``Configuration``
+-----------------
+
+ENABLE_SELENIUM default True
+
+Enable selenium tests. In any case selenium tests will be ignored with a user warning if selenium cannot be imported

@@ -23,6 +23,7 @@ your project or ``PYTHONPATH``.
 
 Configuration
 =============
+
 Add :mod:`iadmin` to your :setting:`INSTALLED_APPS`::
 
     INSTALLED_APPS = (
@@ -39,7 +40,7 @@ Add an entry into your urls.conf::
     import iadmin.api
 
     site1 = iadmin.api.IAdminSite()
-    site1.investigate_admin(admin.site)
+    site1.process(myapp.admin)
 
     urlpatterns = patterns('',
         (r'^admin/', include(admin.site.urls)), # standard admin
@@ -47,4 +48,18 @@ Add an entry into your urls.conf::
     )
 
 
+Configure your admin::
+
+    class IUserAdmin(IModelAdminMixin, UserAdmin):
+        list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active', '_groups', 'last_login')
+        list_display_links = ('username', 'first_name', 'last_name')
+
+        cell_filter = ('email', 'is_staff', 'last_name', 'last_login')
+        cell_filter_operators = {'last_login': ('exact', 'not', 'lt', 'gt')}
+
+        list_filter = ( ('groups', RelatedFieldCheckBoxFilter), )
+        search_fields = ('username', )
+        actions = [mass_update]
+
+    __iadmin__ = ((User, IUserAdmin), )
 
