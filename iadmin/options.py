@@ -347,6 +347,7 @@ class IModelAdminMixin(object):
             "deleted_objects": deleted_objects,
             "perms_lacking": perms_needed,
             "protected": protected,
+            "current_app":self.admin_site.name,
             "opts": opts,
             "app_label": app_label,
             }
