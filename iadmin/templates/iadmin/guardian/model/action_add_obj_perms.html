@@ -1,0 +1,17 @@
+{% extends "iadmin/change_form.html" %}
+
+{% block extrahead %}{{ block.super }}
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+
+<div id="content-main">
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form }}
+</form>
+</div>
+
+{% endblock %}
