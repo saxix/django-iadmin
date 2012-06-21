@@ -62,13 +62,16 @@ class IAdminService(object):
     def __init__(self, adminsite):
         self.admin_site = adminsite
 
+
 class IProxy(object):
     def __enter__(self):
         import iadmin.proxy
+
         self.backup, django.contrib.admin.site = django.contrib.admin.site, iadmin.proxy.site
 
     def __exit__( self, type, value, tb ):
         django.contrib.admin.site = self.backup
+
 
 class IAdminSite(AdminSite):
     def __init__(self, name='iadmin', app_name='iadmin', template_prefix='iadmin'):
@@ -287,7 +290,7 @@ class IAdminSite(AdminSite):
             try:
                 self.register(model, model_admin)
             except Exception, e:
-                logging.error( e )
+                logging.error(e)
 
 
     def autodiscover(self):
@@ -482,3 +485,4 @@ class IAdminSite(AdminSite):
         return HttpResponseRedirect(url)
 
 
+site = IAdminSite()
