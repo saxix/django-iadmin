@@ -30,7 +30,9 @@ def iresult_headers(cl):
     Generates the list column headers.
     """
     ordering_field_columns = cl.get_ordering_field_columns()
+    offset = 0
     if cl.list_display[0]  == 'action_checkbox':
+        offset = 1
         text, attr = label_for_field('action_checkbox', cl.model,
             model_admin = cl.model_admin,
             return_attr = True
@@ -42,7 +44,7 @@ def iresult_headers(cl):
             "sortable": False,
             }
 
-    for i, field_name in enumerate(cl.full_list_display):
+    for i, field_name in enumerate(cl.full_list_display, offset ):
         text, attr = label_for_field(field_name, cl.model,
             model_admin = cl.model_admin,
             return_attr = True
@@ -68,7 +70,7 @@ def iresult_headers(cl):
         if i in ordering_field_columns:
             sorted = True
             order_type = ordering_field_columns.get(i).lower()
-            sort_priority = ordering_field_columns.keys().index(i) + 1
+            sort_priority = ordering_field_columns.keys().index(i)+1+offset
             th_classes.append('sorted %sending' % order_type)
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[order_type]
 
@@ -328,6 +330,9 @@ def isearch_form(context, cl):
     """
     Displays a search form for searching the list.
     """
+    if not 'request' in context:
+        raise Exception("please add 'django.core.context_processors.request' to TEMPLATE_CONTEXT_PROCESSORS settings entry")
+
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.search_form_template))
 
     return tpl.render(Context({
