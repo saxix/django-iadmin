@@ -277,13 +277,18 @@ class IAdminSite(AdminSite):
 
         name = 'I%s' % model_admin.__class__.__name__
         bases = (model_admin, IModelAdmin)
-        args = {'cell_filter': model_admin.list_filter}
+        if not hasattr(model_admin, 'cell_filter'):
+            args = {'cell_filter': model_admin.list_filter}
+        else:
+            args = {}
         try:
-            return type(name, bases, args)
-        except TypeError, e:
-            return type(name, (IModelAdminMixin, type(model_admin) ), args)
-        except Exception, e:
-            return IModelAdmin
+            ret= type(name, bases, args)
+        except TypeError as e:
+            ret = type(name, (IModelAdminMixin, type(model_admin) ), args)
+        except Exception as  e:
+            ret = IModelAdmin
+
+        return ret
 
     def process(self, mod):
         for model, model_admin in mod.__iadmin__:
@@ -323,8 +328,8 @@ class IAdminSite(AdminSite):
             try:
                 before_import_registry = copy.copy(self._registry)
                 mod = import_module('%s.admin' % app)
-                if hasattr(mod, '__iadmin__'):
-                    self.process(mod)
+#                if hasattr(mod, '__iadmin__'):
+#                    self.process(mod)
             except BaseException:
                 self._registry = before_import_registry
                 if module_has_submodule(mod, 'admin'):
@@ -486,3 +491,4 @@ class IAdminSite(AdminSite):
 
 
 site = IAdminSite()
+
