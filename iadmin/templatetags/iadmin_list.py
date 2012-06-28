@@ -23,7 +23,8 @@ al__result_headers = al.result_headers
 @register.filter
 def visible(headers):
     """ returns only headers of visible columns """
-    return [el for el in headers if el.get('visible', True) ]
+    return [el for el in headers if el.get('visible', True)]
+
 
 def iresult_headers(cl):
     """
@@ -31,23 +32,23 @@ def iresult_headers(cl):
     """
     ordering_field_columns = cl.get_ordering_field_columns()
     offset = 0
-    if cl.list_display[0]  == 'action_checkbox':
+    if cl.list_display[0] == 'action_checkbox':
         offset = 1
         text, attr = label_for_field('action_checkbox', cl.model,
-            model_admin = cl.model_admin,
-            return_attr = True
+            model_admin=cl.model_admin,
+            return_attr=True
         )
         yield {
             "text": text,
-            "visible" : True,
+            "visible": True,
             "class_attrib": mark_safe(' class="action-checkbox-column"'),
             "sortable": False,
             }
 
-    for i, field_name in enumerate(cl.full_list_display, offset ):
+    for i, field_name in enumerate(cl.full_list_display, offset):
         text, attr = label_for_field(field_name, cl.model,
-            model_admin = cl.model_admin,
-            return_attr = True
+            model_admin=cl.model_admin,
+            return_attr=True
         )
         if attr:
             admin_order_field = getattr(attr, "admin_order_field", None)
@@ -55,7 +56,7 @@ def iresult_headers(cl):
                 # Not sortable
                 yield {
                     "text": text,
-                    "visible" : field_name in cl.list_display,
+                    "visible": field_name in cl.list_display,
                     "sortable": False,
                     }
                 continue
@@ -70,14 +71,14 @@ def iresult_headers(cl):
         if i in ordering_field_columns:
             sorted = True
             order_type = ordering_field_columns.get(i).lower()
-            sort_priority = ordering_field_columns.keys().index(i)+1+offset
+            sort_priority = ordering_field_columns.keys().index(i) + 1 + offset
             th_classes.append('sorted %sending' % order_type)
             new_order_type = {'asc': 'desc', 'desc': 'asc'}[order_type]
 
         # build new ordering param
         o_list_primary = [] # URL for making this field the primary sort
-        o_list_remove  = [] # URL for removing this field from sort
-        o_list_toggle  = [] # URL for toggling order type for this field
+        o_list_remove = [] # URL for removing this field from sort
+        o_list_toggle = [] # URL for toggling order type for this field
         make_qs_param = lambda t, n: ('-' if t == 'desc' else '') + str(n)
 
         for j, ot in ordering_field_columns.items():
@@ -103,9 +104,9 @@ def iresult_headers(cl):
             clear_filter_url = cl.get_query_string({}, filter.expected_parameters())
 
         yield {
-            "visible" : field_name in cl.list_display,
-            "filtered" : filter.is_active(cl),
-            "clear_filter_url": clear_filter_url ,
+            "visible": field_name in cl.list_display,
+            "filtered": filter.is_active(cl),
+            "clear_filter_url": clear_filter_url,
             "text": text,
             "sortable": True,
             "sorted": sorted,
@@ -117,6 +118,7 @@ def iresult_headers(cl):
             "class_attrib": mark_safe(th_classes and ' class="%s"' % ' '.join(th_classes) or '')
         }
 
+
 @register.simple_tag(takes_context=True)
 def iadmin_columns_panel(context):
     cl = context['cl']
@@ -125,9 +127,10 @@ def iadmin_columns_panel(context):
     if cl.list_display[0] == 'action_checkbox':
         result_headers = result_headers[1:]
     ctx = {
-           'result_headers' : result_headers,
-    }
+        'result_headers': result_headers,
+        }
     return tpl.render(Context(ctx))
+
 
 def get_items_cell_filter(cl, column, obj):
     menu_items = []
@@ -220,7 +223,7 @@ def iitems_for_result(cl, result, form, context=None):
                 or isinstance(f, models.ForeignKey):
                     row_class = ' nowrap'
 
-                #        link = handle_link()
+                    #        link = handle_link()
         cell_menu_items = []
 
         if field_name in model_admin.list_display_rel_links:
@@ -231,7 +234,8 @@ def iitems_for_result(cl, result, form, context=None):
             if linked_object and isinstance(linked_object, Model):
                 if model_admin.has_change_permission(context['request'], linked_object):
                     view = "%s:%s_%s_change" % (
-                    model_admin.admin_site.app_name, linked_object._meta.app_label, linked_object.__class__.__name__.lower())
+                        model_admin.admin_site.app_name, linked_object._meta.app_label,
+                        linked_object.__class__.__name__.lower())
                     url = reverse(view, args=[int(linked_object.pk)])
                 elif model_admin.has_view_permission(context['request'], linked_object):
                     url = "view/%s/" % quote(getattr(linked_object, linked_object._meta.pk_attname))
@@ -286,7 +290,7 @@ def iitems_for_result(cl, result, form, context=None):
 def iresults(cl, context):
     if cl.formset:
         for res, form in zip(cl.result_list, cl.formset.forms):
-            yield al.ResultList(form, iitems_for_result(cl, res, form))
+            yield al.ResultList(form, iitems_for_result(cl, res, form, context))
     else:
         for res in cl.result_list:
             yield al.ResultList(None, iitems_for_result(cl, res, None, context=context))
@@ -297,6 +301,7 @@ def idate_hierarchy(context, cl):
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.date_hierarchy_template))
     ctx = al.date_hierarchy(cl)
     return tpl.render(Context(ctx))
+
 
 @register.simple_tag(takes_context=True)
 def ipagination(context, cl):
@@ -312,18 +317,19 @@ def iresult_list(context, cl):
     """
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.results_list_template))
 
-#    request = context['request']
+    #    request = context['request']
     headers = list(iresult_headers(cl))
     num_sorted_fields = 0
     for h in headers:
         if h['sortable'] and h['sorted']:
             num_sorted_fields += 1
     return tpl.render(Context({'cl': cl,
-           'request': context['request'],
-           'result_hidden_fields': list(result_hidden_fields(cl)),
-            'result_headers': headers,
-            'num_sorted_fields': num_sorted_fields,
-            'results': list(iresults(cl, context))}))
+                               'request': context['request'],
+                               'result_hidden_fields': list(result_hidden_fields(cl)),
+                               'result_headers': headers,
+                               'num_sorted_fields': num_sorted_fields,
+                               'results': list(iresults(cl, context))}))
+
 
 @register.simple_tag(takes_context=True)
 def isearch_form(context, cl):
@@ -331,7 +337,8 @@ def isearch_form(context, cl):
     Displays a search form for searching the list.
     """
     if not 'request' in context:
-        raise Exception("please add 'django.core.context_processors.request' to TEMPLATE_CONTEXT_PROCESSORS settings entry")
+        raise Exception(
+            "please add 'django.core.context_processors.request' to TEMPLATE_CONTEXT_PROCESSORS settings entry")
 
     tpl = select_template(cl.model_admin.get_template(context['request'], cl.model_admin.search_form_template))
 
@@ -341,14 +348,16 @@ def isearch_form(context, cl):
         'search_var': SEARCH_VAR
     }))
 
+
 @register.simple_tag(takes_context=True)
 def iadmin_list_filter(context, cl, spec):
     tpl = select_template(cl.model_admin.get_template(context['request'], spec.template))
     return tpl.render(Context({
         'title': spec.title,
-        'choices' : list(spec.choices(cl)),
+        'choices': list(spec.choices(cl)),
         'spec': spec,
         }))
+
 
 @register.simple_tag(takes_context=True)
 def iadmin_actions(context):
