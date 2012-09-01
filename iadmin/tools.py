@@ -23,7 +23,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 from django.forms.fields import  CharField, BooleanField
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 
 delimiters = ",;|:"
 quotes = "'\"`"

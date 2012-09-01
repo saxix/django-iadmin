@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.translation import gettext as _
 from guardian.admin import GuardedModelAdmin
 from iadmin.options import IModelAdmin, IModelAdminMixin
 

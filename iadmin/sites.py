@@ -18,7 +18,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils import dateformat
 from django.utils.functional import update_wrapper
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 import iadmin.actions
 
 from iadmin.options import IModelAdmin, IModelAdminMixin

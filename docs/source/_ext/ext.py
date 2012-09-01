@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.translation import gettext as _
 from docutils.parsers.rst import Directive
 from sphinx import addnodes, roles
 

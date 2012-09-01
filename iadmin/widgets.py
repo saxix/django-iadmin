@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib.admin.templatetags.admin_static import static
 from django.utils.safestring import mark_safe

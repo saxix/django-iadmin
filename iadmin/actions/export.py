@@ -1,6 +1,6 @@
 import datetime
 from django.forms.widgets import SelectMultiple
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.contrib import messages
 from django.http import HttpResponse
