@@ -1,7 +1,13 @@
 *.pyc
 *.pyo
 *.sqlite
-dist
 MANIFEST
 project/*.log
 docs/dest
+*.log
+*.pot
+local_settings.py
+.idea
+/dist
+/docs/build
+*.egg-info
