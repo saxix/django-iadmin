@@ -19,7 +19,6 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils import dateformat
 from django.utils.functional import update_wrapper
 from django.utils.translation import ugettext_lazy as _
-import iadmin.actions
 
 from iadmin.options import IModelAdmin, IModelAdminMixin
 from iadmin.tools import CSVImporter
@@ -76,10 +75,8 @@ class IProxy(object):
 class IAdminSite(AdminSite):
     def __init__(self, name='iadmin', app_name='iadmin', template_prefix='iadmin'):
         self.template_prefix = template_prefix or app_name
-        ret = super(IAdminSite, self).__init__(name, app_name)
-        self._actions = {'delete_selected': iadmin.actions.delete.delete_selected}
+        super(IAdminSite, self).__init__(name, app_name)
         self._global_actions = self._actions.copy()
-        return ret
 
     @property
     def password_change_template(self):

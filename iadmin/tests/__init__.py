@@ -1,7 +1,6 @@
 from django.conf import settings
 from importer import *
 from changelist import *
-from mass_update import *
 
 if getattr(settings,'ENABLE_SELENIUM', True):
     try:

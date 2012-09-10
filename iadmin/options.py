@@ -23,7 +23,6 @@ from iadmin.widgets import IRelatedFieldWidgetWrapper
 
 from .views import IChangeList
 from django.utils.translation import ugettext as _, ungettext
-import iadmin.actions as ac
 
 __all__ = ['IModelAdmin', 'ITabularInline']
 
@@ -52,7 +51,6 @@ class IModelAdminMixin(object):
     pagination_template = 'pagination.html'
     add_undefined_fields = False
     list_display_rel_links = ()
-    actions = [ac.mass_update, ac.export_to_csv, ac.export_as_json, ac.graph_queryset]
 
     class Media:
         js = ('iadmin/js/iadmin.js',

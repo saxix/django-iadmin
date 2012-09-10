@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import User, Group, Permission
-from iadmin.actions import mass_update
 from iadmin.filters import RelatedFieldCheckBoxFilter
 from iadmin.options import ITabularInline, IModelAdmin, IModelAdminMixin
 
@@ -14,7 +13,6 @@ class IUserAdmin(IModelAdminMixin, UserAdmin):
 
     list_filter = ( ('groups', RelatedFieldCheckBoxFilter), )
     search_fields = ('username', )
-    actions = [mass_update]
 
     def _groups(self, obj):
         return ",".join([o.name for o in obj.groups.all()])

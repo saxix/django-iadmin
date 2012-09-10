@@ -1,4 +1,4 @@
-VERSION = __version__ = (0, 1, 10, 'rc', 0)
+VERSION = __version__ = (0, 1, 11, 'alpha', 0)
 __author__ = 'sax'
 import iadmin
 
