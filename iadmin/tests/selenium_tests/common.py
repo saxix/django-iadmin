@@ -1,21 +1,18 @@
 from django.conf import settings, global_settings
 from django.test import LiveServerTestCase
-import os
 import selenium.webdriver.firefox.webdriver
 import selenium.webdriver.chrome.webdriver
 import time
-import iadmin
-TEST_TEMPLATES_DIR = os.path.join(os.path.dirname(iadmin.__file__), 'tests', 'templates')
+from iadmin.tests.common import SETTINGS
 
 
 class SeleniumTestCase(LiveServerTestCase):
     urls = 'iadmin.tests.urls'
-    fixtures = ['test.json', ]
+    fixtures = ['iadmin_test.json', ]
 
     def _pre_setup(self):
         LiveServerTestCase._pre_setup(self)
-        self.sett = self.settings(MIDDLEWARE_CLASSES=global_settings.MIDDLEWARE_CLASSES,
-            TEMPLATE_DIRS=[TEST_TEMPLATES_DIR])
+        self.sett = self.settings(**SETTINGS)
         self.sett.enable()
 
     def _post_teardown(self):
@@ -76,8 +73,7 @@ class FireFoxLiveTest(FirefoxDriverMixin, SeleniumTestCase):
         'iadmin',
         'django.contrib.admin',
         'django.contrib.admindocs',
-        'geo',
-        )
+        'geo')
 
     def setUp(self):
         self.settings(INSTALLED_APPS=FireFoxLiveTest.INSTALLED_APPS)
