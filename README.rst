@@ -25,8 +25,10 @@ Project links
 -------------
 
 * Project home page: https://github.com/saxix/django-iadmin
+* Documentation: http://django-iadmin.readthedocs.org/en/latest/
 * Isssue tracker: https://github.com/saxix/django-iadmin/issues?sort
 * Download: http://pypi.python.org/pypi/django-iadmin/
+
 
 Installation
 ------------
