@@ -621,7 +621,8 @@ div.breadcrumbs {
 
 .viewlink {
     padding-left: 12px;
-    background: url(../img/icon_viewlink.gif) 0 .2em no-repeat;
+    /* This gif does not exists! */
+    /*background: url(../img/icon_viewlink.gif) 0 .2em no-repeat;*/
 }
 
 .deletelink {
