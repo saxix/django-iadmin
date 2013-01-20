@@ -2,6 +2,18 @@
 Django iAdmin
 ==============
 
+This repository is not maintained, and will not be updated.
+Some functionalities have been moved to external applications. Please take a look at:
+
+    https://github.com/saxix/django-adminactions
+    https://github.com/saxix/django-ichangelist
+    https://github.com/saxix/django-adminfilters
+
+
+
+
+
+
 .. image:: https://secure.travis-ci.org/saxix/django-iadmin.png?branch=master
    :target: http://travis-ci.org/saxix/django-iadmin/
 
