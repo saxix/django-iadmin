@@ -7,7 +7,12 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.db import transaction
 from django.db.models.fields import AutoField
 from django.db.models.related import RelatedObject
-from django.db.models.sql.constants import LOOKUP_SEP, QUERY_TERMS
+from django.db.models.sql.constants import QUERY_TERMS
+# Django 1.5 compatibility
+try:
+    from django.db.models.constants import LOOKUP_SEP  # Django 1.5
+except ImportError:
+    from django.db.models.sql.constants import LOOKUP_SEP  # Django 1.4
 from django.db import models, transaction, router
 from django.contrib.admin.util import unquote, flatten_fieldsets, get_deleted_objects, model_format_dict
 from django.forms.formsets import all_valid
